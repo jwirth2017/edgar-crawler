@@ -38,6 +38,17 @@ export function paletteFor(M, levelKey, room) {
   };
 }
 
+/**
+ * A room with a `phase2` block is built twice: as configured in group `<level>@1`
+ * and with the phase2 overrides in `<level>@2` (only the matching one shows).
+ * Rooms without it are built once in the level's own group.
+ */
+export function variants(key, room) {
+  if (!room || !room.phase2) return [[room, key]];
+  const { phase2, ...p1 } = room;
+  return [[p1, `${key}@1`], [{ ...p1, ...phase2 }, `${key}@2`]];
+}
+
 export const floorZ = (levelKey, room) => FL(levelKey).floor + ((room && room.floorOffset) || 0);
 const ceilingOf = (levelKey, room) => (room && room.ceiling) || FL(levelKey).ceiling;
 
@@ -128,14 +139,14 @@ export function buildLevelWalls(B, M, key) {
         B.box(key, M.drywall, ...rectAlong(w, p.a, p.b, -t / 2, t / 2), p.z0, p.z1, { collide: true });
         if (ext) cladding(B, M, key, w, p, out, t, zRef);
         // room-side wall finish (painted block, bare drywall) on unfinished rooms
-        for (const [room, sign] of [[A, -1], [C, 1]]) {
+        for (const [base, sign] of [[A, -1], [C, 1]]) for (const [room, grp] of variants(key, base)) {
           if (!room || room.void || room.hall) continue;
           const wf = finishOf(key, room).walls;
           if (!wf) continue;
           const zf = floorZ(key, room);
           const z0 = Math.max(p.z0, zf);
           const z1 = Math.min(p.z1, zf + ceilingOf(key, room));
-          if (z1 > z0) B.box(key, M.get(wf), ...rectAlong(w, Math.max(p.a, w.axis === 'y' ? room.x : room.y), Math.min(p.b, w.axis === 'y' ? room.x + room.w : room.y + room.d), sign * (t / 2), sign * (t / 2 + 0.03)), z0, z1);
+          if (z1 > z0) B.box(grp, M.get(wf), ...rectAlong(w, Math.max(p.a, w.axis === 'y' ? room.x : room.y), Math.min(p.b, w.axis === 'y' ? room.x + room.w : room.y + room.d), sign * (t / 2), sign * (t / 2 + 0.03)), z0, z1);
         }
       }
       // each door / window unit is built once, at full width, in the segment holding its middle
@@ -342,13 +353,15 @@ export function buildLevelFloors(B, M, key) {
     if (r.void || r.stair) continue;
     const z = floorZ(key, r);
     // finish flooring on top, drywall structure below (so ceilings read as ceilings)
-    B.box(key, floorMaterial(M, key, r), r.x, r.x + r.w, r.y, r.y + r.d, z - 0.15, z);
-    const fin = finishOf(key, r);
-    if (!r.hall && fin.ceiling) {
-      const zc = z + ceilingOf(key, r);
-      B.box(key, M.get(fin.ceiling), r.x + 0.2, r.x + r.w - 0.2, r.y + 0.2, r.y + r.d - 0.2, zc - 0.03, zc);
+    for (const [v, grp] of variants(key, r)) {
+      B.box(grp, floorMaterial(M, key, v), v.x, v.x + v.w, v.y, v.y + v.d, z - 0.15, z);
+      const fin = finishOf(key, v);
+      if (!v.hall && fin.ceiling) {
+        const zc = z + ceilingOf(key, v);
+        B.box(grp, M.get(fin.ceiling), v.x + 0.2, v.x + v.w - 0.2, v.y + 0.2, v.y + v.d - 0.2, zc - 0.03, zc);
+      }
+      if (!v.hall && fin.roughIn) roughIn(B, M, grp, v, z, ceilingOf(key, v));
     }
-    if (!r.hall && fin.roughIn) roughIn(B, M, key, r, z, ceilingOf(key, r));
     B.box(key, M.drywall, r.x, r.x + r.w, r.y, r.y + r.d, slabBottom(key, r), z - 0.15);
     B.surface(r.x, r.x + r.w, r.y, r.y + r.d, z, `${key}:${r.id}`);
   }
@@ -499,7 +512,11 @@ export function buildLevelFurniture(B, M, key) {
     if (f.type === 'chimney') continue;
     const room = roomAt(rooms, f.x + f.w / 2, f.y + f.d / 2);
     const base = floorZ(key, room) + (typeof f.elev === 'number' ? f.elev : 0);
-    furniture(B, M, key, f, base, room, paletteFor(M, key, room));
+    // phase-only furniture (e.g. the Phase 2 theater seating) goes in `<level>@<phase>`
+    const v = variants(key, room).find(([, g]) => !f.phase || g.endsWith(`@${f.phase}`)) || [room];
+    B.phase = f.phase || null;
+    furniture(B, M, f.phase ? `${key}@${f.phase}` : key, f, base, v[0], paletteFor(M, key, v[0]));
+    B.phase = null;
   }
 }
 
@@ -508,7 +525,7 @@ function buildLabels(key, root) {
   for (const r of FL(key).rooms) {
     if (r.stair) continue;
     const div = document.createElement('div');
-    div.className = 'room-label';
+    div.className = r.void ? 'room-label no-size' : 'room-label';
     div.innerHTML = `<b>${r.name}</b>${r.void ? '' : `<span>${fmtFeet(r.w)} × ${fmtFeet(r.d)}</span>`}`;
     const obj = new CSS2DObject(div);
     obj.position.set(r.x + r.w / 2, floorZ(key, r) + (r.void ? 1 : 3.2), r.y + r.d / 2);

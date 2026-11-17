@@ -25,6 +25,8 @@
         line-height: 1.25; white-space: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
       .room-label b { display: block; font-weight: 650; }
       .room-label span { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .hide-names .room-label b, .hide-sizes .room-label span { display: none; }
+      .hide-names.hide-sizes .room-label, .hide-names .room-label.no-size { display: none; }
 
       #panel { position: fixed; top: 12px; left: 12px; width: 268px; max-height: calc(100vh - 24px); overflow: auto;
         background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
@@ -111,6 +113,14 @@
           <button data-view="main">Main</button>
           <button data-view="upper">Upper</button>
         </div>
+      </div>
+      <div class="section">
+        <div class="cap">Room labels</div>
+        <div class="btns" id="labelToggles">
+          <button data-label="names" aria-pressed="true">Room names</button>
+          <button data-label="sizes" aria-pressed="true">Room sizes</button>
+        </div>
+        <div class="note">Shown in the Basement, Main and Upper views.</div>
       </div>
       <div class="section">
         <div class="cap">Phase</div>

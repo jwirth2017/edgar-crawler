@@ -60,7 +60,7 @@ scene.add(sunLight, sunLight.target);
 // ─── build the model ─────────────────────────────────────────────────────────
 const M = makeMaterials();
 const groups = {};
-for (const g of [...LEVELS, ...LEVELS.map((l) => `ceil_${l}`), 'roof', 'site', 'phase1', 'phase2', 'poolhouse']) {
+for (const g of [...LEVELS, ...LEVELS.map((l) => `ceil_${l}`), ...LEVELS.flatMap((l) => [`${l}@1`, `${l}@2`]), 'roof', 'site', 'phase1', 'phase2', 'poolhouse']) {
   groups[g] = new THREE.Group();
   groups[g].name = g;
   scene.add(groups[g]);
@@ -86,6 +86,10 @@ const walker = new Walker(camera, renderer.domElement, { colliders: B.colliders,
 
 // ─── phase (1 = initial build, 2 = pool + pool house) ─────────────────────────
 let phase = phases.default;
+/** Phase-only parts of a level (e.g. the Phase 2 theater) follow both the level and the phase. */
+function syncPhaseVariants() {
+  for (const l of LEVELS) for (const ph of [1, 2]) groups[`${l}@${ph}`].visible = groups[l].visible && phase === ph;
+}
 function setPhase(ph) {
   phase = ph;
   groups.phase1.visible = ph === 1;
@@ -93,10 +97,11 @@ function setPhase(ph) {
   groups.poolhouse.visible = ph === 2;
   terrainMeshes[0].userData.setPhase(ph);
   walker.phase = ph;
+  syncPhaseVariants();
   document.querySelectorAll('#phase button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.phase) === ph)));
   document.getElementById('phaseNote').textContent = ph === 1
     ? 'Initial build: paver grid and lawn; blue-capped posts mark the utility stub-outs for Phase 2.'
-    : 'Adds the 16 × 36 pool, raised hot tub, pool deck and ~800 sq ft pool house.';
+    : 'Adds the 16 × 36 pool, raised hot tub, pool deck, ~800 sq ft pool house and the finished theater.';
 }
 document.querySelectorAll('#phase button').forEach((b) => b.addEventListener('click', () => setPhase(Number(b.dataset.phase))));
 setPhase(phase);
@@ -123,6 +128,7 @@ function setVisibility(level) {
     groups[`ceil_${l}`].visible = !level || i < idx;
   });
   groups.roof.visible = !level;
+  syncPhaseVariants();
   setLabels(level);
 }
 
@@ -166,6 +172,21 @@ function updateHud() {
 walker.onChange = updateHud;
 
 document.querySelectorAll('#views button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.view)));
+
+// ─── room label toggles (names / sizes) ──────────────────────────────────────
+const labelPrefs = { names: true, sizes: true };
+try { Object.assign(labelPrefs, JSON.parse(localStorage.getItem('labelPrefs') || '{}')); } catch { /* no storage */ }
+function applyLabelPrefs() {
+  document.body.classList.toggle('hide-names', !labelPrefs.names);
+  document.body.classList.toggle('hide-sizes', !labelPrefs.sizes);
+  document.querySelectorAll('#labelToggles button').forEach((b) => b.setAttribute('aria-pressed', String(labelPrefs[b.dataset.label])));
+}
+document.querySelectorAll('#labelToggles button').forEach((b) => b.addEventListener('click', () => {
+  labelPrefs[b.dataset.label] = !labelPrefs[b.dataset.label];
+  try { localStorage.setItem('labelPrefs', JSON.stringify(labelPrefs)); } catch { /* no storage */ }
+  applyLabelPrefs();
+}));
+applyLabelPrefs();
 
 // ─── phone layout: collapsible bottom sheet, joystick ────────────────────────
 const panel = document.getElementById('panel');

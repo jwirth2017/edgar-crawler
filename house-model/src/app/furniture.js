@@ -97,7 +97,7 @@ export function furniture(B, M, g, f, base, room, P) {
     case 'tv': {
       box(M.cabinet, R(f), 0, h);
       const thin = f.w > f.d ? [f.x + 0.3, f.x + f.w - 0.3, f.y + f.d / 2 - 0.08, f.y + f.d / 2 + 0.08] : [f.x + f.d / 2 - 0.08, f.x + f.d / 2 + 0.08, f.y + 0.3, f.y + f.d - 0.3];
-      box(M.tv, thin, h + 0.6, h + 3.4);
+      box(M.tv, thin, h + 0.6, h + 0.6 + (f.screenH || 2.8));
       break;
     }
     case 'toilet':

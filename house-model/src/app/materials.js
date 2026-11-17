@@ -369,6 +369,10 @@ export function makeMaterials() {
     chrome: std({ color: '#d4d7da', roughness: 0.15, metalness: 1 }),
     fiberglass: std({ color: '#fbfbf8', roughness: 0.3 }),
     acrylic: std({ color: '#ffffff', roughness: 0.2 }),
+    // Phase 2 theater: dark carpet, charcoal fabric acoustic panels, dark ceiling
+    theaterCarpet: std({ map: texture('carpet'), color: '#4a4048', roughness: 1 }),
+    acoustic: std({ color: '#2c2b31', roughness: 1 }),
+    acousticCeiling: std({ color: '#1d1c21', roughness: 1 }),
     duct: std({ color: '#c9ccce', roughness: 0.45, metalness: 0.25 }),
     eBox: std({ color: '#2b5fae', roughness: 0.6 }),
     wire: std({ color: '#e4c24a', roughness: 0.6 }),

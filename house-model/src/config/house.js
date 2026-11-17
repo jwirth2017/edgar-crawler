@@ -357,8 +357,10 @@ export const floors = {
         note: 'unfinished', finish: { floor: 'stallMats', walls: 'paintedBlock' } },
       { id: 'sim',     name: 'Golf Sim Bay',   use: 'rec',  x: 18, y: 18, w: 14, d: 22,
         floorOffset: -2, ceiling: 11, note: "11' ceiling, slab dropped 2'", finish: { floor: 'turf' } },
+      // Phase 1 leaves the theater an unfinished shell with rough-in; Phase 2 finishes it
       { id: 'theater', name: 'Theater',        use: 'rec',  x: 32, y: 20, w: 20, d: 20, finished: false,
-        note: 'unfinished', finish: { roughIn: true } },
+        note: 'finished in Phase 2', finish: { roughIn: true },
+        phase2: { finished: true, note: 'Phase 2', finish: { floor: 'theaterCarpet', walls: 'acoustic', ceiling: 'acousticCeiling' } } },
     ],
     openPlan: [['lounge', '_hall'], ['stair', '_hall']],
     openings: [
@@ -380,15 +382,15 @@ export const floors = {
       // suite and lounge doors
       { kind: 'door',    on: 'y', at: 12, from: 2,    to: 4.5 },              // guest closet
       { kind: 'door',    on: 'y', at: 12, from: 8.5,  to: 11 },               // guest → bath
-      { kind: 'opening', on: 'x', at: 40, from: 5,    to: 12 },               // gym
+      { kind: 'door',    on: 'x', at: 40, from: 14.5, to: 17.5, swing: -1 },  // gym, toward the interior (frees the TV wall)
       { kind: 'door',    on: 'y', at: 20, from: 33.5, to: 36.5 },             // theater (from lounge alcove)
     ],
     furniture: [
-      // theater — screen on the buried front wall, two rows of four recliners
-      { type: 'screen',   x: 35.5, y: 39.4, w: 13, d: 0.3, h: 7.3, elev: 1.5, label: 'Screen' },
-      { type: 'recliner', x: 36,   y: 29,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y' },
-      { type: 'platform', x: 34,   y: 20.3, w: 15.7, d: 6, h: 1 },
-      { type: 'recliner', x: 36,   y: 22,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', elev: 1 },
+      // theater (Phase 2) — screen on the buried front wall, two rows of four recliners
+      { type: 'screen',   x: 35.5, y: 39.4, w: 13, d: 0.3, h: 7.3, elev: 1.5, label: 'Screen', phase: 2 },
+      { type: 'recliner', x: 36,   y: 29,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', phase: 2 },
+      { type: 'platform', x: 34,   y: 20.3, w: 15.7, d: 6, h: 1, phase: 2 },
+      { type: 'recliner', x: 36,   y: 22,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', elev: 1, phase: 2 },
       // golf sim — hitting toward the front wall
       { type: 'screen', x: 19.5, y: 39.4, w: 11, d: 0.3, h: 9.5, elev: 0.5, label: 'Impact screen' },
       { type: 'mat',    x: 22.5, y: 27,   w: 5,  d: 5,   h: 0.15, label: 'Hitting mat' },
@@ -397,11 +399,12 @@ export const floors = {
       // sports lounge
       { type: 'counter', x: 20.5, y: 15.7, w: 13,  d: 2,   h: 3, label: 'Wet bar', sink: true },
       { type: 'island',  x: 20.5, y: 11.5, w: 13,  d: 2,   h: 3.5 },
-      { type: 'tv',      x: 38.2, y: 1,    w: 1.5, d: 4,   h: 2 },
-      { type: 'sofa',    x: 29,   y: 2,    w: 3.5, d: 7.5, h: 2.8, faces: '+x', label: 'Sofa' },
-      { type: 'table',   x: 33.5, y: 4,    w: 2.5, d: 3.5, h: 1.4 },
+      // big sports TV (~98") centered on the gym wall, sofa facing it
+      { type: 'tv',      x: 38.2, y: 3,    w: 1.5, d: 7.6, h: 2, screenH: 4, label: '98" TV' },
+      { type: 'sofa',    x: 29,   y: 3,    w: 3.5, d: 7.5, h: 2.8, faces: '+x', label: 'Sofa' },
+      { type: 'table',   x: 33.5, y: 5,    w: 2.5, d: 3.5, h: 1.4 },
       // gym (unfinished: sealed concrete with rubber stall mats)
-      { type: 'equipment', x: 41.5, y: 14,  w: 6.5, d: 3,   h: 4.5 },
+      { type: 'equipment', x: 44.5, y: 16.5, w: 6.5, d: 3,   h: 4.5 },
       { type: 'equipment', x: 46.5, y: 8,   w: 5,   d: 4.5, h: 7.5 },
       { type: 'bench',     x: 43,   y: 3,   w: 1.8, d: 5,   h: 1.5 },
       // guest suite
@@ -539,19 +542,21 @@ export const phases = {
       footprint: [{ x: 10, y: -115, w: 32, d: 25 }],   // 32 x 25 = 800 sq ft
       rooms: [
         { id: 'phGreat', name: 'Gathering Room', use: 'living', x: 18, y: -115, w: 24, d: 25, finish: { floor: 'slateTile' } },
-        { id: 'phEntry', name: 'Entry / Towels', use: 'living', x: 10, y: -105, w: 8,  d: 15, finish: { floor: 'slateTile' } },
-        { id: 'phBath',  name: 'Full Bath',      use: 'bath',   x: 10, y: -115, w: 8,  d: 10 },
+        // bath on the porch side: swimmers use the outside door, no wet feet through the room
+        { id: 'phBath',  name: 'Pool Bath',      use: 'bath',   x: 10, y: -100, w: 8,  d: 10 },
+        { id: 'phTowel', name: 'Towels / Storage', use: 'living', x: 10, y: -115, w: 8,  d: 15, finish: { floor: 'slateTile' } },
       ],
-      openPlan: [['phGreat', 'phEntry']],
+      openPlan: [['phGreat', 'phTowel']],
       openings: [
-        { kind: 'glassdoor', on: 'y', at: -90, from: 13,   to: 21 },      // onto the porch
+        { kind: 'door',      on: 'y', at: -90, from: 13,   to: 16, swing: -1 }, // bath, straight off the porch
+        { kind: 'glassdoor', on: 'y', at: -90, from: 19,   to: 24.5 },    // onto the porch
         { kind: 'glassdoor', on: 'y', at: -90, from: 26,   to: 38 },
         { kind: 'window',    on: 'x', at: 42,  from: -110, to: -104 },
         { kind: 'window',    on: 'x', at: 42,  from: -100, to: -94 },
-        { kind: 'window',    on: 'x', at: 10,  from: -101, to: -95 },
+        { kind: 'window',    on: 'x', at: 10,  from: -98.5, to: -94.5, sill: 5.5 }, // bath, high
         { kind: 'window',    on: 'y', at: -115, from: 28,  to: 36, sill: 4.5 },   // over the wet bar
-        { kind: 'window',    on: 'y', at: -115, from: 12.5, to: 15.5, sill: 5.5 }, // bath, high
-        { kind: 'door',      on: 'y', at: -105, from: 12,  to: 14.7, swing: -1 },  // bath
+        { kind: 'window',    on: 'y', at: -115, from: 12.5, to: 15.5, sill: 4.5 },
+        { kind: 'door',      on: 'y', at: -100, from: 11,  to: 13.5 },            // bath, from inside
       ],
       furniture: [
         // wet bar on the back wall (sink + undercounter fridge, no cooking)
@@ -565,12 +570,12 @@ export const phases = {
         { type: 'chair',     x: 30.5, y: -98,    w: 3,   d: 3,  h: 2.7 },
         { type: 'tv',        x: 40.3, y: -101,   w: 1.5, d: 6,  h: 2 },
         { type: 'table',     x: 34,   y: -108,   w: 4,   d: 4,  h: 2.5, chairs: 4 },
-        // full bath
-        { type: 'shower',    x: 10.3, y: -114.7, w: 4,   d: 4,  h: 7.5 },
-        { type: 'counter',   x: 15.9, y: -114.7, w: 1.8, d: 4.5, h: 3, sink: true },
-        { type: 'toilet',    x: 15.7, y: -109,   w: 1.8, d: 2.3, h: 1.4 },
-        // entry: towel / storage wall
-        { type: 'tall',      x: 10.3, y: -104,   w: 1.6, d: 8,  h: 7 },
+        // pool bath: shower, vanity, toilet
+        { type: 'shower',    x: 13.8, y: -99.7,  w: 3.9, d: 4,  h: 7.5 },
+        { type: 'counter',   x: 10.3, y: -97,    w: 1.8, d: 4.5, h: 3, sink: true },
+        { type: 'toilet',    x: 15.9, y: -94.8,  w: 1.8, d: 2.3, h: 1.4 },
+        // towel / storage wall behind the bath
+        { type: 'tall',      x: 10.3, y: -114,   w: 1.6, d: 8,  h: 7 },
       ],
       porch: { x: 10, y: -90, w: 32, d: 8 },
       roof: { id: 'poolHouse', type: 'gable', x: 10, y: -115, w: 32, d: 33, ridge: 'y', eave: 0, pitch: 8, overhang: 1.5 },

@@ -128,8 +128,10 @@ function drawFurniture(list = [], rooms = []) {
   let s = '';
   for (const f of list) {
     const strong = ['screen', 'mat', 'island', 'bed', 'car', 'hanging'].includes(f.type);
+    // Phase 2 furniture is drawn dashed blue, like the other Phase 2 items
+    const stroke = f.phase === 2 ? `stroke="#2f7fb8" stroke-dasharray="0.4 0.3"` : `stroke="${FURN}"`;
     s += rect(f.x, f.y, f.w, f.d,
-      `fill="${f.type === 'mat' ? '#cfe3c4' : '#ffffff'}" fill-opacity="0.7" stroke="${FURN}" stroke-width="${strong ? 0.14 : 0.09}" rx="0.15"`);
+      `fill="${f.type === 'mat' ? '#cfe3c4' : '#ffffff'}" fill-opacity="0.7" ${stroke} stroke-width="${strong ? 0.14 : 0.09}" rx="0.15"`);
     if (f.type === 'bed') {
       // pillow end = the end against the nearest wall is unknown here; just mark a band
       // pillow band at whichever end of the bed sits against a room wall
