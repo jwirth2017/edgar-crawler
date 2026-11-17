@@ -126,7 +126,7 @@ function drawStair(r, levelKey) {
 function drawFurniture(list = [], rooms = []) {
   let s = '';
   for (const f of list) {
-    const strong = ['screen', 'mat', 'island', 'bed', 'car'].includes(f.type);
+    const strong = ['screen', 'mat', 'island', 'bed', 'car', 'hanging'].includes(f.type);
     s += rect(f.x, f.y, f.w, f.d,
       `fill="${f.type === 'mat' ? '#cfe3c4' : '#ffffff'}" fill-opacity="0.7" stroke="${FURN}" stroke-width="${strong ? 0.14 : 0.09}" rx="0.15"`);
     if (f.type === 'bed') {
@@ -140,6 +140,12 @@ function drawFurniture(list = [], rooms = []) {
       } else {
         const yy = Math.abs(f.y - r.y) < Math.abs(r.y + r.d - f.y - f.d) ? f.y + 1.6 : f.y + f.d - 1.6;
         s += line(f.x, yy, f.x + f.w, yy, st);
+      }
+    }
+    if (f.rods) {
+      const st = `stroke="${FURN}" stroke-width="0.06" stroke-dasharray="0.3 0.2"`;
+      for (const k of [0.35, 0.65]) {
+        s += f.d > f.w ? line(f.x + f.w * k, f.y, f.x + f.w * k, f.y + f.d, st) : line(f.x, f.y + f.d * k, f.x + f.w, f.y + f.d * k, st);
       }
     }
     if (f.seats) {
@@ -338,7 +344,6 @@ export function floorPlanSVG(key) {
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
     s += note(69, 20, 'crawlspace under', 0.8);
     s += note(69, 21.3, 'primary wing', 0.8);
-    s += rect(porch.x, porch.y, porch.w, porch.d, `fill="none" stroke="#b9b6ab" stroke-width="0.12" stroke-dasharray="0.6 0.5"`);
   }
 
   // room fills
