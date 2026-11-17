@@ -1,5 +1,5 @@
-// Derives walls from the room rectangles in the config. Shared by the 2D plan
-// and (later) the 3D model so both always agree.
+// Derives walls, hallways and plan checks from the room rectangles in the
+// config. Shared by the 2D plan and the 3D model so both always agree.
 
 const EPS = 1e-6;
 
@@ -29,24 +29,30 @@ export function allRooms(floor) {
   return floor._all;
 }
 
+const pairKey = (a, b) => [a, b].sort().join('|');
+
 /**
- * Returns wall runs: { axis, at, from, to, kind: 'exterior'|'interior', openings: [] }
+ * Returns { walls, unplaced }.
+ * wall = { axis, at, from, to, kind: 'exterior'|'interior', openings: [] }
  * axis 'x' means the wall lies on the line x = at and runs along y.
  */
 export function deriveWalls(floor) {
   const rooms = allRooms(floor);
-  const open = new Set((floor.openPlan || []).map((p) => [...p].sort().join('|')));
+  const open = new Set((floor.openPlan || []).map((p) => pairKey(...p)));
+  const parts = floor.partitions || [];
   const walls = [];
 
   for (const axis of ['x', 'y']) {
     const [pos, len, lo, sz] = axis === 'x' ? ['x', 'w', 'y', 'd'] : ['y', 'd', 'x', 'w'];
     const lines = [...new Set(rooms.flatMap((r) => [r[pos], r[pos] + r[len]]))];
     for (const c of lines) {
-      const cuts = [...new Set(
-        rooms
+      const myParts = parts.filter((p) => p.on === axis && Math.abs(p.at - c) < EPS);
+      const cuts = [...new Set([
+        ...rooms
           .filter((r) => r[pos] <= c + EPS && r[pos] + r[len] >= c - EPS)
           .flatMap((r) => [r[lo], r[lo] + r[sz]]),
-      )].sort((a, b) => a - b);
+        ...myParts.flatMap((p) => [p.from, p.to]),
+      ])].sort((a, b) => a - b);
       let run = null;
       for (let i = 0; i < cuts.length - 1; i++) {
         const a = cuts[i];
@@ -58,8 +64,9 @@ export function deriveWalls(floor) {
         let kind = null;
         if ((A && A.id) !== (B && B.id)) {
           if (!A || !B) kind = 'exterior';
-          else if (!open.has([A.id, B.id].sort().join('|'))) kind = 'interior';
+          else if (!open.has(pairKey(A.id, B.id))) kind = 'interior';
         }
+        if (!kind && A && B && myParts.some((p) => p.from <= a + EPS && p.to >= b - EPS)) kind = 'interior';
         if (kind && run && run.kind === kind && Math.abs(run.to - a) < EPS) {
           run.to = b;
         } else {
@@ -95,7 +102,7 @@ export function solidSpans(wall) {
   return spans;
 }
 
-/** Gross (centerline) areas for a floor. */
+/** Gross (centerline) areas for a floor. Voids are excluded. */
 export function floorAreas(floor) {
   let finished = 0;
   let unfinished = 0;
@@ -121,6 +128,66 @@ export function overlaps(floor) {
     }
   }
   return out;
+}
+
+/**
+ * Hallway spots narrower than `min` ft. Open-plan rooms that adjoin the hall
+ * count as walkable width (a 2 ft strip beside an open kitchen is fine).
+ */
+export function narrowHalls(floor, min) {
+  const rooms = allRooms(floor);
+  const open = new Set((floor.openPlan || []).map((p) => pairKey(...p)));
+  const walkable = rooms.filter((r) => !r.void && (r.hall || open.has(pairKey(r.id, '_hall'))));
+  const halls = rooms.filter((r) => r.hall);
+  const step = 0.25;
+  const inside = (r, x, y) => x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.d;
+  const walk = (x, y) => walkable.some((r) => inside(r, x, y));
+  const run = (x, y, dx, dy) => {
+    let n = 1;
+    for (let k = 1; k < 400 && walk(x + dx * k * step, y + dy * k * step); k++) n++;
+    for (let k = 1; k < 400 && walk(x - dx * k * step, y - dy * k * step); k++) n++;
+    return n * step;
+  };
+  const issues = [];
+  for (const h of halls) {
+    let worst = Infinity;
+    for (let x = h.x + step / 2; x < h.x + h.w; x += step) {
+      for (let y = h.y + step / 2; y < h.y + h.d; y += step) {
+        worst = Math.min(worst, run(x, y, 1, 0), run(x, y, 0, 1));
+      }
+    }
+    if (worst < min - 0.01) issues.push({ ...h, width: worst });
+  }
+  return issues;
+}
+
+/** Rooms that cannot be reached from the stairs through doors / open plan. */
+export function unreachable(floor) {
+  const rooms = allRooms(floor).filter((r) => !r.void);
+  const id = (r) => (r ? r.id : '_outside');
+  const adj = new Map();
+  const link = (a, b) => {
+    if (!adj.has(a)) adj.set(a, new Set());
+    if (!adj.has(b)) adj.set(b, new Set());
+    adj.get(a).add(b);
+    adj.get(b).add(a);
+  };
+  for (const [a, b] of floor.openPlan || []) link(a, b);
+  const passable = ['door', 'entry', 'glassdoor', 'opening', 'garage'];
+  for (const o of floor.openings || []) {
+    if (!passable.includes(o.kind)) continue;
+    const m = (o.from + o.to) / 2;
+    const [p, q] = o.on === 'x' ? [[o.at - 0.3, m], [o.at + 0.3, m]] : [[m, o.at - 0.3], [m, o.at + 0.3]];
+    link(id(roomAt(rooms, ...p)), id(roomAt(rooms, ...q)));
+  }
+  const seen = new Set(['stair']);
+  const queue = ['stair'];
+  while (queue.length) {
+    for (const n of adj.get(queue.shift()) || []) {
+      if (!seen.has(n)) { seen.add(n); queue.push(n); }
+    }
+  }
+  return floor.rooms.filter((r) => !r.void && !seen.has(r.id));
 }
 
 export function fmtFeet(v) {

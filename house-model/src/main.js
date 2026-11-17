@@ -1,5 +1,5 @@
-import { floors, meta } from './config/house.js';
-import { deriveWalls, floorAreas, overlaps } from './model/layout.js';
+import { floors, meta, build, stair } from './config/house.js';
+import { deriveWalls, floorAreas, overlaps, narrowHalls, unreachable, fmtFeet } from './model/layout.js';
 import { floorPlanSVG, sitePlanSVG } from './plan/plan2d.js';
 
 const VIEWS = [
@@ -30,12 +30,16 @@ function show(key) {
   const problems = [
     ...deriveWalls(f).unplaced.map((o) => `opening at ${o.on}=${o.at}, ${o.from}–${o.to} is not on a wall`),
     ...overlaps(f).map(([p, q]) => `rooms "${p}" and "${q}" overlap`),
+    ...narrowHalls(f, build.minHall).map((h) => `hall at x ${h.x}–${h.x + h.w}, y ${h.y}–${h.y + h.d} is only ${fmtFeet(h.width)} wide`),
+    ...unreachable(f).map((r) => `${r.name} cannot be reached from the stairs`),
   ];
+  const rise = key === 'basement' ? stair.risers.basementToMain : stair.risers.mainToUpper;
   facts.innerHTML = `
     <span><b>${Math.round(a.finished).toLocaleString()} sq ft</b> finished (target ~${target.toLocaleString()}, ${diff >= 0 ? '+' : ''}${diff}%)</span>
-    ${a.unfinished ? `<span>${Math.round(a.unfinished).toLocaleString()} sq ft unfinished / garage</span>` : ''}
-    <span>${f.ceiling}' ceilings · floor at ${f.floor >= 0 ? '+' : ''}${f.floor}'</span>
-    ${problems.map((p) => `<span class="warn">⚠ ${p}</span>`).join('')}`;
+    ${a.unfinished ? `<span>${Math.round(a.unfinished).toLocaleString()} sq ft unfinished / garage / stair</span>` : ''}
+    <span>${f.ceiling}' ceilings · floor at ${f.floor >= 0 ? '+' : ''}${fmtFeet(f.floor)}</span>
+    <span>stair ${key === 'upper' ? 'down' : 'up'}: ${rise} risers × ${(stair.riser * 12).toFixed(2)}" · ${stair.tread * 12}" treads</span>
+    ${problems.length ? problems.map((p) => `<span class="warn">⚠ ${p}</span>`).join('') : `<span class="ok">✓ all rooms reachable · halls ≥ ${fmtFeet(build.minHall)}</span>`}`;
 }
 
 for (const v of VIEWS) {
