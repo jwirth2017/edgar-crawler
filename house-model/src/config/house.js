@@ -440,7 +440,9 @@ export const exterior = {
     x: 0, y: -14, w: 52, d: 14, floor: -0.15,
     pierSpacing: 13, pierSize: 2,           // stone piers down to the patio
     railing: 'cable', railHeight: 3.5,
-    stairs: { x: 48, y: -30, w: 4, d: 16 }, // down to the pool deck, at the wing end
+    // L-shaped stair down to the pool deck at the wing end: down toward the pool
+    // (west), a 4 x 4 landing, then back south to the patio
+    stairs: { x: 48, w: 4, firstRun: 8, riser: 7.25 / 12, tread: 10 / 12 },
     // covered section over the outdoor dining area: hip roof on cedar posts
     cover: { x: 16, y: -12.5, w: 18, d: 12.5, eave: 9.5, pitch: 4 },  // ridge stays below the upper rear window
     // outdoor kitchen on the open garage-side end, next to the pass-through:

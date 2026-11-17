@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { floors, exterior, site, phases } from '../config/house.js';
 import { grade } from '../model/terrain.js';
 import { furniture } from './furniture.js';
+import { deckStair } from '../model/deckStair.js';
 
 export function buildExterior(B, M, lanterns) {
   porch(B, M, lanterns);
@@ -93,17 +94,28 @@ function deck(B, M, lanterns) {
   for (let x = bc.x + 1; x < bc.x + bc.w - 0.5; x += 2.4) {
     B.box(g, M.black, x, x + 1.2, bc.y - 2.2, bc.y - 1, zTop, zTop + 2.6);
   }
-  // stairs down to the pool deck, solid treads on a stone base
-  const drop = zTop - patio;
-  const n = Math.ceil(drop / 0.6);
-  const rise = drop / n;
-  const run = st.d / n;
-  for (let k = 1; k <= n; k++) {
-    const y1 = d.y - (k - 1) * run;
-    B.box(g, M.deck, st.x, st.x + st.w, y1 - run, y1, patio, zTop - k * rise);
+  // L-shaped stairs down to the pool deck: solid treads, landing, two runs
+  const L = deckStair();
+  for (let k = 1; k < L.n1; k++) {
+    const top = L.zTop - k * L.rise;
+    B.box(g, M.deck, L.x0, L.x1, L.Y0 - k * L.t, L.Y0 - (k - 1) * L.t, patio, top);
   }
-  B.surface(st.x, st.x + st.w, st.y, d.y, (x, y) => patio + ((y - st.y) / st.d) * drop, 'deck-stair');
-  for (const sx of [st.x, st.x + st.w]) cableRail(B, M, g, [[sx, st.y], [sx, d.y]], zTop, d.railHeight, (y) => patio + ((y - st.y) / st.d) * drop);
+  B.box(g, M.deck, L.x0, L.x1, L.yL0, L.yL1, patio, L.zl);
+  for (let j = 1; j < L.n2; j++) {
+    const top = L.zl - j * L.rise;
+    B.box(g, M.deck, L.x0 - j * L.t, L.x0 - (j - 1) * L.t, L.yL0, L.yL1, patio, top);
+  }
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  B.surface(L.x0, L.x1, L.yL1, L.Y0, (x, y) => clamp(L.zTop - ((L.Y0 - y) / L.t - 0.5) * L.rise, L.zl, L.zTop), 'deck-stair');
+  B.surface(L.x0, L.x1, L.yL0, L.yL1, L.zl, 'deck-stair-landing');
+  B.surface(L.xEnd, L.x0, L.yL0, L.yL1, (x) => clamp(L.zl - ((L.x0 - x) / L.t - 0.5) * L.rise, patio, L.zl), 'deck-stair');
+  // rails: z of the tread at a plan point, for each run
+  const z1 = (y) => clamp(L.zTop - ((L.Y0 - y) / L.t) * L.rise, L.zl, L.zTop);
+  const z2 = (x) => clamp(L.zl - ((L.x0 - x) / L.t) * L.rise, patio, L.zl);
+  stairRail(B, M, g, [L.x1, L.Y0], [L.x1, L.yL0], (x, y) => z1(y), d.railHeight);          // outer side, run 1 + landing
+  stairRail(B, M, g, [L.x0, L.Y0], [L.x0, L.yL1], (x, y) => z1(y), d.railHeight);          // inner side, run 1
+  stairRail(B, M, g, [L.x1, L.yL0], [L.xEnd, L.yL0], (x) => (x >= L.x0 ? L.zl : z2(x)), d.railHeight); // outer side, landing + run 2
+  stairRail(B, M, g, [L.x0, L.yL1], [L.xEnd, L.yL1], (x) => z2(x), d.railHeight);          // inner side, run 2
   // covered section: cedar posts and beams (hip roof is built with the roofs)
   if (d.cover) {
     const c = d.cover;
@@ -118,6 +130,28 @@ function deck(B, M, lanterns) {
   // sconces on the rear wall
   for (const x of [16.5, 37.5]) lantern(B, M, lanterns, x, -0.5, 7);
   for (const x of [1.5, 14.5, 17, 35, 41, 52]) lantern(B, M, lanterns, x, -0.5, site.terrain.walkoutGrade + 7.2);
+}
+
+/** Black stair rail between two plan points: posts, a sloped top rail, and a collider; `zf(x, y)` is the tread height. */
+function stairRail(B, M, g, [xa, ya], [xb, yb], zf, h) {
+  const len = Math.hypot(xb - xa, yb - ya);
+  const n = Math.max(1, Math.ceil(len / 2));
+  const P = (i) => [xa + ((xb - xa) * i) / n, ya + ((yb - ya) * i) / n];
+  for (let i = 0; i <= n; i++) {
+    const [x, y] = P(i);
+    const z = zf(x, y);
+    if (i % 2 === 0 || i === n) B.box(g, M.rail, x - 0.1, x + 0.1, y - 0.1, y + 0.1, z, z + h);
+  }
+  for (let i = 0; i < n; i++) {
+    const [x0, y0] = P(i);
+    const [x1, y1] = P(i + 1);
+    const za = zf(x0, y0);
+    const zb = zf(x1, y1);
+    const r = [Math.min(x0, x1) - 0.08, Math.max(x0, x1) + 0.08, Math.min(y0, y1) - 0.08, Math.max(y0, y1) + 0.08];
+    B.box(g, M.rail, ...r, Math.min(za, zb) + h - 0.12, Math.max(za, zb) + h);
+    for (const k of [0.35, 0.65]) B.box(g, M.steel, ...r, Math.min(za, zb) + h * k - 0.02, Math.max(za, zb) + h * k - 0.02 + 0.04, { shadow: false });
+    B.collider(r[0] - 0.2, r[1] + 0.2, r[2] - 0.2, r[3] + 0.2, Math.min(za, zb), Math.max(za, zb) + h);
+  }
 }
 
 /** Black cable rail along a polyline. `zAt(t)` lets it follow a stair. */

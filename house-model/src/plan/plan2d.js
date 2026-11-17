@@ -3,6 +3,7 @@
 import { floors, exterior, site, build, stair, phases } from '../config/house.js';
 import { deriveWalls, solidSpans, allRooms, roomAt, fmtFeet } from '../model/layout.js';
 import { patioEdgeWall } from '../model/terrain.js';
+import { deckStair } from '../model/deckStair.js';
 
 const FILL = {
   living: '#f3ead7', bed: '#e3ebf3', bath: '#dcefe9', service: '#ecebe6',
@@ -284,6 +285,17 @@ function paverGrid(g, strokeW = 0.05) {
   return s;
 }
 
+/** L-shaped deck stair: two runs with tread lines and the landing. */
+function deckStairSVG(sw, fill = '#efe6d5') {
+  const L = deckStair();
+  const st = `fill="${fill}" stroke="${INK}" stroke-width="${sw}"`;
+  let s = '';
+  for (const r of [L.run1, L.landing, L.run2]) s += rect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0, st);
+  for (let k = 1; k < L.n1; k++) s += line(L.x0, L.Y0 - k * L.t, L.x1, L.Y0 - k * L.t, `stroke="${FURN}" stroke-width="${sw / 2}"`);
+  for (let j = 1; j < L.n2; j++) s += line(L.x0 - j * L.t, L.yL0, L.x0 - j * L.t, L.yL1, `stroke="${FURN}" stroke-width="${sw / 2}"`);
+  return s;
+}
+
 /** Deck outdoor kitchen footprint (L counter, grill, bar ledge, stools). */
 function kitchenSVG(sw, labels = false) {
   const k = exterior.deck.kitchen;
@@ -344,10 +356,9 @@ export function floorPlanSVG(key) {
     // deck
     s += rect(deck.x, deck.y, deck.w, deck.d, `fill="#e9dcc6" stroke="${INK}" stroke-width="0.12"`);
     s += piers(deck);
-    const st = deck.stairs;
-    s += rect(st.x, st.y, st.w, st.d, `fill="#efe6d5" stroke="${INK}" stroke-width="0.1"`);
-    for (let y = st.y + 1; y < st.y + st.d; y += 10 / 12) s += line(st.x, y, st.x + st.w, y, `stroke="${FURN}" stroke-width="0.05"`);
-    s += text(st.x - 0.8, st.y + 4, 'DN to pool deck', 0.8, `text-anchor="end" fill="#77746b" dominant-baseline="central"`);
+    s += deckStairSVG(0.1);
+    const L = deckStair();
+    s += text(L.xEnd - 0.8, (L.yL0 + L.yL1) / 2, 'DN to pool deck', 0.8, `text-anchor="end" fill="#77746b" dominant-baseline="central"`);
     s += kitchenSVG(0.1, true);
     if (deck.cover) {
       const c = deck.cover;
@@ -531,7 +542,7 @@ export function sitePlanSVG() {
   // deck + porch
   const { deck, porch, breezeway: bw } = exterior;
   s += rect(deck.x, deck.y, deck.w, deck.d, `fill="#d9c39d" stroke="${INK}" stroke-width="0.2"`);
-  s += rect(deck.stairs.x, deck.stairs.y, deck.stairs.w, deck.stairs.d, `fill="#d9c39d" stroke="${INK}" stroke-width="0.2"`);
+  s += deckStairSVG(0.2, '#d9c39d');
   s += kitchenSVG(0.15);
   s += lab(deck.x + deck.w / 2, deck.y + deck.d / 2, 'Deck (main level), covered patio below', 2);
   s += rect(porch.x, porch.y, porch.w, porch.d, `fill="#e9e3d5" stroke="${INK}" stroke-width="0.2"`);
