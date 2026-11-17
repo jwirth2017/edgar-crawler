@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>House Plans</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #f4f1ea; color: #1d1d1b;
+        font: 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      header {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+        padding: 14px 20px; border-bottom: 1px solid #dcd7ca; background: #fbfaf6;
+      }
+      h1 { font-size: 17px; margin: 0; font-weight: 650; }
+      h1 small { font-weight: 400; color: #77746b; margin-left: 8px; font-size: 13px; }
+      #tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+      #tabs button {
+        font: inherit; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+        border: 1px solid #cfc9ba; background: #fff; color: inherit;
+      }
+      #tabs button[aria-pressed='true'] { background: #1d1d1b; color: #fff; border-color: #1d1d1b; }
+      #facts { display: flex; flex-wrap: wrap; gap: 4px 20px; padding: 10px 20px; color: #55534d; font-size: 14px; }
+      #facts b { color: #1d1d1b; }
+      #facts .warn { color: #a3401c; }
+      #facts .ok { color: #3c7a3a; }
+      #stage { padding: 0 12px 16px; }
+      #stage svg { display: block; width: 100%; height: auto; max-height: calc(100vh - 120px); background: #fff; border: 1px solid #dcd7ca; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Modern White Farmhouse <small>plan review · <a href="./" style="color:inherit">open 3D model →</a></small></h1>
+      <nav id="tabs"></nav>
+    </header>
+    <div id="facts"></div>
+    <main id="stage"></main>
+    <script type="module" src="/src/plans-main.js"></script>
+  </body>
+</html>

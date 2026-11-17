@@ -453,4 +453,25 @@ export const site = {
   ],
 };
 
-export default { meta, build, stair, floors, exterior, site };
+// Sun & camera presets (3D view) ------------------------------------------------
+// The sun is computed from latitude, date and time. Change `latitude` to the
+// lot's real latitude for accurate shadows.
+export const sun = {
+  latitude: 36,          // degrees north
+  month: 6, day: 21,     // default date (summer solstice)
+  hour: 18.5,            // default time of day, 24 h clock (solar time)
+};
+
+// Camera presets. Exterior views orbit around `target`; interior views put
+// you in walkthrough mode at eye height, standing at `at` on `level`, looking
+// toward `look` (plan coordinates in feet), tilted by `pitch` radians.
+export const views = [
+  { id: 'front',   name: 'Front approach',  type: 'orbit', eye: [28, 118, 4],    target: [28, 18, 12] },
+  { id: 'pool',    name: 'Rear from pool',  type: 'orbit', eye: [30, -96, -5.5], target: [30, 0, 2] },
+  { id: 'kitchen', name: 'Kitchen → pass-through', type: 'walk', level: 'main', at: [28, 14], look: [28, -20] },
+  { id: 'living',  name: 'Living room',     type: 'walk', level: 'main', at: [38.5, 14.5], look: [56, 2] },
+  { id: 'sim',     name: 'Golf sim',        type: 'walk', level: 'basement', at: [28, 22.5], look: [28, 40], pitch: -0.22 },
+  { id: 'theater', name: 'Theater',         type: 'walk', level: 'basement', at: [46, 23.5], look: [46, 40], pitch: -0.2 },
+];
+
+export default { meta, build, stair, floors, exterior, site, sun, views };

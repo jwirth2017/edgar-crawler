@@ -3,41 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>House Model — Plan Review</title>
+    <title>Farmhouse 3D Model</title>
     <style>
-      :root { color-scheme: light; }
+      :root {
+        --panel: rgba(250, 249, 245, 0.94);
+        --ink: #1d1d1b;
+        --muted: #6b685f;
+        --line: #d8d3c6;
+        --accent: #1d1d1b;
+      }
       * { box-sizing: border-box; }
-      body {
-        margin: 0; background: #f4f1ea; color: #1d1d1b;
-        font: 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #a9c2d6; color: var(--ink);
+        font: 14px/1.4 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      #app { position: fixed; inset: 0; }
+      #app canvas { display: block; }
+      #labels { position: fixed; inset: 0; pointer-events: none; }
+      .room-label { text-align: center; color: var(--ink); background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 6px; padding: 3px 7px; font-size: 12px;
+        line-height: 1.25; white-space: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+      .room-label b { display: block; font-weight: 650; }
+      .room-label span { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+      #panel { position: fixed; top: 12px; left: 12px; width: 268px; max-height: calc(100vh - 24px); overflow: auto;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15); backdrop-filter: blur(6px); }
+      #panel h1 { font-size: 15px; margin: 0 0 2px; font-weight: 700; }
+      #panel .sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+      #panel .sub a { color: inherit; }
+      .section { margin-top: 12px; }
+      .section > .cap { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+      .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+      button { font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 8px; border: 1px solid #cdc7b8;
+        background: #fff; color: var(--ink); cursor: pointer; }
+      button:hover { border-color: #9d9786; }
+      button[aria-pressed='true'] { background: var(--accent); color: #fff; border-color: var(--accent); }
+      button.wide { width: 100%; }
+      .sunrow { display: flex; align-items: center; gap: 8px; }
+      input[type='range'] { width: 100%; accent-color: #c4682a; }
+      select { font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px; border: 1px solid #cdc7b8; background: #fff; }
+      #sunInfo { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+      #hud { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(20, 20, 20, 0.72);
+        color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 13px; display: none; text-align: center; max-width: calc(100vw - 32px); }
+      #crosshair { position: fixed; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.85); display: none; pointer-events: none; }
+      #loading { position: fixed; inset: 0; display: grid; place-items: center; background: #e9e6de; color: var(--muted); font-size: 15px; z-index: 5; }
+      #toast { position: fixed; right: 16px; bottom: 16px; background: #1d1d1b; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s; }
+      @media (max-width: 640px) {
+        #panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 46vh; border-radius: 12px 12px 0 0; padding: 10px 16px; }
+        #hud { bottom: calc(46vh + 10px); }
       }
-      header {
-        display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
-        padding: 14px 20px; border-bottom: 1px solid #dcd7ca; background: #fbfaf6;
-      }
-      h1 { font-size: 17px; margin: 0; font-weight: 650; }
-      h1 small { font-weight: 400; color: #77746b; margin-left: 8px; font-size: 13px; }
-      #tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-      #tabs button {
-        font: inherit; padding: 6px 14px; border-radius: 999px; cursor: pointer;
-        border: 1px solid #cfc9ba; background: #fff; color: inherit;
-      }
-      #tabs button[aria-pressed='true'] { background: #1d1d1b; color: #fff; border-color: #1d1d1b; }
-      #facts { display: flex; flex-wrap: wrap; gap: 4px 20px; padding: 10px 20px; color: #55534d; font-size: 14px; }
-      #facts b { color: #1d1d1b; }
-      #facts .warn { color: #a3401c; }
-      #facts .ok { color: #3c7a3a; }
-      #stage { padding: 0 12px 16px; }
-      #stage svg { display: block; width: 100%; height: auto; max-height: calc(100vh - 120px); background: #fff; border: 1px solid #dcd7ca; border-radius: 6px; }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Modern White Farmhouse <small>plan review · step 1 of 2</small></h1>
-      <nav id="tabs"></nav>
-    </header>
-    <div id="facts"></div>
-    <main id="stage"></main>
-    <script type="module" src="/src/main.js"></script>
+    <div id="app"></div>
+    <div id="labels"></div>
+    <div id="crosshair"></div>
+    <div id="hud"></div>
+    <div id="toast"></div>
+    <div id="loading">Building the model…</div>
+    <aside id="panel">
+      <h1>Modern White Farmhouse</h1>
+      <p class="sub">All dimensions to scale, in feet · <a href="./plans.html">floor plans</a></p>
+      <div class="section">
+        <div class="cap">View</div>
+        <div class="btns" id="views">
+          <button data-view="exterior" aria-pressed="true">Exterior</button>
+          <button data-view="basement">Basement</button>
+          <button data-view="main">Main</button>
+          <button data-view="upper">Upper</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="cap">Camera presets</div>
+        <div class="btns" id="presets"></div>
+      </div>
+      <div class="section">
+        <div class="cap">Walkthrough</div>
+        <button class="wide" id="walkBtn">Walk from the front porch</button>
+      </div>
+      <div class="section">
+        <div class="cap">Sun</div>
+        <div class="sunrow">
+          <input type="range" id="time" min="5" max="21.5" step="0.05" />
+        </div>
+        <div class="sunrow" style="justify-content: space-between; margin-top: 4px;">
+          <div id="sunInfo"></div>
+          <select id="month" aria-label="Month"></select>
+        </div>
+      </div>
+      <div class="section">
+        <button class="wide" id="shot">Save screenshot (PNG)</button>
+      </div>
+    </aside>
+    <script type="module" src="/src/app/main.js"></script>
   </body>
 </html>
