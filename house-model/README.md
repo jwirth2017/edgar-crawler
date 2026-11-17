@@ -15,6 +15,15 @@ npm run dev          # http://localhost:5173  (3D model)
 npm run build        # static site in dist/
 ```
 
+## On a phone
+
+The same files run without a build step: `index.html` loads Three.js from the
+jsDelivr CDN through an import map, so the folder (`index.html`, `plans.html`,
+`src/`) can be hosted as-is. On a phone the controls become a bottom sheet
+(tap **More** for phase, presets, walkthrough and sun). Walkthrough uses an
+on-screen joystick to move and a drag on the view to look around. Screenshot
+opens the image in a viewer; press and hold it to save it to Photos.
+
 ## Controls
 
 | | |

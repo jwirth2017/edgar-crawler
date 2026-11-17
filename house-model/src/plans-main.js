@@ -17,7 +17,7 @@ function show(key) {
   for (const b of tabs.children) b.setAttribute('aria-pressed', String(b.dataset.key === key));
   stage.innerHTML = key === 'site' ? sitePlanSVG() : floorPlanSVG(key);
   stage.dataset.view = key;
-  history.replaceState(null, '', `?view=${key}`);
+  try { history.replaceState(null, '', `?view=${key}`); } catch { /* sandboxed frame */ }
 
   if (key === 'site') {
     facts.innerHTML = '<span>Front of the house faces east (bottom of the page). The lot falls to the west so the basement walks out to the patio and pool.</span>';

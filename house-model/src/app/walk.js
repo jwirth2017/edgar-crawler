@@ -1,5 +1,6 @@
 // First-person walkthrough: WASD / arrows to move, mouse to look (pointer
-// lock, or click-and-drag), Shift to run. Collides with walls, railings and
+// lock, or click-and-drag), Shift to run. On touch screens: drag the view to
+// look and use the on-screen joystick (`walker.joy`) to move. Collides with walls, railings and
 // glass; follows floors, stairs, steps and terrain.
 import { build } from '../config/house.js';
 import { grade, terrainHoles, poolHole } from '../model/terrain.js';
@@ -27,6 +28,9 @@ export class Walker {
     this.dragging = false;
     this.onChange = () => {};
     this.phase = 1;   // colliders / surfaces tagged with another phase are ignored
+    this.joy = { x: 0, y: 0 };   // on-screen joystick, -1..1 (y < 0 = forward)
+    this.lookId = null;          // pointer currently dragging the view
+    this.lastPointerType = 'mouse';
 
     addEventListener('keydown', (e) => {
       if (!this.active) return;
@@ -38,23 +42,33 @@ export class Walker {
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
     dom.addEventListener('click', () => {
-      if (this.active && !this.locked && dom.requestPointerLock) dom.requestPointerLock();
+      if (this.active && !this.locked && this.lastPointerType === 'mouse' && dom.requestPointerLock) {
+        try { const p = dom.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch { /* not allowed in this frame */ }
+      }
     });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === dom;
       this.onChange();
     });
-    dom.addEventListener('pointerdown', (e) => { if (this.active && !this.locked) { this.dragging = true; this.lastX = e.clientX; this.lastY = e.clientY; } });
-    addEventListener('pointerup', () => { this.dragging = false; });
+    dom.addEventListener('pointerdown', (e) => {
+      this.lastPointerType = e.pointerType;
+      if (this.active && !this.locked && this.lookId === null) {
+        this.dragging = true; this.lookId = e.pointerId; this.lastX = e.clientX; this.lastY = e.clientY;
+      }
+    });
+    const release = (e) => { if (e.pointerId === this.lookId) { this.dragging = false; this.lookId = null; } };
+    addEventListener('pointerup', release);
+    addEventListener('pointercancel', release);
     addEventListener('pointermove', (e) => {
       if (!this.active) return;
       let dx = 0;
       let dy = 0;
       if (this.locked) { dx = e.movementX; dy = e.movementY; }
-      else if (this.dragging) { dx = e.clientX - this.lastX; dy = e.clientY - this.lastY; this.lastX = e.clientX; this.lastY = e.clientY; }
+      else if (this.dragging && e.pointerId === this.lookId) { dx = e.clientX - this.lastX; dy = e.clientY - this.lastY; this.lastX = e.clientX; this.lastY = e.clientY; }
       else return;
-      this.yaw += dx * 0.0024;
-      this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch - dy * 0.0024));
+      const k = e.pointerType === 'touch' ? 0.0042 : 0.0024;
+      this.yaw += dx * k;
+      this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch - dy * k));
     });
   }
 
@@ -102,6 +116,9 @@ export class Walker {
   exit() {
     this.active = false;
     this.keys.clear();
+    this.joy = { x: 0, y: 0 };
+    this.dragging = false;
+    this.lookId = null;
     if (document.pointerLockElement === this.dom) document.exitPointerLock();
   }
 
@@ -109,19 +126,23 @@ export class Walker {
     if (!this.active) return;
     dt = Math.min(dt, 0.05);
     const k = this.keys;
-    const fwd = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
-    const side = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    const fwd = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) - this.joy.y;
+    const side = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.joy.x;
     const turn = (k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0);
     this.yaw += turn * dt * 1.8;
-    const speed = (k.has('ShiftLeft') || k.has('ShiftRight') ? RUN : WALK) * dt;
+    // a full joystick push walks a little faster than the keyboard walk
+    const joyMag = Math.hypot(this.joy.x, this.joy.y);
+    const base = k.has('ShiftLeft') || k.has('ShiftRight') ? RUN : joyMag > 0.92 ? WALK * 1.5 : WALK;
+    const speed = base * dt;
     const fx = Math.cos(this.yaw);
     const fy = Math.sin(this.yaw);
     let mx = (fx * fwd - fy * side);
     let my = (fy * fwd + fx * side);
     const len = Math.hypot(mx, my);
-    if (len > 0) {
-      mx = (mx / len) * speed;
-      my = (my / len) * speed;
+    if (len > 0.04) {
+      const throttle = Math.min(1, len);   // keys = full speed, joystick = analog
+      mx = (mx / len) * speed * throttle;
+      my = (my / len) * speed * throttle;
       // move in small sub-steps so fast movement can't tunnel through thin walls
       const n = Math.ceil(Math.max(Math.abs(mx), Math.abs(my)) / 0.2);
       for (let i = 0; i < n; i++) {

@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#a9c2d6" />
     <title>Farmhouse 3D Model</title>
     <style>
       :root {
@@ -50,9 +52,32 @@
         border: 2px solid rgba(255, 255, 255, 0.85); display: none; pointer-events: none; }
       #loading { position: fixed; inset: 0; display: grid; place-items: center; background: #e9e6de; color: var(--muted); font-size: 15px; z-index: 5; }
       #toast { position: fixed; right: 16px; bottom: 16px; background: #1d1d1b; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s; }
-      @media (max-width: 640px) {
-        #panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 46vh; border-radius: 12px 12px 0 0; padding: 10px 16px; }
-        #hud { bottom: calc(46vh + 10px); }
+      #panelHead { display: none; }
+      #joy { position: fixed; left: 22px; bottom: calc(var(--sheet, 0px) + 22px); width: 120px; height: 120px; border-radius: 50%;
+        background: rgba(20, 20, 20, 0.28); border: 2px solid rgba(255, 255, 255, 0.55); display: none; touch-action: none; z-index: 3; }
+      #joy .knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); pointer-events: none; }
+      #walkExit { position: fixed; right: 16px; top: calc(env(safe-area-inset-top, 0px) + 14px); display: none; z-index: 3;
+        background: rgba(20, 20, 20, 0.72); color: #fff; border: 0; padding: 9px 14px; font-size: 14px; }
+      #shotView { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82); display: none; z-index: 10;
+        flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; color: #fff; text-align: center; }
+      #shotView img { max-width: 100%; max-height: 72vh; border-radius: 8px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+        -webkit-touch-callout: default; user-select: auto; }
+      #shotView button { background: #fff; }
+      @media (max-width: 640px), (pointer: coarse) and (max-height: 520px) {
+        #panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 62vh; border-radius: 14px 14px 0 0;
+          padding: 4px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+        #panelHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0 2px; }
+        #panelHead h1 { margin: 0; font-size: 15px; }
+        #panelHead .grab { position: absolute; left: 50%; top: 5px; width: 38px; height: 4px; margin-left: -19px; border-radius: 2px; background: #c9c3b4; }
+        #panel > h1, #panel > .sub { display: none; }
+        #panel:not(.open) .section:not(.always) { display: none; }
+        #panel .section.always { margin-top: 6px; }
+        #views { flex-wrap: nowrap; }
+        #views button { flex: 1; padding: 8px 4px; }
+        button { padding: 8px 11px; font-size: 14px; }
+        #hud { bottom: calc(var(--sheet, 0px) + 150px); font-size: 12px; }
+        #toast { bottom: calc(var(--sheet, 0px) + 12px); }
       }
     </style>
   </head>
@@ -63,10 +88,22 @@
     <div id="hud"></div>
     <div id="toast"></div>
     <div id="loading">Building the model…</div>
+    <div id="joy" aria-label="Move"><div class="knob"></div></div>
+    <button id="walkExit">✕ Exit walk</button>
+    <div id="shotView">
+      <img id="shotImg" alt="Screenshot of the model" />
+      <div id="shotHint">Press and hold the image to save it to Photos.</div>
+      <button id="shotClose">Close</button>
+    </div>
     <aside id="panel">
+      <div id="panelHead">
+        <span class="grab"></span>
+        <h1>Modern White Farmhouse</h1>
+        <button id="moreBtn" aria-expanded="false">More ▴</button>
+      </div>
       <h1>Modern White Farmhouse</h1>
       <p class="sub">All dimensions to scale, in feet · <a href="./plans.html">floor plans</a></p>
-      <div class="section">
+      <div class="section always">
         <div class="cap">View</div>
         <div class="btns" id="views">
           <button data-view="exterior" aria-pressed="true">Exterior</button>
@@ -102,9 +139,23 @@
         </div>
       </div>
       <div class="section">
-        <button class="wide" id="shot">Save screenshot (PNG)</button>
+        <button class="wide" id="shot">Screenshot</button>
       </div>
     </aside>
-    <script type="module" src="/src/app/main.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script>
+      addEventListener('error', function (e) {
+        var l = document.getElementById('loading');
+        if (l) l.textContent = 'Could not load the model: ' + (e.message || 'network error') + '. Check your connection and reload.';
+      }, true);
+    </script>
+    <script type="module" src="./src/app/main.js"></script>
   </body>
 </html>

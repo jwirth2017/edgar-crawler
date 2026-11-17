@@ -14,8 +14,9 @@ import { Walker } from './walk.js';
 
 // ─── renderer, scene, camera ─────────────────────────────────────────────────
 const host = document.getElementById('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, TOUCH ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -48,7 +49,7 @@ const ambient = new THREE.AmbientLight('#ffffff', 0.3);
 scene.add(ambient);
 const sunLight = new THREE.DirectionalLight('#ffffff', 3);
 sunLight.castShadow = true;
-sunLight.shadow.mapSize.set(4096, 4096);
+sunLight.shadow.mapSize.set(TOUCH ? 2048 : 4096, TOUCH ? 2048 : 4096);
 const sc = sunLight.shadow.camera;
 sc.left = -125; sc.right = 125; sc.top = 125; sc.bottom = -125; sc.near = 10; sc.far = 1400;
 sunLight.shadow.bias = -0.0004;
@@ -131,7 +132,9 @@ function setMode(next, { fly = true } = {}) {
   document.querySelectorAll('#views button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === next)));
   const walking = next === 'walk';
   controls.enabled = !walking;
-  document.getElementById('crosshair').style.display = walking ? 'block' : 'none';
+  document.getElementById('crosshair').style.display = walking && !TOUCH ? 'block' : 'none';
+  document.getElementById('joy').style.display = walking && TOUCH ? 'block' : 'none';
+  document.getElementById('walkExit').style.display = walking && TOUCH ? 'block' : 'none';
   updateHud();
   if (walking) { setVisibility(null); return; }
   if (next === 'exterior') {
@@ -150,6 +153,12 @@ function updateHud() {
   const hud = document.getElementById('hud');
   if (mode !== 'walk') { hud.style.display = 'none'; return; }
   hud.style.display = 'block';
+  if (TOUCH) {
+    hud.textContent = 'Drag the view to look around · use the joystick to walk';
+    clearTimeout(updateHud.t);
+    updateHud.t = setTimeout(() => { if (mode === 'walk') hud.style.display = 'none'; }, 4000);
+    return;
+  }
   hud.textContent = walker.locked
     ? 'WASD / arrows to move · mouse to look · Shift to run · Esc to release the mouse'
     : 'Click the view to look around with the mouse (or drag) · WASD / arrows to move · Shift to run';
@@ -157,6 +166,57 @@ function updateHud() {
 walker.onChange = updateHud;
 
 document.querySelectorAll('#views button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.view)));
+
+// ─── phone layout: collapsible bottom sheet, joystick ────────────────────────
+const panel = document.getElementById('panel');
+const moreBtn = document.getElementById('moreBtn');
+function setSheet(open) {
+  panel.classList.toggle('open', open);
+  moreBtn.setAttribute('aria-expanded', String(open));
+  moreBtn.textContent = open ? 'Less ▾' : 'More ▴';
+}
+moreBtn.addEventListener('click', () => setSheet(!panel.classList.contains('open')));
+const sheetIsBottom = () => getComputedStyle(document.getElementById('panelHead')).display !== 'none';
+// collapse the sheet after picking a preset / walk so the model is in view
+panel.addEventListener('click', (e) => {
+  if (sheetIsBottom() && e.target.closest('#presets button, #walkBtn')) setSheet(false);
+});
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty('--sheet', sheetIsBottom() ? `${panel.offsetHeight}px` : '0px');
+}).observe(panel);
+
+const joy = document.getElementById('joy');
+const knob = joy.querySelector('.knob');
+let joyId = null;
+function joyMove(e) {
+  const r = joy.getBoundingClientRect();
+  const R = r.width / 2;
+  let dx = e.clientX - (r.left + R);
+  let dy = e.clientY - (r.top + R);
+  const d = Math.hypot(dx, dy);
+  if (d > R) { dx *= R / d; dy *= R / d; }
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  const dead = 0.12;
+  const n = Math.min(1, d / R);
+  const s = n < dead ? 0 : (n - dead) / (1 - dead) / (n || 1);
+  walker.joy = { x: (dx / R) * s, y: (dy / R) * s };
+}
+joy.addEventListener('pointerdown', (e) => {
+  joyId = e.pointerId;
+  joy.setPointerCapture(e.pointerId);
+  joyMove(e);
+  e.preventDefault();
+});
+joy.addEventListener('pointermove', (e) => { if (e.pointerId === joyId) joyMove(e); });
+const joyEnd = (e) => {
+  if (e.pointerId !== joyId) return;
+  joyId = null;
+  walker.joy = { x: 0, y: 0 };
+  knob.style.transform = '';
+};
+joy.addEventListener('pointerup', joyEnd);
+joy.addEventListener('pointercancel', joyEnd);
+document.getElementById('walkExit').addEventListener('click', () => setMode('exterior'));
 
 // presets
 const presetBox = document.getElementById('presets');
@@ -212,17 +272,18 @@ monthSel.addEventListener('change', updateSun);
 updateSun();
 
 // ─── screenshot ──────────────────────────────────────────────────────────────
+// Shown in an overlay (downloads are blocked when the page is hosted in a
+// sandboxed frame): long-press on a phone, or right-click → Save on desktop.
+const shotView = document.getElementById('shotView');
 document.getElementById('shot').addEventListener('click', () => {
   renderer.render(scene, camera);
-  const a = document.createElement('a');
-  a.href = renderer.domElement.toDataURL('image/png');
-  a.download = `farmhouse-phase${phase}-${mode}-${fmtTime(Number(timeInput.value)).replace(/[: ]/g, '')}.png`;
-  a.click();
-  const t = document.getElementById('toast');
-  t.textContent = 'Screenshot saved';
-  t.style.opacity = '1';
-  setTimeout(() => { t.style.opacity = '0'; }, 1600);
+  document.getElementById('shotImg').src = renderer.domElement.toDataURL('image/png');
+  document.getElementById('shotHint').textContent = TOUCH
+    ? 'Press and hold the image to save it to Photos.'
+    : 'Right-click the image and choose “Save image as…”.';
+  shotView.style.display = 'flex';
 });
+document.getElementById('shotClose').addEventListener('click', () => { shotView.style.display = 'none'; });
 
 // ─── loop ────────────────────────────────────────────────────────────────────
 addEventListener('resize', () => {
