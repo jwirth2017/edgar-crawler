@@ -251,6 +251,13 @@ function cooktop(B, M, g, f, base, room) {
     if (along) B.box(g, M.matteBlack, cx + t * cw - 0.03, cx + t * cw + 0.03, r[2], r[3], top + 0.07, top + 0.14, { shadow: false });
     else B.box(g, M.matteBlack, r[0], r[1], cy + t * cd - 0.03, cy + t * cd + 0.03, top + 0.07, top + 0.14, { shadow: false });
   }
+  if (f.downdraft) {
+    // pop-up downdraft vent along the cooktop's back edge (dining side), shown raised
+    const t = 0.18;
+    const rv = along ? [r[0], r[1], r[3] + 0.05, r[3] + 0.05 + t] : [r[1] + 0.05, r[1] + 0.05 + t, r[2], r[3]];
+    B.box(g, M.matteBlack, ...rv, top - 0.01, top + 0.9);
+    B.box(g, M.steel, ...(along ? [rv[0] + 0.15, rv[1] - 0.15, rv[2] - 0.01, rv[2]] : [rv[0] - 0.01, rv[0], rv[2] + 0.15, rv[3] - 0.15]), top + 0.3, top + 0.8, { shadow: false });
+  }
   if (f.hood) {
     // island hood hung from the ceiling, sized a little larger than the cooktop
     const ceil = base + 10;

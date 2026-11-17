@@ -200,11 +200,11 @@ export const floors = {
     ],
     furniture: [
       // kitchen — rear wall: fridge | sink run under the pass-through | double wall ovens;
-      // island with a 36" gas cooktop and a hood above, centered on the pass-through
+      // island with a 36" gas cooktop and a pop-up downdraft vent, centered on the pass-through
       { type: 'tall',    x: 14.3, y: 0.3,  w: 3,    d: 2.6, h: 7.5, label: 'Fridge' },
       { type: 'counter', x: 17.3, y: 0.3,  w: 11.9, d: 2,   h: 3, sink: true }, // under the pass-through
       { type: 'oven',    x: 29.2, y: 0.3,  w: 2.6,  d: 2.2, h: 7.5, label: 'Double ovens' },
-      { type: 'island',  x: 18,   y: 8,    w: 12,   d: 4,   h: 3, cooktop: { w: 3, d: 1.75 }, hood: true },
+      { type: 'island',  x: 18,   y: 8,    w: 12,   d: 4,   h: 3, cooktop: { w: 3, d: 1.75 }, downdraft: true },   // pop-up downdraft vent, no hood
       // butler's pantry — counter on the rear wall under the window, open shelves opposite the kitchen
       { type: 'counter', x: 6.3,  y: 0.3,  w: 7.4,  d: 2,   h: 3, sink: true, uppers: true, label: 'Coffee bar · prep sink' },
       { type: 'tall',    x: 6.3,  y: 3,    w: 1.3,  d: 7.7, h: 7.5, label: 'Open shelves' },
