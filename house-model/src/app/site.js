@@ -252,7 +252,7 @@ function trees(B, M) {
   const r = () => ((s = (s * 1103515245 + 12345) >>> 0) / 4294967296);
   // trees stay along the lot edges so the house, yard and street views stay open
   const edge = (x, y) => x < -95 || x > 125 || y < -125 || y > 176;
-  const accents = [[-80, 10], [-74, 78], [96, -20], [104, 18], [92, 46], [-66, -70], [100, -92]];
+  const accents = [[-98, -30], [-74, 78], [96, -20], [104, 18], [92, 46], [-66, -70], [100, -92]];
   let placed = 0;
   for (let tries = 0; tries < 1200 && placed < 75; tries++) {
     let x = -150 + r() * 360;

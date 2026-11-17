@@ -143,10 +143,7 @@ export const floors = {
         note: 'double hang, raised rods' },
       { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
       // the 4 ft wing entry hall (x 52–64, y 16–20) is the auto-generated hallway
-      // — 3-car garage (slab 1 ft below main floor) —
-      // — 3-car garage beside the house, doors facing the motor court (toward the rear) —
-      { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 24, w: 36, d: 24,
-        floorOffset: -1, finished: false },
+      // (the 3-car garage is its own angled building: exterior.garage)
     ],
     openPlan: [
       ['kitchen', 'living'], ['kitchen', 'dining'], ['living', 'dining'],
@@ -188,15 +185,6 @@ export const floors = {
       { kind: 'door', on: 'y', at: 16, from: 70.5, to: 73.5 },                // bath → closet
       { kind: 'door', on: 'x', at: 64, from: 22, to: 25, swing: -1 },         // closet → laundry
       { kind: 'door', on: 'y', at: 20, from: 55, to: 58 },                    // hall → laundry
-      // garage — overhead doors face the motor court (not the road)
-      { kind: 'garage', on: 'y', at: 24, from: -50, to: -41 },
-      { kind: 'garage', on: 'y', at: 24, from: -39, to: -30 },
-      { kind: 'garage', on: 'y', at: 24, from: -28, to: -19 },
-      { kind: 'door',   on: 'x', at: -16, from: 30, to: 33, swing: -1 },      // garage ↔ breezeway
-      { kind: 'window', on: 'y', at: 48, from: -46, to: -42 },
-      { kind: 'window', on: 'y', at: 48, from: -36, to: -32 },
-      { kind: 'window', on: 'y', at: 48, from: -26, to: -22 },
-      { kind: 'window', on: 'x', at: -52, from: 32, to: 38 },
     ],
     furniture: [
       // kitchen — rear wall: fridge | sink run under the pass-through | double wall ovens;
@@ -253,10 +241,6 @@ export const floors = {
       { type: 'appliance', x: 53,   y: 27.2, w: 5.4, d: 2.5, h: 3.3 },         // washer / dryer
       { type: 'counter',   x: 58.8, y: 27.7, w: 4.8, d: 2,   h: 3, sink: true },
       { type: 'tall',      x: 52.3, y: 21,   w: 1.7, d: 5,   h: 7 },
-      // garage — three cars for scale
-      { type: 'car', x: -48.5, y: 27.5, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -37.5, y: 27.5, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -26.5, y: 27.5, w: 6, d: 16, h: 5 },
     ],
   },
 
@@ -453,12 +437,44 @@ export const exterior = {
       grillAt: 4.5, grillW: 3, ledgeDepth: 1.3, ledgeH: 3.5, stools: 3, minWalk: 3 },
     barCounter: { x: 19, y: -1.8, w: 10, d: 1.5, h: 3.5 }, // outside the pass-through
   },
-  // Arched drive-through linking the house and garage. Cars pass front → back
-  // through it into the motor court in front of the garage doors.
+  // Arched drive-through beside the house. Cars pass front → back through it
+  // into the motor court, loop around the turnaround and pull nose-first into
+  // the garage. 18 ft wide with a 14 ft arch; the far side is a wall with a
+  // walk-through door toward the garage.
   breezeway: {
-    x: -16, y: 24, w: 16, d: 16,
+    x: -18, y: 24, w: 18, d: 16,
     floorOffset: -1, wallHeight: 12,
-    archWidth: 12, archSpring: 7.5, archTop: 10.5,
+    archWidth: 14, archSpring: 7.5, archTop: 10.5,
+    sideDoor: [30.5, 33.5],                 // opening in the far (x = x) wall, along y
+  },
+  // 3-car garage, its own building, angled to face the turnaround. Drawn in a
+  // local plan (below), then rotated by `place.angle` degrees and moved so the
+  // local point `place.anchor` (middle door) lands on `place.at`.
+  garage: {
+    name: '3-Car Garage',
+    finish: 'better',
+    floor: -1,
+    ceiling: 10,
+    wallTop: 11,                            // eave 10 ft above the main floor
+    place: { anchor: [-34.5, 24], at: [-59.3, 27.6], angle: -18 },
+    footprint: [{ x: -52, y: 24, w: 36, d: 24 }],
+    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 24, w: 36, d: 24, finished: false }],
+    openings: [
+      { kind: 'garage', on: 'y', at: 24, from: -50, to: -41 },    // doors face the turnaround
+      { kind: 'garage', on: 'y', at: 24, from: -39, to: -30 },
+      { kind: 'garage', on: 'y', at: 24, from: -28, to: -19 },
+      { kind: 'door',   on: 'x', at: -16, from: 30, to: 33 },     // side door, walk to the breezeway
+      { kind: 'window', on: 'y', at: 48, from: -46, to: -42 },
+      { kind: 'window', on: 'y', at: 48, from: -36, to: -32 },
+      { kind: 'window', on: 'y', at: 48, from: -26, to: -22 },
+      { kind: 'window', on: 'x', at: -52, from: 32, to: 38 },
+    ],
+    furniture: [
+      { type: 'car', x: -48.5, y: 30, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
+      { type: 'car', x: -37.5, y: 30, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -26.5, y: 30, w: 6, d: 16, h: 5 },
+    ],
+    roof: { id: 'garage', type: 'gable', x: -52, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -466,42 +482,60 @@ export const exterior = {
     // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 26, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
     { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 30, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
-    { id: 'breezeway', type: 'gable', x: -16, y: 24, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
-    { id: 'garage', type: 'gable', x: -52, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    { id: 'breezeway', type: 'gable', x: -18, y: 24, w: 18, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
   // small stone landing outside the mudroom door, one step up from the court
   stoop: { x: -4, y: 12.5, w: 4, d: 5, top: -0.4 },
 };
 
-/**
- * Motor court outline: full width along the garage doors (`doors` = [x0, x1, y]),
- * then a len × width turnaround whose near-east corner is `at`, its long axis
- * pointing toward the rear (-y) and swung `angle` degrees away from the house (-x).
- */
-function courtWing({ doors, at, len, width, angle }) {
+/** The garage's local plan → site plan (rotated and moved into place), and back. */
+export function garageFrame() {
+  const { anchor: [lx, ly], at: [tx, ty], angle } = exterior.garage.place;
   const t = (angle * Math.PI) / 180;
-  const u = [-Math.sin(t), -Math.cos(t)];     // along the wing, toward the rear
-  const v = [-Math.cos(t), Math.sin(t)];      // across it, away from the house
-  const P = (a, b) => [at[0] + u[0] * a + v[0] * b, at[1] + u[1] * a + v[1] * b];
-  // one outline: along the garage doors, down the house-side edge, around the angled end
-  const [dx0, dx1, dy] = doors;
-  return { poly: [[dx0, dy], [dx1, dy], at, P(len, 0), P(len, width)] };
+  const c = Math.cos(t);
+  const s = Math.sin(t);
+  return {
+    angle,
+    toWorld: ([x, y]) => [tx + (x - lx) * c - (y - ly) * s, ty + (x - lx) * s + (y - ly) * c],
+    toLocal: (x, y) => [lx + (x - tx) * c + (y - ty) * s, ly - (x - tx) * s + (y - ty) * c],
+    svg: `translate(${tx} ${ty}) rotate(${angle}) translate(${-lx} ${-ly})`,
+  };
 }
 
-/**
- * Paving that fills an inside corner with a curve: the corner at (x0, y1), the
- * curve a circle of radius r centered at (cx, cy). Returned as thin strips so
- * the terrain, ground paint and plans can treat it like any other rectangle.
- */
-function courtFillet({ cx, cy, r, x0, y1 }, step = 0.5) {
-  const out = [];
-  for (let x = x0; x < cx - 1e-6; x += step) {
-    const xm = Math.min(x + step / 2, cx);
-    const y = cy + Math.sqrt(Math.max(0, r * r - (xm - cx) ** 2));
-    if (y1 - y > 0.05) out.push({ x, y, w: step, d: y1 - y });
-  }
-  return out;
+/** Convex hull of points (for paved areas given as a handful of corners). */
+function hull(pts) {
+  const P = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [];
+  for (const p of P) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  const up = [];
+  for (const p of P.reverse()) { while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+
+/** The motor court: turnaround circle, apron at the garage doors, lane from the arch, walks. */
+function motorCourt() {
+  const G = garageFrame();
+  const g = exterior.garage;
+  const f = g.footprint[0];
+  const circle = [];
+  const [cx, cy, r] = [-44, 10, 25];       // turnaround: 50 ft across (about 40 ft centerline circle + car width)
+  for (let i = 0; i < 28; i++) circle.push([cx + r * Math.cos((i / 28) * 2 * Math.PI), cy + r * Math.sin((i / 28) * 2 * Math.PI)]);
+  const apron = [[f.x, f.y], [f.x + f.w, f.y], [f.x + f.w, f.y - 22], [f.x, f.y - 22]].map(G.toWorld);  // 22 ft in front of the doors
+  const bw = exterior.breezeway;
+  const ax0 = bw.x + (bw.w - bw.archWidth) / 2;
+  const ax1 = ax0 + bw.archWidth;
+  const lane = [[ax0, bw.y], [ax1, bw.y], [ax1 - 4, 16], [-19, 9], [-33, 18]];   // from the arch onto the loop
+  const [sd0, sd1] = bw.sideDoor;
+  const walk = [G.toWorld([f.x + f.w, 30]), G.toWorld([f.x + f.w, 33]), [bw.x, sd1], [bw.x, sd0]];   // garage side door → breezeway
+  return [
+    { poly: hull(circle), name: 'turnaround' },
+    { poly: hull(apron) },
+    { poly: hull(lane) },
+    { x: -4, y: 12, w: 4, d: 12 },        // walk to the mudroom door
+    { poly: hull(walk) },
+  ];
 }
 
 // Site ---------------------------------------------------------------------------
@@ -522,20 +556,13 @@ export const site = {
     rollAmplitude: 1.8,     // gentle rolling away from the house
   },
   road:      { y: 156, width: 22 },
-  driveway:  { width: 12, path: [[-8, 145], [-8, 40]] },        // to the breezeway arch
-  // motor court at main-floor level: the apron in front of the garage doors,
-  // plus the drive from the breezeway arch (and the mudroom stoop) into it
-  // motor court at main-floor level: an apron in front of the garage doors,
-  // then the turnaround swung ~17° away from the house (more room for the
-  // graded hill), the curved drive from the breezeway arch, and a walk to the
-  // mudroom door. Entries are rectangles, or { poly } for angled paving.
-  courtyard: [
-    courtWing({ doors: [-56, -19, 24], at: [-19, 3], len: 30, width: 37, angle: 17 }),
-    { x: -19, y: 19,  w: 19, d: 5 },
-    { x: -4,  y: 12,  w: 4,  d: 7 },     // walk from the drive to the mudroom door
-    // curved corner so cars can swing from the breezeway arch into the court
-    ...courtFillet({ cx: -3, cy: 3, r: 16, x0: -19, y1: 19 }),
-  ],
+  driveway:  { width: 12, path: [[-9, 145], [-9, 40]] },        // to the breezeway arch
+  // motor court at main-floor level: come through the breezeway, loop around a
+  // 50 ft turnaround and pull nose-first into the angled garage; walks to the
+  // mudroom door and from the garage side door to the breezeway.
+  // Entries are rectangles, or { poly } (convex) for curved / angled paving.
+  courtyard: motorCourt(),
+
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck
   // The graded rear yard, flat at patio level. Phase 1 is lawn; Phase 2 paves it as the pool deck.

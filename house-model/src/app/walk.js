@@ -79,8 +79,9 @@ export class Walker {
     let indoors = false;
     for (const s of this.surfaces) {
       if (s.phase && s.phase !== this.phase) continue;
-      if (x >= s.x0 && x <= s.x1 && y >= s.y0 && y <= s.y1) {
-        consider(typeof s.h === 'function' ? s.h(x, y) : s.h);
+      const [px, py] = s.frame ? s.frame.toLocal(x, y) : [x, y];   // e.g. the angled garage
+      if (px >= s.x0 && px <= s.x1 && py >= s.y0 && py <= s.y1) {
+        consider(typeof s.h === 'function' ? s.h(px, py) : s.h);
       }
     }
     for (const r of terrainHoles) if (x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.d) indoors = true;
@@ -95,7 +96,8 @@ export class Walker {
     const z1 = feet + build.eyeHeight + 0.2;
     for (const c of this.colliders) {
       if (c.phase && c.phase !== this.phase) continue;
-      if (x + RADIUS > c.x0 && x - RADIUS < c.x1 && y + RADIUS > c.y0 && y - RADIUS < c.y1 && z1 > c.z0 && z0 < c.z1) return true;
+      const [px, py] = c.frame ? c.frame.toLocal(x, y) : [x, y];
+      if (px + RADIUS > c.x0 && px - RADIUS < c.x1 && py + RADIUS > c.y0 && py - RADIUS < c.y1 && z1 > c.z0 && z0 < c.z1) return true;
     }
     return false;
   }

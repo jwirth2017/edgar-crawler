@@ -68,11 +68,9 @@ function gableTriangle(B, group, mat, axis, at, a0, a1, zBase, zApex, t = 0.5) {
 
 const FOOTPRINTS = () => {
   const bw = exterior.breezeway;
-  const g = floors.main.rooms.find((r) => r.id === 'garage');
   return {
     main: floors.upper.footprint[0],
     wing: floors.main.footprint[1],
-    garage: g,
     breezeway: { x: bw.x, y: bw.y, w: bw.w, d: bw.d },
   };
 };

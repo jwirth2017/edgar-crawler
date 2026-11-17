@@ -222,12 +222,21 @@ function breezeway(B, M, lanterns) {
     lantern(B, M, lanterns, bw.x + a0 - 1, yFace + (yFace < bw.y + 1 ? -0.4 : t + 0.4), z0 + 7);
     lantern(B, M, lanterns, bw.x + a1 + 1, yFace + (yFace < bw.y + 1 ? -0.4 : t + 0.4), z0 + 7);
   }
+  // far side wall (the garage is its own building now): stone base, siding, walk-through door
+  const wx0 = bw.x;
+  const wx1 = bw.x + 0.6;
+  const [d0, d1] = bw.sideDoor || [bw.y + bw.d / 2 - 1.5, bw.y + bw.d / 2 + 1.5];
+  for (const [ya, yb] of [[bw.y + 1, d0], [d1, bw.y + bw.d - 1]]) {
+    B.box('main', M.stone, wx0 - 0.05, wx1 + 0.05, ya, yb, z0 - 1, z0 + 3.5, { collide: true });
+    B.box('main', M.siding, wx0, wx1, ya, yb, z0 + 3.5, roof.eave, { collide: true });
+  }
+  B.box('main', M.siding, wx0, wx1, d0, d1, z0 + 8, roof.eave);                          // header over the door
+  for (const yy of [d0, d1 - 0.2]) B.box('main', M.black, wx0 - 0.05, wx1 + 0.05, yy, yy + 0.2, z0, z0 + 8);
 }
 
 function foundations(B, M) {
-  // stone foundation walls down to grade around the wing (crawlspace) and garage
+  // stone foundation walls down to grade around the wing (crawlspace); the garage builds its own
   const wing = floors.main.footprint[1];
-  const garage = floors.main.rooms.find((r) => r.id === 'garage');
   const run = (x0, x1, y0, y1, zTop) => {
     let low = zTop;
     for (let t = 0; t <= 1.0001; t += 0.1) low = Math.min(low, grade(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t));
@@ -237,7 +246,6 @@ function foundations(B, M) {
   run(wing.x, wing.x + wing.w, wing.y - t / 2, wing.y + t / 2, 0);
   run(wing.x, wing.x + wing.w, wing.y + wing.d - t / 2, wing.y + wing.d + t / 2, 0);
   run(wing.x + wing.w - t / 2, wing.x + wing.w + t / 2, wing.y, wing.y + wing.d, 0);
-  run(garage.x - t / 2, garage.x + garage.w + t / 2, garage.y - t / 2, garage.y + garage.d + t / 2, garage.floorOffset - 0.5);
 }
 
 export function lantern(B, M, lanterns, x, y, z) {

@@ -11,6 +11,7 @@ import { buildRoofs } from './roofs.js';
 import { buildTerrain, buildPoolAndYard } from './site.js';
 import { solarPosition, applySun, compassName } from './sun.js';
 import { Walker } from './walk.js';
+import { buildGarage } from './garage.js';
 
 // ─── renderer, scene, camera ─────────────────────────────────────────────────
 const host = document.getElementById('app');
@@ -81,6 +82,7 @@ siteFurniture(B, M);
 B.finish(groups);
 const terrainMeshes = buildTerrain(M);
 for (const m of terrainMeshes) groups.site.add(m);
+buildGarage(M, groups, { colliders: B.colliders, surfaces: B.surfaces });
 
 const walker = new Walker(camera, renderer.domElement, { colliders: B.colliders, surfaces: B.surfaces });
 

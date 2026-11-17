@@ -2,7 +2,7 @@
 // a known size in feet; geometry carries UVs in feet (see builder.js), so
 // `repeat = 1 / tileFeet` keeps every surface at true scale.
 import * as THREE from 'three';
-import { phases } from '../config/house.js';
+import { phases, exterior } from '../config/house.js';
 
 function canvasTexture(px, py, draw, tileFtX, tileFtY = tileFtX, srgb = true) {
   const c = document.createElement('canvas');
@@ -421,7 +421,7 @@ export function siteTexture(site, extent, ppf = 4, phase = 1) {
       g.fill();
     } else R(ct.x, ct.y, ct.w, ct.d, '#cfc8b8');
   }
-  R(-14, 24, 12, 16, '#cfc8b8');
+  { const bw = exterior.breezeway; R(bw.x + (bw.w - bw.archWidth) / 2, bw.y, bw.archWidth, bw.d, '#cfc8b8'); }
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');
   // pool deck (travertine-look pavers) — Phase 2 only; Phase 1 leaves it lawn
