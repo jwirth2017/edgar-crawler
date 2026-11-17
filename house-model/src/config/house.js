@@ -470,8 +470,8 @@ export const exterior = {
     { id: 'garage', type: 'gable', x: -52, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
-  // stone stoop at main-floor level outside the mudroom door, stepping down to the court
-  stoop: { x: -5, y: 12.5, w: 5, d: 7, top: -0.4 },
+  // small stone landing outside the mudroom door, one step up from the court
+  stoop: { x: -4, y: 12.5, w: 4, d: 5, top: -0.4 },
 };
 
 // Site ---------------------------------------------------------------------------
@@ -481,9 +481,10 @@ export const site = {
     frontGrade: -1.5,       // lawn grade in front of the house
     courtGrade: -1.25,      // motor court, breezeway and garage apron: main-floor level
     walkoutGrade: -10.5,    // patio level = basement floor
-    // Side yards are smooth lawn slopes, no steeper than `maxSlope` (run : rise).
-    // Garage side: the lawn falls away from the court, drive, breezeway and
-    // garage (all at main-floor level) down to the patio.
+    // Side yards are graded lawn slopes, no walls. Garage side: the lawn falls
+    // away from the court, drive, breezeway and garage (all at main-floor level)
+    // at up to `maxSlope` (run : rise), and blends into the patio / pool deck
+    // level beside the house; steepest by the house corner (about 2:1).
     // Wing side: main-floor level forward of `north.highY`, falling toward the rear.
     maxSlope: 3,
     north: { highY: 28 },
@@ -494,9 +495,13 @@ export const site = {
   driveway:  { width: 12, path: [[-8, 145], [-8, 40]] },        // to the breezeway arch
   // motor court at main-floor level: the apron in front of the garage doors,
   // plus the drive from the breezeway arch (and the mudroom stoop) into it
+  // motor court at main-floor level: a 36 ft deep apron in front of the garage
+  // doors (room to back out and turn around), the drive from the breezeway
+  // arch, and a walk from it to the mudroom door
   courtyard: [
-    { x: -56, y: 0,  w: 37, d: 24 },
-    { x: -19, y: 19, w: 19, d: 5 },
+    { x: -56, y: -12, w: 37, d: 36 },
+    { x: -19, y: 19,  w: 19, d: 5 },
+    { x: -4,  y: 12,  w: 4,  d: 7 },     // walk from the drive to the mudroom door
   ],
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck

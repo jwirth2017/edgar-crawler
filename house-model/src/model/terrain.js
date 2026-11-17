@@ -29,12 +29,23 @@ const SOUTH_HIGH = [
 ];
 const distRect = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
 
-/** Garage-side lawn: falls at maxSlope : 1 away from the high areas and the front yard. */
+/** The walkout-level yard beside the house (patio, paver grid, pool deck): x ≥ 0, y ≤ 0. */
+const LOW = { x: MAIN.x, y: PD.y, w: PD.w, d: -PD.y };
+
+/**
+ * Garage-side lawn, graded with no retaining walls: falls at maxSlope : 1 away
+ * from the high areas (court, drive, breezeway, garage, front yard), and where
+ * those sit close to the walkout-level yard it blends evenly between the two,
+ * so the ground meets the patio level at the house's edge.
+ */
 function southGrade(x, y) {
   const front = MAIN.y + MAIN.d;
-  let d = Math.max(0, front - y);
-  for (const r of SOUTH_HIGH) d = Math.min(d, distRect(r, x, y));
-  return Math.max(T.walkoutGrade, T.courtGrade - d / T.maxSlope);
+  let dHigh = Math.max(0, front - y);
+  for (const r of SOUTH_HIGH) dHigh = Math.min(dHigh, distRect(r, x, y));
+  const dLow = distRect(LOW, x, y);
+  const fall = T.courtGrade - dHigh / T.maxSlope;
+  const blend = T.walkoutGrade + (T.courtGrade - T.walkoutGrade) * (dLow / Math.max(1e-6, dLow + dHigh));
+  return Math.max(T.walkoutGrade, Math.min(fall, blend));
 }
 
 // Gentle rolling that fades in well away from the house and yard.
