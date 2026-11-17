@@ -37,7 +37,7 @@ export function furniture(B, M, g, f, base, room, P) {
     case 'counter': {
       box(P.cabinet, inset(R(f), 0.05), 0, h - 0.15);
       box(P.counter, R(f), h - 0.15, h);
-      if (f.label === 'Coffee station') box(P.cabinet, strip(f, wallSide(f, room, true), 1.1), 4.6, 7.3);
+      if (f.uppers || f.label === 'Coffee station') box(P.cabinet, strip(f, wallSide(f, room, true), 1.1), 4.6, 7.3);   // upper cabinets
       if (f.sink) sinks(B, M, g, f, base, room, P);
       break;
     }

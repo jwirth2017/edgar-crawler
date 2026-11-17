@@ -119,11 +119,12 @@ export const floors = {
       // — left side: back entry along the breezeway wall, stairs, office —
       { id: 'mudroom',  name: 'Mudroom',        use: 'service', x: 0,  y: 0,  w: 6,  d: 17,
         finish: { floor: 'slateTile' } },
-      { id: 'pantry',   name: 'Walk-in Pantry', use: 'service', x: 6,  y: 0,  w: 6,  d: 11 },
+      // butler's pantry: counter run with coffee bar + prep sink, open shelves, cased opening to the kitchen
+      { id: 'pantry',   name: "Butler's Pantry", use: 'service', x: 6, y: 0,  w: 8,  d: 11 },
       { ...STAIR_BOX },
       { id: 'office',   name: 'Shared Office',  use: 'work',    x: 0,  y: 26, w: 14, d: 14 },
       // — rear wall: kitchen and living side by side, both facing the deck —
-      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 12, y: 0,  w: 20, d: 16 },
+      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 14, y: 0,  w: 18, d: 16 },
       { id: 'living',  name: 'Living Room', use: 'living', x: 32, y: 0,  w: 20, d: 16,
         note: "10' flat ceiling" },
       // — center: dining, foyer (open to above), coat —
@@ -155,6 +156,7 @@ export const floors = {
     openings: [
       // rear wall (y = 0) — glass onto the deck
       { kind: 'window',      on: 'y', at: 0, from: 1.5, to: 4.5, sill: 4 },     // mudroom
+      { kind: 'window',      on: 'y', at: 0, from: 8.5, to: 11.5, sill: 4.5 },  // butler's pantry, over the counter
       { kind: 'passthrough', on: 'y', at: 0, from: 18, to: 30, sill: 3.5, head: 8 },
       { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // living → deck
       { kind: 'window',      on: 'y', at: 0, from: 55, to: 65, sill: 1.5 },    // primary bedroom
@@ -173,7 +175,8 @@ export const floors = {
       { kind: 'window', on: 'x', at: 78, from: 10, to: 14, sill: 5 },
       // interior — left
       { kind: 'door', on: 'x', at: 6,  from: 12.5, to: 15.5 },                  // mudroom → back hall
-      { kind: 'door', on: 'y', at: 11, from: 7.5,  to: 10.5 },                  // pantry → back hall
+      { kind: 'door', on: 'y', at: 11, from: 7.5,  to: 10.5 },                  // pantry → back hall (groceries from the mudroom)
+      { kind: 'opening', on: 'x', at: 14, from: 3.5, to: 7.5 },                 // pantry ↔ kitchen, cased opening
       { kind: 'door', on: 'x', at: 14, from: 33,   to: 36, swing: -1 },         // office → front hall
       // interior — right
       { kind: 'door', on: 'x', at: 32, from: 33,   to: 36 },                    // coat closet (off the foyer)
@@ -196,11 +199,14 @@ export const floors = {
       { kind: 'window', on: 'x', at: -52, from: 32, to: 38 },
     ],
     furniture: [
-      // kitchen — coffee station + fridge on the pantry wall, sink run under the pass-through
-      { type: 'counter', x: 12.3, y: 1,   w: 2,   d: 6,   h: 3, label: 'Coffee station' }, // 6 ft built-in
-      { type: 'tall',    x: 12.3, y: 7.5, w: 2.4, d: 3.5, h: 7.5 },           // fridge
-      { type: 'counter', x: 15,   y: 0.3, w: 16,  d: 2,   h: 3, sink: true }, // under the pass-through
-      { type: 'island',  x: 16,   y: 8,   w: 12,  d: 4,   h: 3, label: 'Island' },
+      // kitchen — sink run under the pass-through, island centered on it, fridge on the pantry wall
+      { type: 'counter', x: 14.3, y: 0.3,  w: 16.7, d: 2,   h: 3, sink: true }, // under the pass-through
+      { type: 'island',  x: 17.5, y: 8,    w: 12,   d: 4,   h: 3, label: 'Island' },
+      { type: 'tall',    x: 14.3, y: 12.3, w: 2.4,  d: 3.5, h: 7.5, label: 'Fridge' },
+      // butler's pantry — counter on the rear wall under the window, open shelves opposite the kitchen
+      { type: 'counter', x: 6.3,  y: 0.3,  w: 7.4,  d: 2,   h: 3, sink: true, uppers: true, label: 'Coffee bar · prep sink' },
+      { type: 'tall',    x: 6.3,  y: 3,    w: 1.3,  d: 7.7, h: 7.5, label: 'Open shelves' },
+      { type: 'tall',    x: 12.2, y: 8.2,  w: 1.5,  d: 2.5, h: 7.5 },            // pantry cabinet beside the opening
       // living — stone fireplace on the right-hand wall, sofa facing it
       { type: 'fireplace', x: 50.2, y: 5,    w: 1.8, d: 6, h: 10 },
       { type: 'sofa',      x: 40,   y: 3.5,  w: 3.3, d: 9, h: 2.8, faces: '+x', label: 'Sofa' },
@@ -220,8 +226,6 @@ export const floors = {
       // mudroom / pantry
       { type: 'tall',  x: 4.4, y: 0.5,  w: 1.5, d: 9,    h: 7 },              // lockers
       { type: 'bench', x: 0.3, y: 8,    w: 1.5, d: 4,    h: 1.5 },
-      { type: 'tall',  x: 6.3, y: 0.3,  w: 1.5, d: 10.4, h: 7 },
-      { type: 'tall',  x: 7.8, y: 0.3,  w: 3.9, d: 1.5,  h: 7 },
       // den — TV on the back wall, sofa facing it, window to the porch behind
       { type: 'tv',    x: 43,   y: 26.3, w: 6, d: 1.5, h: 2 },
       { type: 'sofa',  x: 42.5, y: 34,   w: 8, d: 3.5, h: 2.8, faces: '-y' },
