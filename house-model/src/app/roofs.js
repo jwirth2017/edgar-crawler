@@ -147,15 +147,25 @@ export function gableRoof(B, M, r, notch = null, group = 'roof') {
 export function buildPoolHouseRoof(B, M, ph, group) {
   const r = ph.roof;
   const g = gableRoof(B, M, r, null, group);
-  cedarTruss(B, M, 'y', g.a1, 1, g.b0, g.b1, r.eave, g.zr, group);
+  // the porch is at whichever end of the ridge it sits on
+  const p = ph.porch;
+  const porchAtLow = r.ridge === 'x' ? p.x < ph.footprint[0].x : p.y < ph.footprint[0].y;
+  cedarTruss(B, M, r.ridge === 'x' ? 'x' : 'y', porchAtLow ? g.a0 : g.a1, porchAtLow ? -1 : 1, g.b0, g.b1, r.eave, g.zr, group);
   // vaulted tongue-and-groove ceiling inside the enclosed part
   const s = r.pitch / 12;
   const zv = r.eave - 0.45;
-  const xm = r.x + r.w / 2;
-  const zr = zv + (r.w / 2) * s;
   const f = ph.footprint[0];
-  slabPoly(B, group, M.cedar, M.cedar, [[f.x, f.y, zv], [f.x, f.y + f.d, zv], [xm, f.y + f.d, zr], [xm, f.y, zr]], 0.08);
-  slabPoly(B, group, M.cedar, M.cedar, [[f.x + f.w, f.y + f.d, zv], [f.x + f.w, f.y, zv], [xm, f.y, zr], [xm, f.y + f.d, zr]], 0.08);
+  if (r.ridge === 'x') {
+    const ym = r.y + r.d / 2;
+    const zr = zv + (r.d / 2) * s;
+    slabPoly(B, group, M.cedar, M.cedar, [[f.x + f.w, f.y, zv], [f.x, f.y, zv], [f.x, ym, zr], [f.x + f.w, ym, zr]], 0.08);
+    slabPoly(B, group, M.cedar, M.cedar, [[f.x, f.y + f.d, zv], [f.x + f.w, f.y + f.d, zv], [f.x + f.w, ym, zr], [f.x, ym, zr]], 0.08);
+  } else {
+    const xm = r.x + r.w / 2;
+    const zr = zv + (r.w / 2) * s;
+    slabPoly(B, group, M.cedar, M.cedar, [[f.x, f.y, zv], [f.x, f.y + f.d, zv], [xm, f.y + f.d, zr], [xm, f.y, zr]], 0.08);
+    slabPoly(B, group, M.cedar, M.cedar, [[f.x + f.w, f.y + f.d, zv], [f.x + f.w, f.y, zv], [xm, f.y, zr], [xm, f.y + f.d, zr]], 0.08);
+  }
 }
 
 export function buildRoofs(B, M) {

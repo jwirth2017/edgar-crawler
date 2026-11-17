@@ -503,7 +503,7 @@ export const site = {
   ],
   // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
   stubOuts: [
-    { id: 'S1', name: 'Pool house', services: 'water · sewer · power · data', x: 14, y: -112 },
+    { id: 'S1', name: 'Pool house', services: 'water · sewer · power · data', x: 73, y: -66 },
     { id: 'S2', name: 'Pool equipment pad', services: '240V power · gas · water', x: 47, y: -102 },
     { id: 'S3', name: 'Hot tub', services: 'power · gas', x: 33, y: -35.5 },
   ],
@@ -523,62 +523,73 @@ export const phases = {
   2: {
     label: 'Phase 2 · pool + pool house',
     paverGrid: { x: 6, y: -26, w: 40, d: 12, paver: 3.5, grass: 0.5 },
-    pool:   { x: 18, y: -70, w: 16, d: 36, depth: 5 },
+    pool:   { x: 18, y: -70, w: 16, d: 36, depth: 5,
+      // sundeck (tanning ledge) at the far end, ~9" of water, three in-pool loungers
+      sundeck: { d: 10, water: 0.75, loungers: 3 } },
     hotTub: { x: 22, y: -34, w: 8, d: 8, raised: 1.5 },      // house end, spills into the pool
     furniture: [
       { type: 'lounger', x: 9,  y: -62, w: 2.5, d: 6.5, h: 1.2 },
       { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
       { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
     ],
-    // ~800 sq ft pool house across the pool from the house: white board-and-batten,
-    // black metal roof, vaulted interior with a gathering area, full bath,
-    // wet bar (no kitchen), covered porch facing the pool.
+    // ~800 sq ft pool house on the north side of the pool (the wing side), porch
+    // facing the pool; the slope down from the garage stays open for sledding.
+    // White board-and-batten, black metal roof, vaulted gathering room, wet bar
+    // (no kitchen), pool bath off the porch, and a pool storage room.
     poolHouse: {
       name: 'Pool House',
       finish: 'better',
       floor: -10,                 // 6" above the pool deck
       ceiling: 9,                 // bath ceiling; the great room is vaulted to the roof
       wallTop: 10,                // eave height above its floor
-      footprint: [{ x: 10, y: -115, w: 32, d: 25 }],   // 32 x 25 = 800 sq ft
+      footprint: [{ x: 50, y: -72, w: 25, d: 32 }],   // 25 x 32 = 800 sq ft
       rooms: [
-        { id: 'phGreat', name: 'Gathering Room', use: 'living', x: 18, y: -115, w: 24, d: 25, finish: { floor: 'slateTile' } },
+        { id: 'phGreat',   name: 'Gathering Room', use: 'living',  x: 50, y: -64, w: 25, d: 24, finish: { floor: 'slateTile' } },
         // bath on the porch side: swimmers use the outside door, no wet feet through the room
-        { id: 'phBath',  name: 'Pool Bath',      use: 'bath',   x: 10, y: -100, w: 8,  d: 10 },
-        { id: 'phTowel', name: 'Towels / Storage', use: 'living', x: 10, y: -115, w: 8,  d: 15, finish: { floor: 'slateTile' } },
+        { id: 'phBath',    name: 'Pool Bath',      use: 'bath',    x: 50, y: -72, w: 10, d: 8 },
+        { id: 'phTowel',   name: 'Towels',         use: 'living',  x: 60, y: -72, w: 7,  d: 8, finish: { floor: 'slateTile' } },
+        // pool toys + cushions, its own door on the outside
+        { id: 'phStorage', name: 'Pool Storage',   use: 'service', x: 67, y: -72, w: 8,  d: 8, finished: false },
       ],
       openPlan: [['phGreat', 'phTowel']],
       openings: [
-        { kind: 'door',      on: 'y', at: -90, from: 13,   to: 16, swing: -1 }, // bath, straight off the porch
-        { kind: 'glassdoor', on: 'y', at: -90, from: 19,   to: 24.5 },    // onto the porch
-        { kind: 'glassdoor', on: 'y', at: -90, from: 26,   to: 38 },
-        { kind: 'window',    on: 'x', at: 42,  from: -110, to: -104 },
-        { kind: 'window',    on: 'x', at: 42,  from: -100, to: -94 },
-        { kind: 'window',    on: 'x', at: 10,  from: -98.5, to: -94.5, sill: 5.5 }, // bath, high
-        { kind: 'window',    on: 'y', at: -115, from: 28,  to: 36, sill: 4.5 },   // over the wet bar
-        { kind: 'window',    on: 'y', at: -115, from: 12.5, to: 15.5, sill: 4.5 },
-        { kind: 'door',      on: 'y', at: -100, from: 11,  to: 13.5 },            // bath, from inside
+        // porch wall (x = 50), facing the pool
+        { kind: 'door',      on: 'x', at: 50,  from: -69,  to: -66 },            // bath, straight off the porch
+        { kind: 'glassdoor', on: 'x', at: 50,  from: -63,  to: -57.5 },
+        { kind: 'glassdoor', on: 'x', at: 50,  from: -56,  to: -44 },
+        // house-side end (y = -40): solid behind the TV, one window
+        { kind: 'window',    on: 'y', at: -40, from: 64,   to: 70 },
+        // far end (y = -72): bath window, storage door
+        { kind: 'window',    on: 'y', at: -72, from: 54.5, to: 58.5, sill: 5.5 }, // bath, high
+        { kind: 'door',      on: 'y', at: -72, from: 69,   to: 73 },              // pool storage, from outside
+        // back wall (x = 75)
+        { kind: 'window',    on: 'x', at: 75,  from: -54,  to: -46, sill: 4.5 },  // over the wet bar
+        { kind: 'window',    on: 'x', at: 75,  from: -69.5, to: -66.5, sill: 5.5 }, // storage, high
+        // inside
+        { kind: 'door',      on: 'x', at: 60,  from: -71,  to: -68.5 },           // bath, from the towel nook
       ],
       furniture: [
         // wet bar on the back wall (sink + undercounter fridge, no cooking)
-        { type: 'counter',   x: 26,   y: -114.7, w: 12, d: 2, h: 3, label: 'Wet bar', sink: true },
-        { type: 'appliance', x: 35,   y: -114.6, w: 2,  d: 1.9, h: 2.8 },
-        { type: 'island',    x: 27,   y: -110,   w: 9,  d: 2.5, h: 3.5 },
-        // gathering area: sectional, chairs, coffee table, TV wall, game table
-        { type: 'sofa',      x: 20,   y: -102,   w: 10, d: 3.3, h: 2.8, faces: '+y', label: 'Sectional' },
-        { type: 'sofa',      x: 18.3, y: -102,   w: 3.3, d: 8,  h: 2.8, faces: '+x' },
-        { type: 'table',     x: 23,   y: -97.5,  w: 5,   d: 3,  h: 1.4 },
-        { type: 'chair',     x: 30.5, y: -98,    w: 3,   d: 3,  h: 2.7 },
-        { type: 'tv',        x: 40.3, y: -101,   w: 1.5, d: 6,  h: 2 },
-        { type: 'table',     x: 34,   y: -108,   w: 4,   d: 4,  h: 2.5, chairs: 4 },
+        { type: 'counter',   x: 72.7, y: -56,   w: 2,   d: 12,  h: 3, label: 'Wet bar', sink: true },
+        { type: 'appliance', x: 72.7, y: -47,   w: 1.9, d: 2,   h: 2.8 },
+        { type: 'island',    x: 67.5, y: -55,   w: 2.5, d: 9,   h: 3.5 },
+        // gathering area: sectional facing the porch, TV on the house-side end wall
+        { type: 'sofa',      x: 58.7, y: -62,   w: 3.3, d: 10,  h: 2.8, faces: '-x', label: 'Sectional' },
+        { type: 'sofa',      x: 54,   y: -63.7, w: 8,   d: 3.3, h: 2.8, faces: '+y' },
+        { type: 'table',     x: 54.5, y: -59,   w: 3,   d: 5,   h: 1.4 },
+        { type: 'chair',     x: 55,   y: -51.5, w: 3,   d: 3,   h: 2.7, faces: '+x' },
+        { type: 'tv',        x: 54,   y: -41.7, w: 6,   d: 1.5, h: 2 },
+        { type: 'table',     x: 62.5, y: -46.5, w: 4,   d: 4,   h: 2.5, chairs: 4 },
         // pool bath: shower, vanity, toilet
-        { type: 'shower',    x: 13.8, y: -99.7,  w: 3.9, d: 4,  h: 7.5 },
-        { type: 'counter',   x: 10.3, y: -97,    w: 1.8, d: 4.5, h: 3, sink: true },
-        { type: 'toilet',    x: 15.9, y: -94.8,  w: 1.8, d: 2.3, h: 1.4 },
-        // towel / storage wall behind the bath
-        { type: 'tall',      x: 10.3, y: -114,   w: 1.6, d: 8,  h: 7 },
+        { type: 'shower',    x: 56.2, y: -68.2, w: 3.5, d: 3.9, h: 7.5 },
+        { type: 'counter',   x: 52.5, y: -71.7, w: 4.5, d: 1.8, h: 3, sink: true },
+        { type: 'toilet',    x: 52.5, y: -66.1, w: 2.3, d: 1.8, h: 1.4 },
+        // towel cabinet, and cushion / toy shelving in the storage room
+        { type: 'tall',      x: 65.3, y: -71.5, w: 1.6, d: 6,   h: 7, label: 'Towels' },
+        { type: 'tall',      x: 72.8, y: -71.7, w: 1.9, d: 7.4, h: 7, label: 'Cushions / toys' },
       ],
-      porch: { x: 10, y: -90, w: 32, d: 8 },
-      roof: { id: 'poolHouse', type: 'gable', x: 10, y: -115, w: 32, d: 33, ridge: 'y', eave: 0, pitch: 8, overhang: 1.5 },
+      porch: { x: 42, y: -72, w: 8, d: 32, faces: '-x' },
+      roof: { id: 'poolHouse', type: 'gable', x: 42, y: -72, w: 33, d: 32, ridge: 'x', eave: 0, pitch: 8, overhang: 1.5 },
     },
   },
 };

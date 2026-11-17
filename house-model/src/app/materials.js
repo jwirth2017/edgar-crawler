@@ -326,6 +326,7 @@ export function makeMaterials() {
       clearcoat: 1, depthWrite: false,
     }),
     poolTile: std({ color: '#7fc6dc', roughness: 0.5 }),
+    poolLounger: std({ color: '#f7f6f2', roughness: 0.35 }),
     // furniture
     fabric: std({ color: '#d8d2c6', roughness: 1 }),
     leather: std({ color: '#7a4b2c', roughness: 0.6 }),

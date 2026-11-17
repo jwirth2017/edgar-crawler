@@ -129,6 +129,22 @@ function poolAndHotTub(B, M, lanterns) {
     [p.x - c, p.x, p.y, p.y + p.d], [p.x + p.w, p.x + p.w + c, p.y, p.y + p.d],
   ]) B.box(g, M.trimWhite, ...r, deck - 0.2, deck + 0.12);
   B.box(g, M.water, p.x, p.x + p.w, p.y, p.y + p.d, water - 0.05, water, { shadow: false });
+  // sundeck (tanning ledge) at the far end with in-pool loungers
+  const sd = p.sundeck;
+  if (sd) {
+    const top = water - sd.water;
+    B.box(g, M.poolTile, p.x, p.x + p.w, p.y, p.y + sd.d, bottom, top);
+    B.box(g, M.trimWhite, p.x, p.x + p.w, p.y + sd.d - 0.35, p.y + sd.d, top - 0.05, top + 0.02);   // ledge nosing
+    const n = sd.loungers || 0;
+    for (let i = 0; i < n; i++) {
+      const cx = p.x + (p.w * (i + 0.5)) / n;
+      const y0 = p.y + 1.2;
+      const y1 = y0 + 5.8;
+      B.box(g, M.poolLounger, cx - 1.1, cx + 1.1, y0 + 1.6, y1, top, top + 0.85);                // seat, mostly in the water
+      B.box(g, M.poolLounger, cx - 1.1, cx + 1.1, y0, y0 + 1.7, top, top + 1.5);                // raised back end
+      B.box(g, M.poolLounger, cx - 1.1, cx + 1.1, y0 - 0.1, y0 + 0.3, top, top + 2.1);          // backrest
+    }
+  }
   B.collider(p.x, p.x + p.w, p.y, p.y + p.d, bottom, deck + 4);   // keep walkers out of the water
 
   const h = phases[2].hotTub;
@@ -166,17 +182,46 @@ function poolHouse(B, M, lanterns) {
   B.box('poolhouse', M.stone, p.x, p.x + p.w, p.y, p.y + p.d, deck - 0.5, z);
   B.surface(p.x, p.x + p.w, p.y, p.y + p.d, z, 'poolhouse-porch');
   const eave = z + ph.wallTop;
+  // the porch's open edge faces the pool: '+y' (default), '-y', '+x' or '-x'
+  const face = p.faces || '+y';
+  const alongY = face[1] === 'x';                      // porch runs along y when it faces ±x
+  const open = { '+y': p.y + p.d, '-y': p.y, '+x': p.x + p.w, '-x': p.x }[face];
+  const wall = { '+y': p.y, '-y': p.y + p.d, '+x': p.x, '-x': p.x + p.w }[face];
+  const inward = face[0] === '+' ? -1 : 1;             // from the open edge toward the building
+  const [a0, len] = alongY ? [p.y, p.d] : [p.x, p.w];
+  const at = (t, off) => (alongY ? [off, t] : [t, off]);   // (along, across) → plan (x, y)
+  const sq = (t, off, r, z0, z1, mat, opts) => {
+    const [x, y] = at(t, off);
+    B.box('poolhouse', mat, x - r, x + r, y - r, y + r, z0, z1, opts);
+  };
   const posts = 3;
   for (let i = 0; i < posts; i++) {
-    const cx = p.x + 0.6 + ((p.w - 1.2) * i) / (posts - 1);
-    const cy = p.y + p.d - 0.7;
-    B.box('poolhouse', M.stone, cx - 0.9, cx + 0.9, cy - 0.9, cy + 0.9, z, z + 2.5, { collide: true });
-    B.box('poolhouse', M.cedar, cx - 0.45, cx + 0.45, cy - 0.45, cy + 0.45, z + 2.5, eave - 0.6, { collide: true });
+    const t = a0 + 0.6 + ((len - 1.2) * i) / (posts - 1);
+    const off = open + inward * 0.7;
+    sq(t, off, 0.9, z, z + 2.5, M.stone, { collide: true });
+    sq(t, off, 0.45, z + 2.5, eave - 0.6, M.cedar, { collide: true });
   }
-  B.box('poolhouse', M.cedar, p.x, p.x + p.w, p.y + p.d - 1.2, p.y + p.d - 0.2, eave - 0.9, eave);
-  for (const x of [f.x + 2, f.x + f.w - 2]) {
-    B.box('poolhouse', M.black, x - 0.35, x + 0.35, p.y + 0.25, p.y + 0.7, z + 6, z + 7.4);
-    B.box('poolhouse', M.lantern, x - 0.25, x + 0.25, p.y + 0.3, p.y + 0.8, z + 6.2, z + 7.2, { shadow: false });
+  {
+    const o0 = open + inward * 1.2;
+    const o1 = open + inward * 0.2;
+    const [lo, hi] = [Math.min(o0, o1), Math.max(o0, o1)];
+    if (alongY) B.box('poolhouse', M.cedar, lo, hi, p.y, p.y + p.d, eave - 0.9, eave);
+    else B.box('poolhouse', M.cedar, p.x, p.x + p.w, lo, hi, eave - 0.9, eave);
+  }
+  // lanterns on the building wall at each end of the porch
+  for (const t of [a0 + 2, a0 + len - 2]) {
+    const out = -inward;                               // from the wall out onto the porch
+    const [x0, y0] = at(t, wall + out * 0.25);
+    const [x1, y1] = at(t, wall + out * 0.7);
+    const [lx0, ly0] = at(t, wall + out * 0.3);
+    const [lx1, ly1] = at(t, wall + out * 0.8);
+    if (alongY) {
+      B.box('poolhouse', M.black, Math.min(x0, x1), Math.max(x0, x1), t - 0.35, t + 0.35, z + 6, z + 7.4);
+      B.box('poolhouse', M.lantern, Math.min(lx0, lx1), Math.max(lx0, lx1), t - 0.25, t + 0.25, z + 6.2, z + 7.2, { shadow: false });
+    } else {
+      B.box('poolhouse', M.black, t - 0.35, t + 0.35, Math.min(y0, y1), Math.max(y0, y1), z + 6, z + 7.4);
+      B.box('poolhouse', M.lantern, t - 0.25, t + 0.25, Math.min(ly0, ly1), Math.max(ly0, ly1), z + 6.2, z + 7.2, { shadow: false });
+    }
   }
   buildPoolHouseRoof(B, M, ph, 'poolhouse');
 }

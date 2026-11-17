@@ -464,6 +464,15 @@ export function sitePlanSVG() {
   s += dash(pd);
   const pool = P2.pool;
   s += dash(pool);
+  if (pool.sundeck) {
+    const sd = pool.sundeck;
+    s += line(pool.x, pool.y + sd.d, pool.x + pool.w, pool.y + sd.d, `stroke="#2f7fb8" stroke-width="0.3" stroke-dasharray="0.8 0.6"`);
+    for (let i = 0; i < (sd.loungers || 0); i++) {
+      const cx = pool.x + (pool.w * (i + 0.5)) / sd.loungers;
+      s += rect(cx - 1.1, pool.y + 1.2, 2.2, 5.8, `fill="none" stroke="#2f7fb8" stroke-width="0.2"`);
+    }
+    s += p2lab(pool.x + pool.w / 2, pool.y + sd.d + 1.6, 'sundeck · 3 in-pool loungers', 1.3);
+  }
   s += p2lab(pool.x + pool.w / 2, pool.y + pool.d / 2 - 2, 'Phase 2 pool');
   s += p2lab(pool.x + pool.w / 2, pool.y + pool.d / 2 + 1.5, `${pool.w}' × ${pool.d}'`, 1.8);
   const h = P2.hotTub;
