@@ -2,6 +2,7 @@
 // a known size in feet; geometry carries UVs in feet (see builder.js), so
 // `repeat = 1 / tileFeet` keeps every surface at true scale.
 import * as THREE from 'three';
+import { phases } from '../config/house.js';
 
 function canvasTexture(px, py, draw, tileFtX, tileFtY = tileFtX, srgb = true) {
   const c = document.createElement('canvas');
@@ -345,6 +346,8 @@ export function makeMaterials() {
     bark: std({ color: '#5a4636', roughness: 1 }),
     lantern: std({ color: '#f3e3c0', roughness: 0.4, emissive: '#ffc070', emissiveIntensity: 0 }),
     matTurf: std({ color: '#7fbf5a', roughness: 1 }),
+    marker: std({ color: '#e9e4d6', roughness: 0.6 }),
+    markerCap: std({ color: '#2f6fb2', roughness: 0.5, emissive: '#2f6fb2', emissiveIntensity: 0.25 }),
     screenGolf: new THREE.MeshBasicMaterial({ map: screenTexture('golf') }),
     screenMovie: new THREE.MeshBasicMaterial({ map: screenTexture('movie') }),
   };
@@ -379,7 +382,7 @@ export function makeMaterials() {
 }
 
 /** Top-down ground paint for the site, `ppf` pixels per foot. */
-export function siteTexture(site, extent, ppf = 4) {
+export function siteTexture(site, extent, ppf = 4, phase = 1) {
   const [x0, y0, x1, y1] = extent;
   const c = document.createElement('canvas');
   c.width = Math.round((x1 - x0) * ppf);
@@ -408,8 +411,9 @@ export function siteTexture(site, extent, ppf = 4) {
   R(-14, 24, 12, 16, '#cfc8b8');
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');
-  // pool deck (travertine-look pavers)
+  // pool deck (travertine-look pavers) — Phase 2 only; Phase 1 leaves it lawn
   const pd = site.poolDeck;
+  if (phase === 2) {
   R(pd.x, pd.y, pd.w, pd.d, '#ddd0b6');
   g.strokeStyle = 'rgba(150,130,100,0.35)';
   g.lineWidth = 1;
@@ -419,11 +423,12 @@ export function siteTexture(site, extent, ppf = 4) {
   for (let y = pd.y; y <= pd.y + pd.d; y += 2) {
     g.beginPath(); g.moveTo((pd.x - x0) * ppf, (y - y0) * ppf); g.lineTo((pd.x + pd.w - x0) * ppf, (y - y0) * ppf); g.stroke();
   }
+  }
   // covered patio
   const cp = site.coveredPatio;
   R(cp.x, cp.y, cp.w, cp.d, '#c9c4b8');
   // concrete pavers with grass strips
-  const pg = site.paverGrid;
+  const pg = phases[phase].paverGrid;
   R(pg.x, pg.y, pg.w, pg.d, '#5f8a3c');
   const pitch = pg.paver + pg.grass;
   const nx = Math.floor((pg.w + pg.grass) / pitch);
@@ -432,7 +437,8 @@ export function siteTexture(site, extent, ppf = 4) {
   const oy = pg.y + (pg.d - (ny * pitch - pg.grass)) / 2;
   for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) R(ox + i * pitch, oy + j * pitch, pg.paver, pg.paver, '#d3d0c8');
   // pool coping
-  const p = site.pool;
+  const p = phases[2].pool;
+  if (phase === 2)
   R(p.x - 1.5, p.y - 1.5, p.w + 3, p.d + 3, '#efe9dc');
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;

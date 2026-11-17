@@ -39,6 +39,7 @@ export class Builder {
     this.batches = new Map();   // key → { group, material, geos: [] }
     this.colliders = [];        // { x0, x1, y0, y1, z0, z1 }
     this.surfaces = [];         // { x0, x1, y0, y1, h: number | (x, y) => number, tag }
+    this.phase = null;          // set while building phase-only items (1 or 2); recorded on colliders/surfaces
   }
 
   add(group, material, geo, { shadow = true } = {}) {
@@ -72,11 +73,11 @@ export class Builder {
   }
 
   collider(x0, x1, y0, y1, z0, z1) {
-    this.colliders.push({ x0: Math.min(x0, x1), x1: Math.max(x0, x1), y0: Math.min(y0, y1), y1: Math.max(y0, y1), z0, z1 });
+    this.colliders.push({ x0: Math.min(x0, x1), x1: Math.max(x0, x1), y0: Math.min(y0, y1), y1: Math.max(y0, y1), z0, z1, phase: this.phase });
   }
 
   surface(x0, x1, y0, y1, h, tag = '') {
-    this.surfaces.push({ x0, x1, y0, y1, h, tag });
+    this.surfaces.push({ x0, x1, y0, y1, h, tag, phase: this.phase });
   }
 
   /** Merge everything into meshes and add them to `groups[groupName]`. */

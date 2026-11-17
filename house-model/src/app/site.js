@@ -1,9 +1,11 @@
-// Terrain, pool, hot tub, pavilion, low patio wall and trees.
+// Terrain, Phase 1 / Phase 2 yard (pool, hot tub, pool house, stub-outs),
+// low patio wall and trees.
 import * as THREE from 'three';
-import { site } from '../config/house.js';
-import { grade, terrainHoles, patioEdgeWall } from '../model/terrain.js';
+import { site, phases } from '../config/house.js';
+import { grade, terrainHoles, poolHole, patioEdgeWall } from '../model/terrain.js';
 import { siteTexture } from './materials.js';
-import { slabPoly } from './roofs.js';
+import { slabPoly, buildPoolHouseRoof } from './roofs.js';
+import { registerLevel, buildLevelWalls, buildLevelFloors, buildLevelFurniture } from './house.js';
 
 export const SITE_EXTENT = [-160, -210, 220, 200]; // x0, y0, x1, y1 (plan feet)
 
@@ -42,10 +44,13 @@ export function buildTerrain(M) {
   geo.setIndex(idx);
   geo.computeVertexNormals();
 
-  const mat = new THREE.MeshStandardMaterial({ map: siteTexture(site, SITE_EXTENT, 4), roughness: 0.97 });
-  // cut the terrain away inside the house and pool footprints
-  const holes = terrainHoles.slice(0, 4).map((r) => new THREE.Vector4(r.x, r.y, r.x + r.w, r.y + r.d));
-  while (holes.length < 4) holes.push(new THREE.Vector4(1e6, 1e6, 1e6, 1e6));
+  const maps = { 1: siteTexture(site, SITE_EXTENT, 4, 1), 2: siteTexture(site, SITE_EXTENT, 4, 2) };
+  const mat = new THREE.MeshStandardMaterial({ map: maps[phases.default], roughness: 0.97 });
+  // cut the terrain away inside the house footprints, and the pool in Phase 2
+  const holes = terrainHoles.slice(0, 3).map((r) => new THREE.Vector4(r.x, r.y, r.x + r.w, r.y + r.d));
+  while (holes.length < 3) holes.push(new THREE.Vector4(1e6, 1e6, 1e6, 1e6));
+  const poolVec = new THREE.Vector4(1e6, 1e6, 1e6, 1e6);
+  holes.push(poolVec);
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uHoles = { value: holes };
     shader.vertexShader = shader.vertexShader
@@ -66,6 +71,14 @@ export function buildTerrain(M) {
   mesh.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
   mesh.customDepthMaterial.onBeforeCompile = mat.onBeforeCompile;
   mesh.name = 'terrain';
+  /** Switch the ground paint and the pool cut-out between phases. */
+  mesh.userData.setPhase = (ph) => {
+    mat.map = maps[ph];
+    mat.needsUpdate = true;
+    if (ph === 2) poolVec.set(poolHole.x, poolHole.y, poolHole.x + poolHole.w, poolHole.y + poolHole.d);
+    else poolVec.set(1e6, 1e6, 1e6, 1e6);
+  };
+  mesh.userData.setPhase(phases.default);
 
   // big ground disc beyond the modeled lot
   const far = new THREE.Mesh(
@@ -78,9 +91,30 @@ export function buildTerrain(M) {
 }
 
 export function buildPoolAndYard(B, M, lanterns) {
+  B.phase = 1;
+  stubOutMarkers(B, M);
+  B.phase = 2;
+  poolAndHotTub(B, M, lanterns);
+  poolHouse(B, M, lanterns);
+  B.phase = null;
+  patioWall(B, M);
+  trees(B, M);
+}
+
+/** Phase 1: small capped posts marking the utility stub-outs for Phase 2. */
+function stubOutMarkers(B, M) {
+  for (const s of site.stubOuts) {
+    const z = grade(s.x, s.y);
+    B.box('phase1', M.marker, s.x - 0.25, s.x + 0.25, s.y - 0.25, s.y + 0.25, z - 0.5, z + 2.2, { collide: true });
+    B.box('phase1', M.markerCap, s.x - 0.35, s.x + 0.35, s.y - 0.35, s.y + 0.35, z + 2.2, z + 2.6);
+  }
+}
+
+/** Phase 2: 16 x 36 pool and the raised stone hot tub spilling into it. */
+function poolAndHotTub(B, M, lanterns) {
   const deck = site.terrain.walkoutGrade;
-  const p = site.pool;
-  const g = 'site';
+  const p = phases[2].pool;
+  const g = 'phase2';
   const water = deck - 0.45;
   const bottom = deck - p.depth;
   // basin (tile) + coping
@@ -95,11 +129,9 @@ export function buildPoolAndYard(B, M, lanterns) {
     [p.x - c, p.x, p.y, p.y + p.d], [p.x + p.w, p.x + p.w + c, p.y, p.y + p.d],
   ]) B.box(g, M.trimWhite, ...r, deck - 0.2, deck + 0.12);
   B.box(g, M.water, p.x, p.x + p.w, p.y, p.y + p.d, water - 0.05, water, { shadow: false });
-  // keep walkers out of the water
-  B.collider(p.x, p.x + p.w, p.y, p.y + p.d, bottom, deck + 4);
+  B.collider(p.x, p.x + p.w, p.y, p.y + p.d, bottom, deck + 4);   // keep walkers out of the water
 
-  // raised hot tub at the house end, spilling into the pool
-  const h = site.hotTub;
+  const h = phases[2].hotTub;
   const zt = deck + h.raised;
   B.box(g, M.stone, h.x, h.x + h.w, h.y, h.y + 0.8, deck - 2, zt, { collide: true });
   B.box(g, M.stone, h.x, h.x + h.w, h.y + h.d - 0.8, h.y + h.d, deck - 2, zt, { collide: true });
@@ -108,32 +140,45 @@ export function buildPoolAndYard(B, M, lanterns) {
   B.box(g, M.trimWhite, h.x - 0.3, h.x + h.w + 0.3, h.y - 0.3, h.y + h.d + 0.3, zt, zt + 0.25);
   B.box(g, M.poolTile, h.x + 0.8, h.x + h.w - 0.8, h.y + 0.8, h.y + h.d - 0.8, deck - 2.5, deck - 2);
   B.box(g, M.water, h.x + 0.8, h.x + h.w - 0.8, h.y + 0.8, h.y + h.d - 0.8, zt - 0.4, zt - 0.3, { shadow: false });
-  // spillway sheet
   const sx = h.x + h.w / 2;
   B.box(g, M.water, sx - 1.5, sx + 1.5, h.y - 0.35, h.y - 0.25, water, zt - 0.3, { shadow: false });
-  lanterns.push(new THREE.Vector3(sx, water + 0.2, h.y - 2));
+}
 
-  // outdoor kitchen pavilion
-  const pv = site.pavilion;
-  const zp = deck + pv.postHeight;
-  const posts = [];
-  for (const fx of [0, 0.5, 1]) for (const fy of [0, 1]) posts.push([pv.x + fx * pv.w, pv.y + fy * pv.d]);
-  posts.push([pv.x, pv.y + pv.d / 2], [pv.x + pv.w, pv.y + pv.d / 2]);
-  for (const [px, py] of posts) {
-    const cx = Math.min(Math.max(px, pv.x + 0.6), pv.x + pv.w - 0.6);
-    const cy = Math.min(Math.max(py, pv.y + 0.6), pv.y + pv.d - 0.6);
-    B.box(g, M.stone, cx - 0.9, cx + 0.9, cy - 0.9, cy + 0.9, deck, deck + 2.8, { collide: true });
-    B.box(g, M.cedar, cx - 0.5, cx + 0.5, cy - 0.5, cy + 0.5, deck + 2.8, zp, { collide: true });
+/** Phase 2: ~500 sq ft pool house, built with the same wall / opening / floor code as the house. */
+function poolHouse(B, M, lanterns) {
+  const ph = phases[2].poolHouse;
+  registerLevel('poolhouse', ph);
+  buildLevelWalls(B, M, 'poolhouse');
+  buildLevelFloors(B, M, 'poolhouse');
+  buildLevelFurniture(B, M, 'poolhouse');
+  const f = ph.footprint[0];
+  const z = ph.floor;
+  const deck = site.terrain.walkoutGrade;
+  // stone foundation skirt down to grade
+  let low = z;
+  for (const [x, y] of [[f.x, f.y], [f.x + f.w, f.y], [f.x, f.y + f.d], [f.x + f.w, f.y + f.d]]) low = Math.min(low, grade(x, y));
+  B.box('poolhouse', M.stone, f.x - 0.3, f.x + f.w + 0.3, f.y - 0.3, f.y + f.d + 0.3, low - 1, z - 0.5);
+  // flat ceiling over the bath (the great room is vaulted to the roof)
+  const bath = ph.rooms.find((r) => r.use === 'bath');
+  if (bath) B.box('poolhouse', M.drywall, bath.x, bath.x + bath.w, bath.y, bath.y + bath.d, z + ph.ceiling, z + ph.ceiling + 0.3);
+  // covered porch facing the pool: stone floor, cedar posts on stone bases, beam
+  const p = ph.porch;
+  B.box('poolhouse', M.stone, p.x, p.x + p.w, p.y, p.y + p.d, deck - 0.5, z);
+  B.surface(p.x, p.x + p.w, p.y, p.y + p.d, z, 'poolhouse-porch');
+  const eave = z + ph.wallTop;
+  const posts = 3;
+  for (let i = 0; i < posts; i++) {
+    const cx = p.x + 0.6 + ((p.w - 1.2) * i) / (posts - 1);
+    const cy = p.y + p.d - 0.7;
+    B.box('poolhouse', M.stone, cx - 0.9, cx + 0.9, cy - 0.9, cy + 0.9, z, z + 2.5, { collide: true });
+    B.box('poolhouse', M.cedar, cx - 0.45, cx + 0.45, cy - 0.45, cy + 0.45, z + 2.5, eave - 0.6, { collide: true });
   }
-  for (const [x0, x1, y0, y1] of [
-    [pv.x, pv.x + pv.w, pv.y, pv.y + 1], [pv.x, pv.x + pv.w, pv.y + pv.d - 1, pv.y + pv.d],
-    [pv.x, pv.x + 1, pv.y, pv.y + pv.d], [pv.x + pv.w - 1, pv.x + pv.w, pv.y, pv.y + pv.d],
-  ]) B.box(g, M.cedar, x0 + 0.1, x1 - 0.1, y0 + 0.1, y1 - 0.1, zp, zp + 1);
-  // string lights' glow points under the eaves
-  for (let i = 0; i < 4; i++) lanterns.push(new THREE.Vector3(pv.x + 2 + i * (pv.w - 4) / 3, zp - 0.4, pv.y + pv.d / 2));
-
-  patioWall(B, M);
-  trees(B, M);
+  B.box('poolhouse', M.cedar, p.x, p.x + p.w, p.y + p.d - 1.2, p.y + p.d - 0.2, eave - 0.9, eave);
+  for (const x of [f.x + 2, f.x + f.w - 2]) {
+    B.box('poolhouse', M.black, x - 0.35, x + 0.35, p.y + 0.25, p.y + 0.7, z + 6, z + 7.4);
+    B.box('poolhouse', M.lantern, x - 0.25, x + 0.25, p.y + 0.3, p.y + 0.8, z + 6.2, z + 7.2, { shadow: false });
+  }
+  buildPoolHouseRoof(B, M, ph, 'poolhouse');
 }
 
 /** Low stone wall at the patio's south edge, where the side lawn is still above the patio (≤ 3 ft). */

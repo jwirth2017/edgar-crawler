@@ -1,6 +1,6 @@
 // Top-down SVG plan, drawn straight from the config. Front of the house is at
 // the bottom of the page; the rear (west, pool side) is at the top.
-import { floors, exterior, site, build, stair } from '../config/house.js';
+import { floors, exterior, site, build, stair, phases } from '../config/house.js';
 import { deriveWalls, solidSpans, allRooms, roomAt, fmtFeet } from '../model/layout.js';
 import { patioEdgeWall } from '../model/terrain.js';
 
@@ -272,6 +272,25 @@ function paverGrid(g, strokeW = 0.05) {
   return s;
 }
 
+/** Deck outdoor kitchen footprint (L counter, grill, bar ledge, stools). */
+function kitchenSVG(sw, labels = false) {
+  const k = exterior.deck.kitchen;
+  if (!k) return '';
+  const st = `fill="#c9c1b0" stroke="${INK}" stroke-width="${sw}"`;
+  let s = rect(k.x, k.y - k.ledgeDepth, k.len, k.depth + k.ledgeDepth, st);
+  s += rect(k.x, k.y + k.depth, k.returnDepth, k.returnLen - k.depth, st);
+  s += rect(k.x + k.grillAt - k.grillW / 2, k.y + 0.15, k.grillW, k.depth - 0.25, `fill="#9aa0a5" stroke="${INK}" stroke-width="${sw * 0.7}"`);
+  for (let i = 0; i < k.stools; i++) {
+    const cx = k.x + (k.len * (i + 0.5)) / k.stools;
+    s += `<circle cx="${n(cx)}" cy="${n(k.y - k.ledgeDepth - 0.75)}" r="0.65" fill="#fff" stroke="${FURN}" stroke-width="${sw * 0.6}"/>`;
+  }
+  if (labels) {
+    s += text(k.x + k.len / 2, k.y + k.depth / 2 - 0.1, 'Outdoor kitchen · grill', 0.7, `text-anchor="middle" dominant-baseline="central" fill="${INK}" class="halo"`);
+    s += text(k.x + k.returnDepth / 2, k.y + k.depth + 1.4, 'fridge', 0.55, `text-anchor="middle" dominant-baseline="central" fill="${INK}" class="halo"`);
+  }
+  return s;
+}
+
 function patioWallSVG(width = 0.6) {
   const w = patioEdgeWall();
   if (w.y1 - w.y0 < 0.5) return '';
@@ -317,6 +336,7 @@ export function floorPlanSVG(key) {
     s += rect(st.x, st.y, st.w, st.d, `fill="#efe6d5" stroke="${INK}" stroke-width="0.1"`);
     for (let y = st.y + 1; y < st.y + st.d; y += 10 / 12) s += line(st.x, y, st.x + st.w, y, `stroke="${FURN}" stroke-width="0.05"`);
     s += text(st.x - 0.8, st.y + 4, 'DN to pool deck', 0.8, `text-anchor="end" fill="#77746b" dominant-baseline="central"`);
+    s += kitchenSVG(0.1, true);
     if (deck.cover) {
       const c = deck.cover;
       s += rect(c.x, c.y, c.w, c.d, `fill="none" stroke="#8d6a45" stroke-width="0.12" stroke-dasharray="0.6 0.4"`);
@@ -355,19 +375,17 @@ export function floorPlanSVG(key) {
     s += note(MID, 44, 'porch roof below', 0.85);
   }
   if (key === 'basement') {
-    // covered patio under the deck, then paver grid out to the pool deck
-    s += rect(site.poolDeck.x, Math.max(site.poolDeck.y, bounds[1]), site.poolDeck.w,
-      site.poolDeck.y + site.poolDeck.d - Math.max(site.poolDeck.y, bounds[1]), `fill="#ebe3d2"`);
-    s += paverGrid(site.paverGrid, 0.04);
+    // covered patio under the deck, then the Phase 1 paver grid with lawn beyond
+    s += paverGrid(phases[1].paverGrid, 0.04);
     const cp = site.coveredPatio;
     s += rect(cp.x, cp.y, cp.w, cp.d, `fill="#e4ddcc" stroke="#9a968b" stroke-width="0.12" stroke-dasharray="0.7 0.5"`);
     s += piers(deck);
-    const h = site.hotTub;
-    s += rect(h.x, h.y, h.w, h.d, `fill="#7fc4dc" stroke="#8b8577" stroke-width="0.5"`);
-    s += note(h.x + h.w / 2, h.y + h.d / 2, 'Hot tub', 0.8, `fill="${INK}"`);
+    const h = phases[2].hotTub;
+    s += rect(h.x, h.y, h.w, h.d, `fill="none" stroke="#2f7fb8" stroke-width="0.14" stroke-dasharray="0.6 0.4"`);
+    s += note(h.x + h.w / 2, h.y + h.d / 2, 'Phase 2 hot tub', 0.7, `fill="#2f7fb8"`);
     s += note(MID, -7, `Covered pool patio · ${fmtFeet(cp.w)} × ${fmtFeet(cp.d)} · under the deck`, 0.9);
     s += note(14, -20, 'concrete pavers + grass strips', 0.8);
-    s += note(h.x + h.w / 2, h.y - 2, '↑ pool 16 × 36', 0.8);
+    s += note(h.x + h.w / 2, h.y - 2, '↑ Phase 2 pool 16 × 36', 0.8, `fill="#2f7fb8"`);
     s += patioWallSVG(0.6) + slopeArrows(0.85);
     s += text(-1.2, -4, 'low wall ≤ 3\'', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
@@ -428,26 +446,50 @@ export function sitePlanSVG() {
   const c = courts[0];
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
   s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
-  // pool deck, pavers, pool, hot tub, pavilion
-  const pd = site.poolDeck;
-  s += rect(pd.x, pd.y, pd.w, pd.d, `fill="#e4dccb" stroke="#b9b09b" stroke-width="0.2"`);
-  s += paverGrid(site.paverGrid, 0.08);
+  // Phase 1 (built): paver grid off the covered patio, fire pit, lawn beyond
+  s += paverGrid(phases[1].paverGrid, 0.08);
   const cp = site.coveredPatio;
   s += rect(cp.x, cp.y, cp.w, cp.d, `fill="#d8cfbd"`);
-  const pool = site.pool;
-  s += rect(pool.x, pool.y, pool.w, pool.d, `fill="#7fc4dc" stroke="#f5f2ea" stroke-width="1.2"`);
-  s += lab(pool.x + pool.w / 2, pool.y + pool.d / 2 - 2, 'Pool');
-  s += lab(pool.x + pool.w / 2, pool.y + pool.d / 2 + 2.5, `${pool.w}' × ${pool.d}'`, 2);
-  const h = site.hotTub;
-  s += rect(h.x, h.y, h.w, h.d, `fill="#5fb0cf" stroke="#8b8577" stroke-width="0.9"`);
-  s += text(h.x - 1.5, h.y + h.d / 2, 'Raised hot tub', 2, `text-anchor="end" dominant-baseline="central" fill="#3d3c38" class="halo"`);
-  const pv = site.pavilion;
-  s += rect(pv.x, pv.y, pv.w, pv.d, `fill="#3b3b3b" fill-opacity="0.85" stroke="${INK}" stroke-width="0.3"`);
-  s += text(pv.x + pv.w / 2, pv.y + pv.d / 2 - 1.5, 'Outdoor kitchen', 2, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
-  s += text(pv.x + pv.w / 2, pv.y + pv.d / 2 + 1.5, 'pavilion', 2, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
-  s += lab(9, -60, 'Pool deck', 2.1);
-  s += lab(9, -56.8, `${fmtFeet(t.walkoutGrade)}`, 1.9);
-  s += lab(MID, -20, 'pavers + grass', 1.9);
+  const fp = site.furniture.find((f) => f.type === 'firepit');
+  if (fp) s += `<circle cx="${n(fp.x + fp.w / 2)}" cy="${n(fp.y + fp.d / 2)}" r="${n(fp.w / 2)}" fill="#8b8577" stroke="#5d594f" stroke-width="0.2"/>`;
+  s += lab(MID + 6, phases[1].paverGrid.y + 3, 'pavers + grass · fire pit', 1.8);
+  s += lab(9, -60, `lawn · graded flat at ${fmtFeet(t.walkoutGrade)}`, 1.8, 'text-anchor="start"');
+  // Phase 2 (future): dashed outlines
+  const P2 = phases[2];
+  const dash = (r, extra = '') => rect(r.x, r.y, r.w, r.d, `fill="none" stroke="#2f7fb8" stroke-width="0.45" stroke-dasharray="1.6 1" ${extra}`);
+  const p2lab = (x, y, str, size = 2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#2f7fb8" class="halo"`);
+  const pd = site.poolDeck;
+  s += dash(pd);
+  const pool = P2.pool;
+  s += dash(pool);
+  s += p2lab(pool.x + pool.w / 2, pool.y + pool.d / 2 - 2, 'Phase 2 pool');
+  s += p2lab(pool.x + pool.w / 2, pool.y + pool.d / 2 + 1.5, `${pool.w}' × ${pool.d}'`, 1.8);
+  const h = P2.hotTub;
+  s += dash(h);
+  s += p2lab(h.x + h.w + 9, h.y + h.d / 2, 'Phase 2 hot tub', 1.7);
+  const ph = P2.poolHouse;
+  const phf = ph.footprint[0];
+  s += dash(phf);
+  s += dash(ph.porch, 'stroke-opacity="0.7"');
+  s += p2lab(phf.x + phf.w / 2, phf.y + phf.d / 2 - 1.5, 'Phase 2 pool house');
+  s += p2lab(phf.x + phf.w / 2, phf.y + phf.d / 2 + 1.5, `${phf.w}' × ${phf.d}' · ${phf.w * phf.d} sq ft`, 1.7);
+  s += p2lab(ph.porch.x + ph.porch.w / 2, ph.porch.y + ph.porch.d / 2, 'covered porch', 1.6);
+  s += p2lab(pd.x + pd.w - 10, pd.y + pd.d - 6, 'Phase 2 pool deck', 1.8);
+  // utility stub-outs (installed in Phase 1)
+  for (const so of site.stubOuts) {
+    s += `<g transform="translate(${n(so.x)} ${n(so.y)})"><circle r="1.3" fill="#fff" stroke="#c0392b" stroke-width="0.35"/><path d="M-0.8,0 L0.8,0 M0,-0.8 L0,0.8" stroke="#c0392b" stroke-width="0.3"/></g>`;
+    s += text(so.x + 2, so.y - 0.6, `${so.id} ${so.name} stub-out`, 1.6, `fill="#8e2a1f" class="halo"`);
+    s += text(so.x + 2, so.y + 1.4, so.services, 1.4, `fill="#8e2a1f" class="halo"`);
+  }
+  // legend
+  {
+    const lx = b[0] + 8;
+    const ly = b[1] + 16;
+    s += line(lx, ly, lx + 6, ly, `stroke="#2f7fb8" stroke-width="0.45" stroke-dasharray="1.6 1"`);
+    s += text(lx + 8, ly, 'Phase 2 (future): pool, hot tub, pool deck, pool house', 1.8, `dominant-baseline="central" fill="#2f7fb8"`);
+    s += `<g transform="translate(${n(lx + 3)} ${n(ly + 4)})"><circle r="1.1" fill="#fff" stroke="#c0392b" stroke-width="0.3"/><path d="M-0.7,0 L0.7,0 M0,-0.7 L0,0.7" stroke="#c0392b" stroke-width="0.25"/></g>`;
+    s += text(lx + 8, ly + 4, 'utility stub-out installed in Phase 1', 1.8, `dominant-baseline="central" fill="#8e2a1f"`);
+  }
   // low wall at the patio corner + 3:1 lawn slopes on both sides
   s += patioWallSVG(1.2);
   {
@@ -462,6 +504,7 @@ export function sitePlanSVG() {
   const { deck, porch, breezeway: bw } = exterior;
   s += rect(deck.x, deck.y, deck.w, deck.d, `fill="#d9c39d" stroke="${INK}" stroke-width="0.2"`);
   s += rect(deck.stairs.x, deck.stairs.y, deck.stairs.w, deck.stairs.d, `fill="#d9c39d" stroke="${INK}" stroke-width="0.2"`);
+  s += kitchenSVG(0.15);
   s += lab(deck.x + deck.w / 2, deck.y + deck.d / 2, 'Deck (main level), covered patio below', 2);
   s += rect(porch.x, porch.y, porch.w, porch.d, `fill="#e9e3d5" stroke="${INK}" stroke-width="0.2"`);
   // roofs as dark footprints with ridge lines

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { floors, sun as sunConfig, views } from '../config/house.js';
+import { floors, sun as sunConfig, views, phases } from '../config/house.js';
 import { Builder } from './builder.js';
 import { makeMaterials } from './materials.js';
 import { buildHouse, LEVELS } from './house.js';
@@ -59,7 +59,7 @@ scene.add(sunLight, sunLight.target);
 // ─── build the model ─────────────────────────────────────────────────────────
 const M = makeMaterials();
 const groups = {};
-for (const g of [...LEVELS, ...LEVELS.map((l) => `ceil_${l}`), 'roof', 'site']) {
+for (const g of [...LEVELS, ...LEVELS.map((l) => `ceil_${l}`), 'roof', 'site', 'phase1', 'phase2', 'poolhouse']) {
   groups[g] = new THREE.Group();
   groups[g].name = g;
   scene.add(groups[g]);
@@ -78,9 +78,27 @@ buildRoofs(B, M);
 buildPoolAndYard(B, M, lanterns);
 siteFurniture(B, M);
 B.finish(groups);
-for (const m of buildTerrain(M)) groups.site.add(m);
+const terrainMeshes = buildTerrain(M);
+for (const m of terrainMeshes) groups.site.add(m);
 
 const walker = new Walker(camera, renderer.domElement, { colliders: B.colliders, surfaces: B.surfaces });
+
+// ─── phase (1 = initial build, 2 = pool + pool house) ─────────────────────────
+let phase = phases.default;
+function setPhase(ph) {
+  phase = ph;
+  groups.phase1.visible = ph === 1;
+  groups.phase2.visible = ph === 2;
+  groups.poolhouse.visible = ph === 2;
+  terrainMeshes[0].userData.setPhase(ph);
+  walker.phase = ph;
+  document.querySelectorAll('#phase button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.phase) === ph)));
+  document.getElementById('phaseNote').textContent = ph === 1
+    ? 'Initial build: paver grid and lawn; blue-capped posts mark the utility stub-outs for Phase 2.'
+    : 'Adds the 16 × 36 pool, raised hot tub, pool deck and ~500 sq ft pool house.';
+}
+document.querySelectorAll('#phase button').forEach((b) => b.addEventListener('click', () => setPhase(Number(b.dataset.phase))));
+setPhase(phase);
 
 // ─── view modes ──────────────────────────────────────────────────────────────
 const W = (x, y, z) => new THREE.Vector3(x, z, y);
@@ -198,7 +216,7 @@ document.getElementById('shot').addEventListener('click', () => {
   renderer.render(scene, camera);
   const a = document.createElement('a');
   a.href = renderer.domElement.toDataURL('image/png');
-  a.download = `farmhouse-${mode}-${fmtTime(Number(timeInput.value)).replace(/[: ]/g, '')}.png`;
+  a.download = `farmhouse-phase${phase}-${mode}-${fmtTime(Number(timeInput.value)).replace(/[: ]/g, '')}.png`;
   a.click();
   const t = document.getElementById('toast');
   t.textContent = 'Screenshot saved';
@@ -241,11 +259,12 @@ document.getElementById('loading').remove();
 // expose a small hook for automated checks / deep links (?view=, ?preset=, ?t=)
 const q = new URLSearchParams(location.search);
 if (q.get('t')) { timeInput.value = q.get('t'); updateSun(); }
+if (q.get('phase')) setPhase(Number(q.get('phase')) === 2 ? 2 : 1);
 if (q.get('view')) setMode(q.get('view'));
 if (q.get('preset')) { const v = views.find((p) => p.id === q.get('preset')); if (v) goPreset(v); }
 if (q.get('view') || q.get('preset')) { if (anim) { anim.ms = 1; } }
 window.__house = {
-  walker, setMode, goPreset, colliders: B.colliders.length, surfaces: B.surfaces.length, camera, controls,
+  walker, setMode, goPreset, setPhase, colliders: B.colliders.length, surfaces: B.surfaces.length, camera, controls,
   // advance animations instantly and draw one frame (for automated checks)
   render(steps = 1) { if (anim) anim.ms = 1; for (let i = 0; i < steps; i++) frame(); return performance.now(); },
 };

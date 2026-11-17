@@ -8,7 +8,7 @@
 // walkout patio level. On the wing side the lawn is a plane falling toward the
 // rear. Behind the house the pool deck and patio are flat at the walkout
 // level, then the lot falls away west.
-import { site, floors, exterior } from '../config/house.js';
+import { site, floors, exterior, phases } from '../config/house.js';
 
 const T = site.terrain;
 const smooth = (a, b, v) => {
@@ -60,18 +60,22 @@ function westFall(y) {
 function baseGrade(x, y) {
   const fall = westFall(y);
   const front = (yy) => T.frontGrade + Math.max(0, yy - 60) * 0.006;
-  // south side (garage, motor court): x left of the house
-  if (x < MAIN.x) return southGrade(x, y) - fall;
+  // south side (garage, motor court). The x = 0 line itself belongs to the
+  // south lawn beside the house, but to the patio behind it (so the patio
+  // edge sits under the low wall, not out on the patio).
+  if (x < MAIN.x || (x <= MAIN.x && y >= MAIN.y)) return southGrade(x, y) - fall;
   // north side, beside and beyond the wing (and the pool deck's north edge)
   if (x >= PD.x + PD.w || x >= WING.x + WING.w) {
     if (y >= T.north.highY) return front(y);
     return sidePlane(T.north.highY, y, T.frontGrade) - fall;
   }
-  // between the house sides: front yard, or patio / pool deck behind
-  if (y >= MAIN.y + MAIN.d - 6) return front(y);
-  if (y < MAIN.y) return T.walkoutGrade - fall;
-  // directly beside the wing's front (x within the wing, y between wing front and main front)
-  return front(y);
+  // between the house sides. Rows on or behind the rear wall are patio /
+  // yard at the walkout level; under the house (hidden) also walkout level so
+  // nothing pokes up in front of the basement walls; front yard from the
+  // front wall forward.
+  const frontLine = x < WING.x ? MAIN.y + MAIN.d : WING.y + WING.d;
+  if (y >= frontLine) return front(y);
+  return T.walkoutGrade - fall;
 }
 
 export function grade(x, y) {
@@ -79,10 +83,9 @@ export function grade(x, y) {
 }
 
 /** Rectangles where the terrain is not drawn (the house sits there). */
-export const terrainHoles = [
-  ...floors.main.footprint,
-  { x: site.pool.x, y: site.pool.y, w: site.pool.w, d: site.pool.d },
-];
+export const terrainHoles = [...floors.main.footprint];
+/** The Phase 2 pool basin (the terrain is cut away there only in Phase 2). */
+export const poolHole = (() => { const p = phases[2].pool; return { x: p.x, y: p.y, w: p.w, d: p.d }; })();
 
 /**
  * The low stone wall at the patio's south edge: where the south lawn plane is

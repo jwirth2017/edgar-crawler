@@ -363,9 +363,14 @@ export const floors = {
     openPlan: [['lounge', '_hall'], ['stair', '_hall']],
     openings: [
       // walkout wall (y = 0) — glass onto the covered patio
-      { kind: 'glassdoor', on: 'y', at: 0, from: 2,  to: 12 },               // guest suite
+      { kind: 'glassdoor', on: 'y', at: 0, from: 2,  to: 12 },               // guest suite (also its egress)
+      { kind: 'window',    on: 'y', at: 0, from: 14.75, to: 17.25 },         // end of the hall
+      { kind: 'window',    on: 'y', at: 0, from: 18.75, to: 21.25 },         // lounge, beside its doors
       { kind: 'glassdoor', on: 'y', at: 0, from: 22, to: 36 },               // lounge
+      { kind: 'window',    on: 'y', at: 0, from: 37, to: 39.5 },             // lounge
       { kind: 'glassdoor', on: 'y', at: 0, from: 42, to: 50 },               // gym
+      // south side, where the lawn falls away: a high window in the guest suite
+      { kind: 'window',    on: 'x', at: 0, from: 2.5, to: 6.5, sill: 5.5 },
       // hall doors
       { kind: 'door',    on: 'x', at: 14, from: 7,    to: 10, swing: -1 },    // guest suite
       { kind: 'door',    on: 'x', at: 14, from: 14.2, to: 16.8 },             // guest / pool bath
@@ -428,6 +433,12 @@ export const exterior = {
     stairs: { x: 48, y: -30, w: 4, d: 16 }, // down to the pool deck, at the wing end
     // covered section over the outdoor dining area: hip roof on cedar posts
     cover: { x: 16, y: -12.5, w: 18, d: 12.5, eave: 9.5, pitch: 4 },  // ridge stays below the upper rear window
+    // outdoor kitchen on the open garage-side end, next to the pass-through:
+    // L-shaped stone counter (9.5 ft main run + 5 ft return), built-in gas grill,
+    // undercounter fridge, raised bar ledge on the yard side with 3 stools,
+    // heat-resistant porcelain pad under the cooking area.
+    kitchen: { x: 3, y: -7.5, len: 9.5, depth: 2.5, returnLen: 5, returnDepth: 2.5,
+      grillAt: 4.5, grillW: 3, ledgeDepth: 1.3, ledgeH: 3.5, stools: 3, minWalk: 3 },
     barCounter: { x: 18, y: -1.8, w: 12, d: 1.5, h: 3.5 }, // outside the pass-through
   },
   // Arched drive-through linking the house and garage. Cars pass front → back
@@ -477,28 +488,85 @@ export const site = {
   ],
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck
-  paverGrid: { x: 6, y: -26, w: 40, d: 12, paver: 3.5, grass: 0.5 },
-  poolDeck:  { x: 0, y: -84, w: 74, d: 58 },                    // travertine-look pavers
-  pool:      { x: 18, y: -70, w: 16, d: 36, depth: 5 },
-  hotTub:    { x: 22, y: -34, w: 8, d: 8, raised: 1.5 },        // house end, spills into pool
-  pavilion: {
-    x: 52, y: -66, w: 18, d: 16, postHeight: 9, pitch: 6,       // primary-wing side
-    furniture: [
-      { type: 'counter', x: 53,   y: -52.5, w: 12, d: 2.5, h: 3, label: 'Grill + bar' },
-      { type: 'table',   x: 56.5, y: -63,   w: 8,  d: 3.5, h: 2.5, chairs: 6 },
-    ],
-  },
+  // The graded rear yard, flat at patio level. Phase 1 is lawn; Phase 2 paves it as the pool deck.
+  poolDeck:  { x: 0, y: -90, w: 74, d: 64 },
   furniture: [
-    { type: 'sofa',    x: 5,  y: -9,  w: 8,   d: 3,   h: 2.6, elev: 'deck' },
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
-    { type: 'lounger', x: 9,  y: -62, w: 2.5, d: 6.5, h: 1.2 },
-    { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
-    { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
-    // fire pit with two chairs on the paver grid beside the hot tub
+    { type: 'sofa',    x: 21, y: -12.3, w: 8, d: 3,   h: 2.6, elev: 'deck', faces: '+y' },  // under the covered section
+    // fire pit with two chairs on the paver grid (both phases)
     { type: 'firepit', x: 11, y: -22, w: 3.5, d: 3.5, h: 1.3 },
     { type: 'chair',   x: 7.5,  y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
     { type: 'chair',   x: 14.5, y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
   ],
+  // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
+  stubOuts: [
+    { id: 'S1', name: 'Pool house', services: 'water · sewer · power · data', x: 16.5, y: -107 },
+    { id: 'S2', name: 'Pool equipment pad', services: '240V power · gas · water', x: 44, y: -96 },
+    { id: 'S3', name: 'Hot tub', services: 'power · gas', x: 33, y: -35.5 },
+  ],
+};
+
+// Phases ---------------------------------------------------------------------------
+// Phase 1 = the initial build. Phase 2 (a few years later) adds the pool,
+// raised hot tub, pool deck and pool house. The 3D view has a Phase toggle;
+// the site plan draws Phase 2 as dashed outlines.
+export const phases = {
+  default: 1,
+  1: {
+    label: 'Phase 1 · initial build',
+    // grass-strip paver grid off the covered patio, extended toward the yard; lawn beyond
+    paverGrid: { x: 6, y: -32, w: 40, d: 18, paver: 3.5, grass: 0.5 },
+  },
+  2: {
+    label: 'Phase 2 · pool + pool house',
+    paverGrid: { x: 6, y: -26, w: 40, d: 12, paver: 3.5, grass: 0.5 },
+    pool:   { x: 18, y: -70, w: 16, d: 36, depth: 5 },
+    hotTub: { x: 22, y: -34, w: 8, d: 8, raised: 1.5 },      // house end, spills into the pool
+    furniture: [
+      { type: 'lounger', x: 9,  y: -62, w: 2.5, d: 6.5, h: 1.2 },
+      { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
+      { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
+    ],
+    // ~500 sq ft pool house across the pool from the house: white board-and-batten,
+    // black metal roof, vaulted interior, full bath, wet bar, covered porch facing the pool.
+    poolHouse: {
+      name: 'Pool House',
+      finish: 'better',
+      floor: -10,                 // 6" above the pool deck
+      ceiling: 9,                 // bath ceiling; the great room is vaulted to the roof
+      wallTop: 10,                // eave height above its floor
+      footprint: [{ x: 13.5, y: -110, w: 25, d: 20 }],
+      rooms: [
+        { id: 'phGreat', name: 'Great Room',  use: 'living', x: 21.5, y: -110, w: 17, d: 20, finish: { floor: 'slateTile' } },
+        { id: 'phEntry', name: 'Entry',       use: 'living', x: 13.5, y: -102, w: 8,  d: 12, finish: { floor: 'slateTile' } },
+        { id: 'phBath',  name: 'Full Bath',   use: 'bath',   x: 13.5, y: -110, w: 8,  d: 8 },
+      ],
+      openPlan: [['phGreat', 'phEntry']],
+      openings: [
+        { kind: 'glassdoor', on: 'y', at: -90, from: 16,   to: 24 },     // onto the porch
+        { kind: 'glassdoor', on: 'y', at: -90, from: 28,   to: 36 },
+        { kind: 'window',    on: 'x', at: 38.5, from: -105, to: -100 },
+        { kind: 'window',    on: 'x', at: 38.5, from: -97,  to: -93 },
+        { kind: 'window',    on: 'x', at: 13.5, from: -99,  to: -94 },
+        { kind: 'window',    on: 'y', at: -110, from: 28,   to: 34, sill: 4.5 },  // over the wet bar
+        { kind: 'window',    on: 'y', at: -110, from: 15.5, to: 18, sill: 5.5 },  // bath, high
+        { kind: 'door',      on: 'y', at: -102, from: 15,   to: 17.7, swing: -1 }, // bath
+      ],
+      furniture: [
+        { type: 'counter',   x: 25.5, y: -109.7, w: 11, d: 2, h: 3, label: 'Wet bar', sink: true },
+        { type: 'appliance', x: 31,   y: -109.6, w: 2, d: 1.9, h: 2.8 },             // undercounter fridge
+        { type: 'tall',      x: 37,   y: -109.7, w: 1.2, d: 6, h: 7 },
+        { type: 'sofa',      x: 26,   y: -101,  w: 9,   d: 3.3, h: 2.8, faces: '+y' },
+        { type: 'table',     x: 28,   y: -97,   w: 4.5, d: 2.5, h: 1.4 },
+        { type: 'chair',     x: 23,   y: -96,   w: 3,   d: 3,   h: 2.7 },
+        { type: 'shower',    x: 13.8, y: -109.7, w: 3.5, d: 3.5, h: 7.5 },
+        { type: 'counter',   x: 19.6, y: -109.7, w: 1.8, d: 3.5, h: 3, sink: true },
+        { type: 'toilet',    x: 19.4, y: -104.6, w: 1.8, d: 2.3, h: 1.4 },
+      ],
+      porch: { x: 13.5, y: -90, w: 25, d: 8 },
+      roof: { id: 'poolHouse', type: 'gable', x: 13.5, y: -110, w: 25, d: 28, ridge: 'y', eave: 0, pitch: 9, overhang: 1.5 },
+    },
+  },
 };
 
 // Sun & camera presets (3D view) ------------------------------------------------
@@ -515,11 +583,11 @@ export const sun = {
 // toward `look` (plan coordinates in feet), tilted by `pitch` radians.
 export const views = [
   { id: 'front',   name: 'Front approach',  type: 'orbit', eye: [26, 118, 4],    target: [26, 18, 12] },
-  { id: 'pool',    name: 'Rear from pool',  type: 'orbit', eye: [28, -96, -5.5], target: [28, 0, 2] },
+  { id: 'pool',    name: 'Rear from pool',  type: 'orbit', eye: [26, -78, -3], target: [26, 0, 0] },
   { id: 'kitchen', name: 'Kitchen → pass-through', type: 'walk', level: 'main', at: [22, 19], look: [22, -20], pitch: -0.17 },
   { id: 'living',  name: 'Living room',     type: 'walk', level: 'main', at: [34.5, 14.5], look: [52, 2] },
   { id: 'sim',     name: 'Golf sim',        type: 'walk', level: 'basement', at: [25, 22.5], look: [25, 40], pitch: -0.22 },
   { id: 'theater', name: 'Theater',         type: 'walk', level: 'basement', at: [42, 23.5], look: [42, 40], pitch: -0.2 },
 ];
 
-export default { meta, build, stair, floors, exterior, site, sun, views, finishLevels, doors };
+export default { meta, build, stair, floors, exterior, site, phases, sun, views, finishLevels, doors };

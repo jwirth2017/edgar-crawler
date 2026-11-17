@@ -13,9 +13,15 @@ const GARAGE = floors.main.rooms.find((r) => r.id === 'garage');
 const inRect = (r, x, y) => x > r.x - EPS && x < r.x + r.w + EPS && y > r.y - EPS && y < r.y + r.d + EPS;
 const roofById = (id) => exterior.roofs.find((r) => r.id === id);
 
+// Extra building "levels" outside the house (e.g. the Phase 2 pool house)
+// reuse the same wall / opening / floor / furniture code.
+const EXTRA = {};
+export function registerLevel(key, floor) { EXTRA[key] = floor; }
+const FL = (key) => floors[key] || EXTRA[key];
+
 /** Finish level for a room: the floor's level, or 'unfinished', plus the room's own overrides. */
 export function finishOf(levelKey, room) {
-  const lvlName = room && room.finished === false && !room.stair ? 'unfinished' : floors[levelKey].finish || 'better';
+  const lvlName = room && room.finished === false && !room.stair ? 'unfinished' : FL(levelKey).finish || 'better';
   const lvl = finishLevels[lvlName];
   const o = (room && room.finish) || {};
   const floorName = o.floor
@@ -32,8 +38,8 @@ export function paletteFor(M, levelKey, room) {
   };
 }
 
-export const floorZ = (levelKey, room) => floors[levelKey].floor + ((room && room.floorOffset) || 0);
-const ceilingOf = (levelKey, room) => (room && room.ceiling) || floors[levelKey].ceiling;
+export const floorZ = (levelKey, room) => FL(levelKey).floor + ((room && room.floorOffset) || 0);
+const ceilingOf = (levelKey, room) => (room && room.ceiling) || FL(levelKey).ceiling;
 
 // faces of the main block that are covered by the porch / deck (no stone wainscot)
 const COVERED_FACES = [
@@ -61,8 +67,8 @@ export function buildHouse(B, M, labelRoots) {
 }
 
 // ─── walls ────────────────────────────────────────────────────────────────────
-function buildLevelWalls(B, M, key) {
-  const floor = floors[key];
+export function buildLevelWalls(B, M, key) {
+  const floor = FL(key);
   const rooms = allRooms(floor);
   const { walls } = deriveWalls(floor);
 
@@ -132,12 +138,17 @@ function buildLevelWalls(B, M, key) {
           if (z1 > z0) B.box(key, M.get(wf), ...rectAlong(w, Math.max(p.a, w.axis === 'y' ? room.x : room.y), Math.min(p.b, w.axis === 'y' ? room.x + room.w : room.y + room.d), sign * (t / 2), sign * (t / 2 + 0.03)), z0, z1);
         }
       }
-      for (const o of ops) openingUnit(B, M, key, w, o, zRef, t, ext, A ? -1 : 1);
+      // each door / window unit is built once, at full width, in the segment holding its middle
+      for (const o of w.openings) {
+        const m = (o.from + o.to) / 2;
+        if (m >= a - EPS && m < b - EPS) openingUnit(B, M, key, w, o, zRef, t, ext, A ? -1 : 1);
+      }
     }
   }
 }
 
 function exteriorTop(key, room) {
+  if (FL(key).wallTop) return FL(key).floor + FL(key).wallTop;
   if (key === 'basement') return floors.main.floor;
   if (key === 'upper') return floors.upper.floor + floors.upper.ceiling;
   const cx = room.x + room.w / 2;
@@ -325,8 +336,8 @@ function floorMaterial(M, key, room) {
   return M.get(finishOf(key, room).floor);
 }
 
-function buildLevelFloors(B, M, key) {
-  const floor = floors[key];
+export function buildLevelFloors(B, M, key) {
+  const floor = FL(key);
   for (const r of allRooms(floor)) {
     if (r.void || r.stair) continue;
     const z = floorZ(key, r);
@@ -481,8 +492,8 @@ function buildChimney(B, M) {
 }
 
 // ─── furniture ───────────────────────────────────────────────────────────────
-function buildLevelFurniture(B, M, key) {
-  const floor = floors[key];
+export function buildLevelFurniture(B, M, key) {
+  const floor = FL(key);
   const rooms = allRooms(floor);
   for (const f of floor.furniture || []) {
     if (f.type === 'chimney') continue;
@@ -494,7 +505,7 @@ function buildLevelFurniture(B, M, key) {
 
 // ─── labels ──────────────────────────────────────────────────────────────────
 function buildLabels(key, root) {
-  for (const r of floors[key].rooms) {
+  for (const r of FL(key).rooms) {
     if (r.stair) continue;
     const div = document.createElement('div');
     div.className = 'room-label';

@@ -1,6 +1,6 @@
 // Porch, deck, breezeway, foundations and exterior lanterns.
 import * as THREE from 'three';
-import { floors, exterior, site } from '../config/house.js';
+import { floors, exterior, site, phases } from '../config/house.js';
 import { grade } from '../model/terrain.js';
 import { furniture } from './furniture.js';
 
@@ -85,6 +85,7 @@ function deck(B, M, lanterns) {
   if (st.x + st.w < d.x + d.w - 0.5) cableRail(B, M, g, [[st.x + st.w, d.y], [d.x + d.w, d.y]], zTop, d.railHeight);
   cableRail(B, M, g, [[d.x + d.w, d.y], [d.x + d.w, d.y + d.d]], zTop, d.railHeight);
   cableRail(B, M, g, [[d.x, d.y], [d.x, d.y + d.d]], zTop, d.railHeight);
+  outdoorKitchen(B, M, zTop);
   // bar counter outside the kitchen pass-through
   const bc = d.barCounter;
   B.box(g, M.cedar, bc.x, bc.x + bc.w, bc.y, bc.y + bc.d, zTop, zTop + bc.h - 0.15);
@@ -218,9 +219,79 @@ export function lantern(B, M, lanterns, x, y, z) {
 }
 
 export function siteFurniture(B, M) {
-  const items = [...site.furniture, ...site.pavilion.furniture];
-  for (const f of items) {
+  const place = (f, group) => {
     const base = f.elev === 'deck' ? exterior.deck.floor : site.terrain.walkoutGrade;
-    furniture(B, M, f.elev === 'deck' ? 'main' : 'site', f, base, null);
+    furniture(B, M, f.elev === 'deck' ? 'main' : group, f, base, null);
+  };
+  for (const f of site.furniture) place(f, 'site');
+  B.phase = 2;
+  for (const f of phases[2].furniture) place(f, 'phase2');
+  B.phase = null;
+}
+
+/**
+ * Outdoor kitchen on the garage-side end of the deck: an L of stone-faced
+ * counter (main run along x, return toward the house at its west end), a
+ * built-in gas grill, an undercounter fridge in the return, a raised bar
+ * ledge on the yard side with stools, and a porcelain heat pad underneath.
+ */
+function outdoorKitchen(B, M, z) {
+  const k = exterior.deck.kitchen;
+  if (!k) return;
+  const g = 'main';
+  const top = 3;
+  const x0 = k.x;
+  const x1 = k.x + k.len;
+  const yb = k.y;                    // yard-side face of the main run
+  const yf = k.y + k.depth;          // cook-side face
+  const rx1 = x0 + k.returnDepth;
+  const ry1 = yf + k.returnLen - k.depth;   // return runs toward the house
+  // heat-resistant pad under the whole cooking area
+  B.box(g, M.slateTile, x0 - 0.5, x1 + 0.5, yb - 0.3, Math.min(ry1 + 0.5, -0.4), z, z + 0.06, { shadow: false });
+  B.surface(x0 - 0.5, x1 + 0.5, yb - 0.3, Math.min(ry1 + 0.5, -0.4), z + 0.06, 'kitchen-pad');
+  const zp = z + 0.06;
+  // stone bodies + quartz tops
+  B.box(g, M.stone, x0, x1, yb, yf, zp, zp + top - 0.12, { collide: true });
+  B.box(g, M.stone, x0, rx1, yf, ry1, zp, zp + top - 0.12, { collide: true });
+  B.box(g, M.quartzWhite, x0 - 0.1, x1 + 0.1, yb, yf + 0.1, zp + top - 0.12, zp + top);
+  B.box(g, M.quartzWhite, x0 - 0.1, rx1 + 0.1, yf, ry1 + 0.1, zp + top - 0.12, zp + top);
+  // raised bar ledge on the yard side (stone riser + quartz ledge)
+  const lt = zp + k.ledgeH;
+  B.box(g, M.stone, x0, x1, yb - 0.5, yb, zp, lt - 0.12, { collide: true });
+  B.box(g, M.quartzWhite, x0 - 0.1, x1 + 0.1, yb - k.ledgeDepth, yb + 0.1, lt - 0.12, lt);
+  // built-in gas grill: stainless body + lid, control strip on the cook side
+  const gx0 = x0 + k.grillAt - k.grillW / 2;
+  const gx1 = gx0 + k.grillW;
+  B.box(g, M.steel, gx0, gx1, yb + 0.15, yf - 0.1, zp + top - 0.1, zp + top + 0.35);
+  B.box(g, M.steel, gx0 + 0.05, gx1 - 0.05, yb + 0.15, yf - 0.6, zp + top + 0.35, zp + top + 1.05);
+  B.box(g, M.black, gx0, gx1, yf - 0.02, yf + 0.04, zp + 1.6, zp + top - 0.2, { shadow: false });
+  B.box(g, M.steel, gx0 + 0.1, gx1 - 0.1, yf, yf + 0.06, zp + 0.3, zp + 1.5, { shadow: false });   // access doors
+  // undercounter fridge in the return, door facing the cook zone
+  B.box(g, M.steel, rx1 - 0.02, rx1 + 0.05, ry1 - 2.2, ry1 - 0.3, zp + 0.2, zp + 2.75, { shadow: false });
+  B.box(g, M.black, rx1 + 0.05, rx1 + 0.1, ry1 - 0.6, ry1 - 0.5, zp + 1.6, zp + 2.5, { shadow: false });
+  // three bar stools on the yard side
+  const n = k.stools;
+  for (let i = 0; i < n; i++) {
+    const cx = x0 + (k.len * (i + 0.5)) / n;
+    const cy = yb - k.ledgeDepth - 0.75;
+    B.box(g, M.black, cx - 0.08, cx + 0.08, cy - 0.08, cy + 0.08, zp, zp + 2.4);
+    B.box(g, M.black, cx - 0.6, cx + 0.6, cy - 0.6, cy + 0.6, zp, zp + 0.08);
+    B.box(g, M.cedar, cx - 0.65, cx + 0.65, cy - 0.65, cy + 0.65, zp + 2.4, zp + 2.55);
+    B.box(g, M.cedar, cx - 0.65, cx + 0.65, cy - 0.7, cy - 0.55, zp + 2.55, zp + 3.4);
   }
+}
+
+/** Clear walkway widths around the outdoor kitchen (for the report). */
+export function outdoorKitchenClearances() {
+  const d = exterior.deck;
+  const k = d.kitchen;
+  const c = d.cover;
+  const postFace = c.x + 0.4 - 0.9;              // west face of the cover's stone post base
+  const stoolOuter = k.y - k.ledgeDepth - 1.5;
+  return {
+    east: postFace - (k.x + k.len),               // between the counter end and the cover post
+    west: k.x - d.x,                              // between the counter and the west rail
+    yard: stoolOuter - d.y,                       // beyond the stools to the deck edge
+    cook: d.y + d.d - (k.y + k.depth),            // cook-side aisle to the house wall
+  };
 }

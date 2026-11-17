@@ -41,6 +41,7 @@
       .sunrow { display: flex; align-items: center; gap: 8px; }
       input[type='range'] { width: 100%; accent-color: #c4682a; }
       select { font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px; border: 1px solid #cdc7b8; background: #fff; }
+      .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
       #sunInfo { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 2px; }
 
       #hud { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(20, 20, 20, 0.72);
@@ -73,6 +74,14 @@
           <button data-view="main">Main</button>
           <button data-view="upper">Upper</button>
         </div>
+      </div>
+      <div class="section">
+        <div class="cap">Phase</div>
+        <div class="btns" id="phase">
+          <button data-phase="1" aria-pressed="true">Phase 1 · initial build</button>
+          <button data-phase="2">Phase 2 · pool + pool house</button>
+        </div>
+        <div id="phaseNote" class="note"></div>
       </div>
       <div class="section">
         <div class="cap">Camera presets</div>

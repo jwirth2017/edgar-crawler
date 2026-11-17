@@ -2,7 +2,7 @@
 // lock, or click-and-drag), Shift to run. Collides with walls, railings and
 // glass; follows floors, stairs, steps and terrain.
 import { build } from '../config/house.js';
-import { grade, terrainHoles } from '../model/terrain.js';
+import { grade, terrainHoles, poolHole } from '../model/terrain.js';
 
 const STEP = 1.15;     // tallest step you can walk up, ft
 const RADIUS = 0.7;    // body half-width, ft
@@ -26,6 +26,7 @@ export class Walker {
     this.locked = false;
     this.dragging = false;
     this.onChange = () => {};
+    this.phase = 1;   // colliders / surfaces tagged with another phase are ignored
 
     addEventListener('keydown', (e) => {
       if (!this.active) return;
@@ -63,11 +64,14 @@ export class Walker {
     const consider = (h) => { if (h <= ref + STEP && h > best) best = h; };
     let indoors = false;
     for (const s of this.surfaces) {
+      if (s.phase && s.phase !== this.phase) continue;
       if (x >= s.x0 && x <= s.x1 && y >= s.y0 && y <= s.y1) {
         consider(typeof s.h === 'function' ? s.h(x, y) : s.h);
       }
     }
     for (const r of terrainHoles) if (x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.d) indoors = true;
+    const p = poolHole;
+    if (this.phase === 2 && x > p.x && x < p.x + p.w && y > p.y && y < p.y + p.d) indoors = true;
     if (!indoors) consider(grade(x, y));
     return best;
   }
@@ -76,6 +80,7 @@ export class Walker {
     const z0 = feet + STEP + 0.05;
     const z1 = feet + build.eyeHeight + 0.2;
     for (const c of this.colliders) {
+      if (c.phase && c.phase !== this.phase) continue;
       if (x + RADIUS > c.x0 && x - RADIUS < c.x1 && y + RADIUS > c.y0 && y - RADIUS < c.y1 && z1 > c.z0 && z0 < c.z1) return true;
     }
     return false;

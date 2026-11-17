@@ -1,4 +1,4 @@
-// Roofs: gable, cross gable, shed (porch) and hip (pavilion), as thin metal
+// Roofs: gable, cross gable, shed (porch) and hip (deck cover), as thin metal
 // slabs with seam-aligned UVs, plus gable-end siding and cedar timbers.
 import * as THREE from 'three';
 import { floors, exterior, site } from '../config/house.js';
@@ -90,7 +90,7 @@ function abuts(id, r, side) {
   });
 }
 
-function cedarTruss(B, M, axis, at, outSign, a0, a1, zBase, zApex) {
+function cedarTruss(B, M, axis, at, outSign, a0, a1, zBase, zApex, group = 'roof') {
   // collar tie + king post just proud of the gable face, knee braces at the eaves
   const span = a1 - a0;
   const slope = (zApex - zBase) / (span / 2);
@@ -100,8 +100,8 @@ function cedarTruss(B, M, axis, at, outSign, a0, a1, zBase, zApex) {
   const o0 = at + outSign * 0.3;
   const o1 = at + outSign * 0.75;
   const R = (lo, hi) => (axis === 'y' ? [lo, hi, Math.min(o0, o1), Math.max(o0, o1)] : [Math.min(o0, o1), Math.max(o0, o1), lo, hi]);
-  B.box('roof', M.cedar, ...R(mid - wAt / 2 + 0.4, mid + wAt / 2 - 0.4), zc - 0.25, zc + 0.25);
-  B.box('roof', M.cedar, ...R(mid - 0.25, mid + 0.25), zc, zApex - 0.9);
+  B.box(group, M.cedar, ...R(mid - wAt / 2 + 0.4, mid + wAt / 2 - 0.4), zc - 0.25, zc + 0.25);
+  B.box(group, M.cedar, ...R(mid - 0.25, mid + 0.25), zc, zApex - 0.9);
   for (const dir of [-1, 1]) {
     const ex = mid + dir * (span / 2 - 0.9);
     const m = new THREE.Matrix4();
@@ -109,11 +109,11 @@ function cedarTruss(B, M, axis, at, outSign, a0, a1, zBase, zApex) {
     const pos = axis === 'y' ? W(ex, (o0 + o1) / 2, zBase - 0.9) : W((o0 + o1) / 2, ex, zBase - 0.9);
     if (axis === 'y') m.makeRotationZ(ang); else m.makeRotationX(-ang);
     m.setPosition(pos);
-    B.boxM('roof', M.cedar, axis === 'y' ? 2.6 : 0.4, 0.4, axis === 'y' ? 0.4 : 2.6, m);
+    B.boxM(group, M.cedar, axis === 'y' ? 2.6 : 0.4, 0.4, axis === 'y' ? 0.4 : 2.6, m);
   }
 }
 
-function gableRoof(B, M, r, notch = null) {
+export function gableRoof(B, M, r, notch = null, group = 'roof') {
   const s = r.pitch / 12;
   const o = (side) => (abuts(r.id, r, side) ? 0 : r.overhang);
   const along = r.ridge;                         // 'x' or 'y'
@@ -130,17 +130,32 @@ function gableRoof(B, M, r, notch = null) {
   for (const [sa, sb, over] of spans) {
     const e0 = over ? ob0 : 0;
     const e1 = over ? ob1 : 0;
-    slabPoly(B, 'roof', M.roof, M.black, [P(sa, b0 - e0, r.eave - e0 * s), P(sb, b0 - e0, r.eave - e0 * s), P(sb, bm, zr), P(sa, bm, zr)]);
-    slabPoly(B, 'roof', M.roof, M.black, [P(sb, b1 + e1, r.eave - e1 * s), P(sa, b1 + e1, r.eave - e1 * s), P(sa, bm, zr), P(sb, bm, zr)]);
+    slabPoly(B, group, M.roof, M.black, [P(sa, b0 - e0, r.eave - e0 * s), P(sb, b0 - e0, r.eave - e0 * s), P(sb, bm, zr), P(sa, bm, zr)]);
+    slabPoly(B, group, M.roof, M.black, [P(sb, b1 + e1, r.eave - e1 * s), P(sa, b1 + e1, r.eave - e1 * s), P(sa, bm, zr), P(sb, bm, zr)]);
   }
   // ridge cap
   const cap = along === 'x' ? [a0 - oa0, a1 + oa1, bm - 0.35, bm + 0.35] : [bm - 0.35, bm + 0.35, a0 - oa0, a1 + oa1];
-  B.box('roof', M.black, ...cap, zr - 0.1, zr + 0.18);
+  B.box(group, M.black, ...cap, zr - 0.1, zr + 0.18);
   // gable-end walls
   if (r.id !== 'breezeway') {
-    for (const end of [a0, a1]) gableTriangle(B, 'roof', M.siding, along === 'x' ? 'x' : 'y', end, b0, b1, r.eave - 0.05, zr - 0.05);
+    for (const end of [a0, a1]) gableTriangle(B, group, M.siding, along === 'x' ? 'x' : 'y', end, b0, b1, r.eave - 0.05, zr - 0.05);
   }
   return { a0, a1, b0, b1, zr, along };
+}
+
+/** Pool house roof (Phase 2): gable over building + porch, cedar truss at the porch end. */
+export function buildPoolHouseRoof(B, M, ph, group) {
+  const r = ph.roof;
+  const g = gableRoof(B, M, r, null, group);
+  cedarTruss(B, M, 'y', g.a1, 1, g.b0, g.b1, r.eave, g.zr, group);
+  // vaulted tongue-and-groove ceiling inside the enclosed part
+  const s = r.pitch / 12;
+  const zv = r.eave - 0.45;
+  const xm = r.x + r.w / 2;
+  const zr = zv + (r.w / 2) * s;
+  const f = ph.footprint[0];
+  slabPoly(B, group, M.cedar, M.cedar, [[f.x, f.y, zv], [f.x, f.y + f.d, zv], [xm, f.y + f.d, zr], [xm, f.y, zr]], 0.08);
+  slabPoly(B, group, M.cedar, M.cedar, [[f.x + f.w, f.y + f.d, zv], [f.x + f.w, f.y, zv], [xm, f.y, zr], [xm, f.y + f.d, zr]], 0.08);
 }
 
 export function buildRoofs(B, M) {
@@ -170,7 +185,6 @@ export function buildRoofs(B, M) {
     }
   }
   porchRoof(B, M);
-  pavilionRoof(B, M);
   deckCover(B, M);
 }
 
@@ -208,21 +222,3 @@ function deckCover(B, M) {
   B.box('roof', M.cedar, c.x, c.x + c.w, c.y, y1, E + 0.6, E + 0.7);
 }
 
-function pavilionRoof(B, M) {
-  const pv = site.pavilion;
-  const oh = 1.5;
-  const x0 = pv.x - oh;
-  const x1 = pv.x + pv.w + oh;
-  const y0 = pv.y - oh;
-  const y1 = pv.y + pv.d + oh;
-  const E = site.terrain.walkoutGrade + pv.postHeight + 0.6 - oh * (pv.pitch / 12);
-  const s = pv.pitch / 12;
-  const hd = (y1 - y0) / 2;
-  const zr = E + hd * s;
-  const ym = (y0 + y1) / 2;
-  slabPoly(B, 'roof', M.roof, M.black, [[x0, y0, E], [x1, y0, E], [x1 - hd, ym, zr], [x0 + hd, ym, zr]]);
-  slabPoly(B, 'roof', M.roof, M.black, [[x1, y1, E], [x0, y1, E], [x0 + hd, ym, zr], [x1 - hd, ym, zr]]);
-  slabPoly(B, 'roof', M.roof, M.black, [[x0, y1, E], [x0, y0, E], [x0 + hd, ym, zr]]);
-  slabPoly(B, 'roof', M.roof, M.black, [[x1, y0, E], [x1, y1, E], [x1 - hd, ym, zr]]);
-  B.box('roof', M.black, x0 + hd, x1 - hd, ym - 0.3, ym + 0.3, zr - 0.1, zr + 0.15);
-}
