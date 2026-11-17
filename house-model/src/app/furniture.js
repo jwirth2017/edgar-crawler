@@ -208,7 +208,7 @@ export function furniture(B, M, g, f, base, room, P) {
     case 'lounger':
       box(M.rail, R(f), 0, 0.9);
       box(M.bedding, inset(R(f), 0.1), 0.9, h);
-      box(M.bedding, strip(f, '-y', 1.8), 0.9, h + 1.1);
+      box(M.bedding, strip(f, f.back || '-y', 1.8), 0.9, h + 1.1);   // raised back end
       break;
     case 'fireplace': {
       box(M.stone, R(f), 0, h, { collide: true });

@@ -537,9 +537,10 @@ export const phases = {
       sundeck: { d: 10, water: 0.75, loungers: 3 } },
     hotTub: { x: 22, y: -34, w: 8, d: 8, raised: 1.5 },      // house end, spills into the pool
     furniture: [
-      { type: 'lounger', x: 9,  y: -62, w: 2.5, d: 6.5, h: 1.2 },
-      { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
-      { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
+      // pool loungers, backs to the lawn, facing the pool
+      { type: 'lounger', x: 8, y: -61,   w: 6.5, d: 2.5, h: 1.2, back: '-x' },
+      { type: 'lounger', x: 8, y: -66,   w: 6.5, d: 2.5, h: 1.2, back: '-x' },
+      { type: 'lounger', x: 8, y: -71,   w: 6.5, d: 2.5, h: 1.2, back: '-x' },
     ],
     // ~800 sq ft pool house on the north side of the pool (the wing side), porch
     // facing the pool; the slope down from the garage stays open for sledding.
