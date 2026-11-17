@@ -402,9 +402,10 @@ export function siteTexture(site, extent, ppf = 4) {
   R(x0, site.road.y - site.road.width / 2, x1 - x0, site.road.width, '#47494b');
   R(x0, site.road.y - 0.4, x1 - x0, 0.8, '#d8c25a');
   const [[dx, dy0], [, dy1]] = site.driveway.path;
-  R(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1 + site.road.width / 2, '#cdc9bf');
-  const ct = site.courtyard;
-  R(ct.x, ct.y, ct.w, ct.d + 12, '#cdc9bf');   // court + apron under the breezeway
+  R(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1 + site.road.width / 2, '#cfc8b8');
+  // gravel motor court + drive under the breezeway arch
+  for (const ct of [].concat(site.courtyard)) R(ct.x, ct.y, ct.w, ct.d, '#cfc8b8');
+  R(-14, 24, 12, 16, '#cfc8b8');
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');
   // pool deck (travertine-look pavers)

@@ -81,7 +81,8 @@ function deck(B, M, lanterns) {
   B.box(g, M.cedar, d.x, d.x + d.w, d.y, d.y + d.d, zBot - 0.15, zBot);
   // cable railing on the open sides (gap at the stair)
   const st = d.stairs;
-  cableRail(B, M, g, [[st.x + st.w, d.y], [d.x + d.w, d.y]], zTop, d.railHeight);
+  if (st.x > d.x + 0.5) cableRail(B, M, g, [[d.x, d.y], [st.x, d.y]], zTop, d.railHeight);
+  if (st.x + st.w < d.x + d.w - 0.5) cableRail(B, M, g, [[st.x + st.w, d.y], [d.x + d.w, d.y]], zTop, d.railHeight);
   cableRail(B, M, g, [[d.x + d.w, d.y], [d.x + d.w, d.y + d.d]], zTop, d.railHeight);
   cableRail(B, M, g, [[d.x, d.y], [d.x, d.y + d.d]], zTop, d.railHeight);
   // bar counter outside the kitchen pass-through
@@ -101,7 +102,18 @@ function deck(B, M, lanterns) {
     B.box(g, M.deck, st.x, st.x + st.w, y1 - run, y1, patio, zTop - k * rise);
   }
   B.surface(st.x, st.x + st.w, st.y, d.y, (x, y) => patio + ((y - st.y) / st.d) * drop, 'deck-stair');
-  cableRail(B, M, g, [[st.x + st.w, st.y], [st.x + st.w, d.y]], zTop, d.railHeight, (y) => patio + ((y - st.y) / st.d) * drop);
+  for (const sx of [st.x, st.x + st.w]) cableRail(B, M, g, [[sx, st.y], [sx, d.y]], zTop, d.railHeight, (y) => patio + ((y - st.y) / st.d) * drop);
+  // covered section: cedar posts and beams (hip roof is built with the roofs)
+  if (d.cover) {
+    const c = d.cover;
+    const zb = zTop + c.eave - 0.15;
+    for (const px of [c.x + 0.4, c.x + c.w - 0.4]) {
+      B.box(g, M.stone, px - 0.9, px + 0.9, c.y - 0.5, c.y + 1.3, zTop, zTop + 2.5, { collide: true });
+      B.box(g, M.cedar, px - 0.45, px + 0.45, c.y - 0.05, c.y + 0.85, zTop + 2.5, zb, { collide: true });
+    }
+    B.box(g, M.cedar, c.x, c.x + c.w, c.y, c.y + 0.8, zb - 0.9, zb);
+    for (const bx of [c.x, c.x + c.w - 0.8]) B.box(g, M.cedar, bx, bx + 0.8, c.y, c.y + c.d, zb - 0.9, zb);
+  }
   // sconces on the rear wall
   for (const x of [16.5, 37.5]) lantern(B, M, lanterns, x, -0.5, 7);
   for (const x of [1.5, 14.5, 17, 35, 41, 52]) lantern(B, M, lanterns, x, -0.5, site.terrain.walkoutGrade + 7.2);

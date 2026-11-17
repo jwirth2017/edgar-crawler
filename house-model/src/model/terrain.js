@@ -2,11 +2,13 @@
 // Shared by the 3D terrain mesh and the walkthrough so you walk on exactly
 // the ground you see.
 //
-// Front yard and motor court sit at main-floor level. Each side yard is a
-// smooth lawn plane falling toward the rear at no more than `maxSlope` : 1
-// until it reaches the walkout patio level. Behind the house the pool deck
-// and patio are flat at the walkout level, then the lot falls away west.
-import { site, floors } from '../config/house.js';
+// Front yard, motor court, breezeway and garage sit at main-floor level.
+// On the garage side the lawn falls away from those at no more than
+// `maxSlope` : 1 (measured as distance from their edges) until it reaches the
+// walkout patio level. On the wing side the lawn is a plane falling toward the
+// rear. Behind the house the pool deck and patio are flat at the walkout
+// level, then the lot falls away west.
+import { site, floors, exterior } from '../config/house.js';
 
 const T = site.terrain;
 const smooth = (a, b, v) => {
@@ -16,6 +18,24 @@ const smooth = (a, b, v) => {
 const MAIN = floors.upper.footprint[0];   // main block
 const WING = floors.main.footprint[1];
 const PD = site.poolDeck;
+const GARAGE = floors.main.rooms.find((r) => r.id === 'garage');
+const BW = exterior.breezeway;
+
+/** Areas held at main-floor level on the garage side. */
+const SOUTH_HIGH = [
+  ...[].concat(site.courtyard),
+  { x: BW.x, y: BW.y, w: BW.w, d: BW.d },
+  { x: GARAGE.x, y: GARAGE.y, w: GARAGE.w, d: GARAGE.d },
+];
+const distRect = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
+
+/** Garage-side lawn: falls at maxSlope : 1 away from the high areas and the front yard. */
+function southGrade(x, y) {
+  const front = MAIN.y + MAIN.d;
+  let d = Math.max(0, front - y);
+  for (const r of SOUTH_HIGH) d = Math.min(d, distRect(r, x, y));
+  return Math.max(T.walkoutGrade, T.courtGrade - d / T.maxSlope);
+}
 
 // Gentle rolling that fades in well away from the house and yard.
 function roll(x, y) {
@@ -41,10 +61,7 @@ function baseGrade(x, y) {
   const fall = westFall(y);
   const front = (yy) => T.frontGrade + Math.max(0, yy - 60) * 0.006;
   // south side (garage, motor court): x left of the house
-  if (x < MAIN.x) {
-    if (y >= T.south.highY) return Math.max(T.courtGrade, front(y) - 0.5);
-    return sidePlane(T.south.highY, y, T.courtGrade) - fall;
-  }
+  if (x < MAIN.x) return southGrade(x, y) - fall;
   // north side, beside and beyond the wing (and the pool deck's north edge)
   if (x >= PD.x + PD.w || x >= WING.x + WING.w) {
     if (y >= T.north.highY) return front(y);
@@ -75,6 +92,8 @@ export const terrainHoles = [
 export function patioEdgeWall() {
   const x = MAIN.x;
   const y1 = MAIN.y;
-  const y0 = T.south.highY - (T.courtGrade - T.walkoutGrade) * T.maxSlope;
-  return { x, y0: Math.min(y0, y1), y1, heightAt: (y) => sidePlane(T.south.highY, y, T.courtGrade) - T.walkoutGrade };
+  const heightAt = (y) => southGrade(x - 1e-3, y) - T.walkoutGrade;
+  let y0 = y1;
+  while (y0 > y1 - 80 && heightAt(y0 - 0.25) > 0.02) y0 -= 0.25;
+  return { x, y0, y1, heightAt };
 }

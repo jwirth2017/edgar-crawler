@@ -171,6 +171,7 @@ export function buildRoofs(B, M) {
   }
   porchRoof(B, M);
   pavilionRoof(B, M);
+  deckCover(B, M);
 }
 
 function porchRoof(B, M) {
@@ -183,6 +184,28 @@ function porchRoof(B, M) {
   slabPoly(B, 'roof', M.roof, M.black, [[p.x - oh, yHi, p.roofHigh], [p.x + p.w + oh, yHi, p.roofHigh], [p.x + p.w + oh, yLo, zLo], [p.x - oh, yLo, zLo]]);
   // cedar ceiling under the porch roof
   slabPoly(B, 'roof', M.cedar, M.cedar, [[p.x, yHi, p.roofHigh - 0.5], [p.x + p.w, yHi, p.roofHigh - 0.5], [p.x + p.w, p.y + p.d, p.roofLow - 0.5], [p.x, p.y + p.d, p.roofLow - 0.5]], 0.1);
+}
+
+/** Hip roof over the covered part of the deck, tucked against the rear wall. */
+function deckCover(B, M) {
+  const c = exterior.deck.cover;
+  if (!c) return;
+  const oh = 1;
+  const x0 = c.x - oh;
+  const x1 = c.x + c.w + oh;
+  const y0 = c.y - oh;
+  const y1 = c.y + c.d;                    // the rear wall
+  const E = exterior.deck.floor + c.eave - oh * (c.pitch / 12);
+  const s = c.pitch / 12;
+  const hd = (x1 - x0) / 2;
+  const zr = E + Math.min(hd, y1 - y0) * s;
+  const xm = (x0 + x1) / 2;
+  const yr = y0 + (zr - E) / s;            // where the side slopes meet the ridge
+  slabPoly(B, 'roof', M.roof, M.black, [[x0, y0, E], [x1, y0, E], [xm, yr, zr]]);
+  slabPoly(B, 'roof', M.roof, M.black, [[x0, y1, E + (y1 - y0) * 0], [x0, y0, E], [xm, yr, zr], [xm, y1, zr]]);
+  slabPoly(B, 'roof', M.roof, M.black, [[x1, y0, E], [x1, y1, E], [xm, y1, zr], [xm, yr, zr]]);
+  // cedar ceiling under it
+  B.box('roof', M.cedar, c.x, c.x + c.w, c.y, y1, E + 0.6, E + 0.7);
 }
 
 function pavilionRoof(B, M) {

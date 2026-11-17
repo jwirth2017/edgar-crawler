@@ -143,8 +143,8 @@ export const floors = {
       { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
       // the 4 ft wing entry hall (x 52–64, y 16–20) is the auto-generated hallway
       // — 3-car garage (slab 1 ft below main floor) —
-      // — 3-car garage beside the front of the house, doors facing the motor court —
-      { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 44, w: 36, d: 24,
+      // — 3-car garage beside the house, doors facing the motor court (toward the rear) —
+      { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 24, w: 36, d: 24,
         floorOffset: -1, finished: false },
     ],
     openPlan: [
@@ -165,7 +165,7 @@ export const floors = {
       { kind: 'window', on: 'y', at: 40, from: 41, to: 49 },                    // den → porch
       { kind: 'window', on: 'y', at: 30, from: 55, to: 61 },                    // laundry
       { kind: 'window', on: 'y', at: 30, from: 69, to: 73, sill: 6 },           // closet, high
-      // side walls (x = 0 faces the motor court from y = 19 to 40)
+      // side walls (x = 0: breezeway from y = 24 to 40, court drive below it)
       { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → stoop → motor court
       { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },       // stair landing
       { kind: 'window', on: 'x', at: 0,  from: 29, to: 35 },                    // office desk → side
@@ -186,14 +186,14 @@ export const floors = {
       { kind: 'door', on: 'x', at: 64, from: 22, to: 25, swing: -1 },         // closet → laundry
       { kind: 'door', on: 'y', at: 20, from: 55, to: 58 },                    // hall → laundry
       // garage — overhead doors face the motor court (not the road)
-      { kind: 'garage', on: 'y', at: 44, from: -50, to: -41 },
-      { kind: 'garage', on: 'y', at: 44, from: -39, to: -30 },
-      { kind: 'garage', on: 'y', at: 44, from: -28, to: -19 },
-      { kind: 'door',   on: 'x', at: -16, from: 50, to: 53, swing: -1 },      // garage ↔ breezeway
-      { kind: 'window', on: 'y', at: 68, from: -46, to: -42 },
-      { kind: 'window', on: 'y', at: 68, from: -36, to: -32 },
-      { kind: 'window', on: 'y', at: 68, from: -26, to: -22 },
-      { kind: 'window', on: 'x', at: -52, from: 52, to: 58 },
+      { kind: 'garage', on: 'y', at: 24, from: -50, to: -41 },
+      { kind: 'garage', on: 'y', at: 24, from: -39, to: -30 },
+      { kind: 'garage', on: 'y', at: 24, from: -28, to: -19 },
+      { kind: 'door',   on: 'x', at: -16, from: 30, to: 33, swing: -1 },      // garage ↔ breezeway
+      { kind: 'window', on: 'y', at: 48, from: -46, to: -42 },
+      { kind: 'window', on: 'y', at: 48, from: -36, to: -32 },
+      { kind: 'window', on: 'y', at: 48, from: -26, to: -22 },
+      { kind: 'window', on: 'x', at: -52, from: 32, to: 38 },
     ],
     furniture: [
       // kitchen — coffee station + fridge on the pantry wall, sink run under the pass-through
@@ -248,9 +248,9 @@ export const floors = {
       { type: 'counter',   x: 58.8, y: 27.7, w: 4.8, d: 2,   h: 3, sink: true },
       { type: 'tall',      x: 52.3, y: 21,   w: 1.7, d: 5,   h: 7 },
       // garage — three cars for scale
-      { type: 'car', x: -48.5, y: 47.5, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -37.5, y: 47.5, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -26.5, y: 47.5, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -48.5, y: 27.5, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -37.5, y: 27.5, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -26.5, y: 27.5, w: 6, d: 16, h: 5 },
     ],
   },
 
@@ -425,13 +425,15 @@ export const exterior = {
     x: 0, y: -14, w: 52, d: 14, floor: -0.15,
     pierSpacing: 13, pierSize: 2,           // stone piers down to the patio
     railing: 'cable', railHeight: 3.5,
-    stairs: { x: 0, y: -30, w: 4, d: 16 },  // down to the pool deck, garage side
+    stairs: { x: 48, y: -30, w: 4, d: 16 }, // down to the pool deck, at the wing end
+    // covered section over the outdoor dining area: hip roof on cedar posts
+    cover: { x: 16, y: -12.5, w: 18, d: 12.5, eave: 9.5, pitch: 4 },  // ridge stays below the upper rear window
     barCounter: { x: 18, y: -1.8, w: 12, d: 1.5, h: 3.5 }, // outside the pass-through
   },
-  // Arched drive-through between the porch end and the garage. Cars pass
-  // front → back through it into the motor court.
+  // Arched drive-through linking the house and garage. Cars pass front → back
+  // through it into the motor court in front of the garage doors.
   breezeway: {
-    x: -16, y: 40, w: 16, d: 16,
+    x: -16, y: 24, w: 16, d: 16,
     floorOffset: -1, wallHeight: 12,
     archWidth: 12, archSpring: 7.5, archTop: 10.5,
   },
@@ -441,8 +443,8 @@ export const exterior = {
     // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 26, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
     { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 30, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
-    { id: 'breezeway', type: 'gable', x: -16, y: 40, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
-    { id: 'garage', type: 'gable', x: -52, y: 44, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    { id: 'breezeway', type: 'gable', x: -16, y: 24, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
+    { id: 'garage', type: 'gable', x: -52, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
   // stone stoop at main-floor level outside the mudroom door, stepping down to the court
@@ -456,18 +458,23 @@ export const site = {
     frontGrade: -1.5,       // lawn grade in front of the house
     courtGrade: -1.25,      // motor court, breezeway and garage apron: main-floor level
     walkoutGrade: -10.5,    // patio level = basement floor
-    // Side yards are smooth lawn slopes falling from main-floor level at the
-    // front to the patio at the rear, no steeper than `maxSlope` (run : rise).
-    // Each side stays at main-floor level forward of its `highY` line.
+    // Side yards are smooth lawn slopes, no steeper than `maxSlope` (run : rise).
+    // Garage side: the lawn falls away from the court, drive, breezeway and
+    // garage (all at main-floor level) down to the patio.
+    // Wing side: main-floor level forward of `north.highY`, falling toward the rear.
     maxSlope: 3,
-    south: { highY: 19 },   // garage side: the court's rear edge
-    north: { highY: 28 },   // wing side: just behind the wing's front corner
+    north: { highY: 28 },
     westFall: 0.035,        // continued fall past the pool, ft per ft
     rollAmplitude: 1.8,     // gentle rolling away from the house
   },
   road:      { y: 156, width: 22 },
-  driveway:  { width: 12, path: [[-8, 145], [-8, 56]] },        // to the breezeway arch
-  courtyard: { x: -56, y: 19, w: 56, d: 25 },                   // motor court behind the arch, at main-floor level
+  driveway:  { width: 12, path: [[-8, 145], [-8, 40]] },        // to the breezeway arch
+  // motor court at main-floor level: the apron in front of the garage doors,
+  // plus the drive from the breezeway arch (and the mudroom stoop) into it
+  courtyard: [
+    { x: -56, y: 0,  w: 37, d: 24 },
+    { x: -19, y: 19, w: 19, d: 5 },
+  ],
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck
   paverGrid: { x: 6, y: -26, w: 40, d: 12, paver: 3.5, grass: 0.5 },
@@ -484,9 +491,13 @@ export const site = {
   furniture: [
     { type: 'sofa',    x: 5,  y: -9,  w: 8,   d: 3,   h: 2.6, elev: 'deck' },
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
-    { type: 'lounger', x: 38, y: -66, w: 2.5, d: 6.5, h: 1.2 },
-    { type: 'lounger', x: 42, y: -66, w: 2.5, d: 6.5, h: 1.2 },
-    { type: 'lounger', x: 38, y: -76, w: 2.5, d: 6.5, h: 1.2 },
+    { type: 'lounger', x: 9,  y: -62, w: 2.5, d: 6.5, h: 1.2 },
+    { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
+    { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
+    // fire pit with two chairs on the paver grid beside the hot tub
+    { type: 'firepit', x: 11, y: -22, w: 3.5, d: 3.5, h: 1.3 },
+    { type: 'chair',   x: 7.5,  y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
+    { type: 'chair',   x: 14.5, y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
   ],
 };
 

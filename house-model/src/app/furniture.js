@@ -187,6 +187,10 @@ export function furniture(B, M, g, f, base, room, P) {
       B.surface(f.x - 0.01, f.x + f.w, f.y, f.y + f.d, (x) => base + h - ((x - f.x) / f.w) * h, 'steps');
       break;
     }
+    case 'firepit':
+      box(M.stone, R(f), 0, h);
+      box(M.black, inset(R(f), 0.5), h - 0.1, h + 0.02);
+      break;
     case 'lounger':
       box(M.rail, R(f), 0, 0.9);
       box(M.bedding, inset(R(f), 0.1), 0.9, h);
