@@ -475,6 +475,21 @@ export const exterior = {
 };
 
 /**
+ * Motor court outline: full width along the garage doors (`doors` = [x0, x1, y]),
+ * then a len × width turnaround whose near-east corner is `at`, its long axis
+ * pointing toward the rear (-y) and swung `angle` degrees away from the house (-x).
+ */
+function courtWing({ doors, at, len, width, angle }) {
+  const t = (angle * Math.PI) / 180;
+  const u = [-Math.sin(t), -Math.cos(t)];     // along the wing, toward the rear
+  const v = [-Math.cos(t), Math.sin(t)];      // across it, away from the house
+  const P = (a, b) => [at[0] + u[0] * a + v[0] * b, at[1] + u[1] * a + v[1] * b];
+  // one outline: along the garage doors, down the house-side edge, around the angled end
+  const [dx0, dx1, dy] = doors;
+  return { poly: [[dx0, dy], [dx1, dy], at, P(len, 0), P(len, width)] };
+}
+
+/**
  * Paving that fills an inside corner with a curve: the corner at (x0, y1), the
  * curve a circle of radius r centered at (cx, cy). Returned as thin strips so
  * the terrain, ground paint and plans can treat it like any other rectangle.
@@ -510,11 +525,12 @@ export const site = {
   driveway:  { width: 12, path: [[-8, 145], [-8, 40]] },        // to the breezeway arch
   // motor court at main-floor level: the apron in front of the garage doors,
   // plus the drive from the breezeway arch (and the mudroom stoop) into it
-  // motor court at main-floor level: a 36 ft deep apron in front of the garage
-  // doors (room to back out and turn around), the drive from the breezeway
-  // arch, and a walk from it to the mudroom door
+  // motor court at main-floor level: an apron in front of the garage doors,
+  // then the turnaround swung ~17° away from the house (more room for the
+  // graded hill), the curved drive from the breezeway arch, and a walk to the
+  // mudroom door. Entries are rectangles, or { poly } for angled paving.
   courtyard: [
-    { x: -56, y: -12, w: 37, d: 36 },
+    courtWing({ doors: [-56, -19, 24], at: [-19, 3], len: 30, width: 37, angle: 17 }),
     { x: -19, y: 19,  w: 19, d: 5 },
     { x: -4,  y: 12,  w: 4,  d: 7 },     // walk from the drive to the mudroom door
     // curved corner so cars can swing from the breezeway arch into the court

@@ -412,7 +412,15 @@ export function siteTexture(site, extent, ppf = 4, phase = 1) {
   const [[dx, dy0], [, dy1]] = site.driveway.path;
   R(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1 + site.road.width / 2, '#cfc8b8');
   // gravel motor court + drive under the breezeway arch
-  for (const ct of [].concat(site.courtyard)) R(ct.x, ct.y, ct.w, ct.d, '#cfc8b8');
+  for (const ct of [].concat(site.courtyard)) {
+    if (ct.poly) {
+      g.fillStyle = '#cfc8b8';
+      g.beginPath();
+      ct.poly.forEach(([px, py], i) => g[i ? 'lineTo' : 'moveTo']((px - x0) * ppf, (py - y0) * ppf));
+      g.closePath();
+      g.fill();
+    } else R(ct.x, ct.y, ct.w, ct.d, '#cfc8b8');
+  }
   R(-14, 24, 12, 16, '#cfc8b8');
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');

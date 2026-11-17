@@ -27,7 +27,32 @@ const SOUTH_HIGH = [
   { x: BW.x, y: BW.y, w: BW.w, d: BW.d },
   { x: GARAGE.x, y: GARAGE.y, w: GARAGE.w, d: GARAGE.d },
 ];
-const distRect = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
+const distBox = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
+/** Distance from (x, y) to a convex polygon (0 inside). */
+function distPoly(P, x, y) {
+  let inside = true;
+  let best = Infinity;
+  for (let i = 0; i < P.length; i++) {
+    const [ax, ay] = P[i];
+    const [bx, by] = P[(i + 1) % P.length];
+    const ex = bx - ax;
+    const ey = by - ay;
+    if (ex * (y - ay) - ey * (x - ax) > 0) inside = false;
+    const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / (ex * ex + ey * ey)));
+    best = Math.min(best, Math.hypot(x - ax - t * ex, y - ay - t * ey));
+  }
+  if (!inside) {
+    // try the other winding (polygons may be given either way round)
+    inside = true;
+    for (let i = 0; i < P.length; i++) {
+      const [ax, ay] = P[i];
+      const [bx, by] = P[(i + 1) % P.length];
+      if ((bx - ax) * (y - ay) - (by - ay) * (x - ax) < 0) inside = false;
+    }
+  }
+  return inside ? 0 : best;
+}
+const distRect = (r, x, y) => (r.poly ? distPoly(r.poly, x, y) : distBox(r, x, y));
 
 /** The walkout-level yard beside the house (patio, paver grid, pool deck): x ≥ 0, y ≤ 0. */
 const LOW = { x: MAIN.x, y: PD.y, w: PD.w, d: -PD.y };

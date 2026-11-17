@@ -20,6 +20,18 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 function rect(x, y, w, d, attrs = '') {
   return `<rect x="${n(x)}" y="${n(Math.min(Y(y), Y(y + d)))}" width="${n(w)}" height="${n(d)}" ${attrs}/>`;
 }
+/** Bounding box of a rectangle or a { poly } polygon. */
+function bbox(r) {
+  if (!r.poly) return r;
+  const xs = r.poly.map((p) => p[0]);
+  const ys = r.poly.map((p) => p[1]);
+  return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), d: Math.max(...ys) - Math.min(...ys) };
+}
+/** A rectangle, or a { poly } polygon. */
+function area(r, attrs = '') {
+  if (!r.poly) return rect(r.x, r.y, r.w, r.d, attrs);
+  return `<path d="M${r.poly.map(([x, y]) => `${n(x)},${n(Y(y))}`).join(' L')} Z" ${attrs}/>`;
+}
 function line(x1, y1, x2, y2, attrs = '') {
   return `<line x1="${n(x1)}" y1="${n(Y(y1))}" x2="${n(x2)}" y2="${n(Y(y2))}" ${attrs}/>`;
 }
@@ -378,8 +390,8 @@ export function floorPlanSVG(key) {
     s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 - 0.7, 'Breezeway', 0.95, `fill="${INK}" font-weight="650"`);
     s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 + 0.7, `${fmtFeet(bw.w)} × ${fmtFeet(bw.d)} drive-through`, 0.7);
     const courts = [].concat(site.courtyard);
-    for (const c of courts) s += rect(c.x, c.y, c.w, c.d, `fill="#ebe8e1" stroke="none"`);
-    const ct = courts[0];
+    for (const c of courts) s += area(c, `fill="#ebe8e1" stroke="none"`);
+    const ct = bbox(courts[0]);
     const stp = exterior.stoop;
     if (stp) s += rect(stp.x, stp.y, stp.w, stp.d, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.1"`);
     s += `<path d="M-8,${bw.y + bw.d + 14} L-8,${bw.y - 2} Q-8,${bw.y - 6} -14,${bw.y - 6} L-24,${bw.y - 6} m0,0 l1.6,-0.9 m-1.6,0.9 l1.6,0.9" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
@@ -464,9 +476,9 @@ export function sitePlanSVG() {
   const [[dx, dy0], [, dy1]] = site.driveway.path;
   s += rect(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1, `fill="#cfccc4"`);
   const courts = [].concat(site.courtyard);
-  for (const cc of courts) s += rect(cc.x, cc.y, cc.w, cc.d, `fill="#cfccc4"`);
+  for (const cc of courts) s += area(cc, `fill="#cfccc4"`);
   s += rect(-14, exterior.breezeway.y, 12, exterior.breezeway.d, `fill="#cfccc4"`);
-  const c = courts[0];
+  const c = bbox(courts[0]);
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
   s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
   // Phase 1 (built): paver grid off the covered patio, lawn beyond
