@@ -458,18 +458,23 @@ export function sitePlanSVG() {
   const c = courts[0];
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
   s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
-  // Phase 1 (built): paver grid off the covered patio, fire pit, lawn beyond
+  // Phase 1 (built): paver grid off the covered patio, lawn beyond
   s += paverGrid(phases[1].paverGrid, 0.08);
   const cp = site.coveredPatio;
   s += rect(cp.x, cp.y, cp.w, cp.d, `fill="#d8cfbd"`);
-  for (const f of site.furniture.filter((f) => f.type === 'sofa' && !f.elev)) s += rect(f.x, f.y, f.w, f.d, `fill="#e9e4d8" stroke="#77746b" stroke-width="0.15"`);
-  const fp = site.furniture.find((f) => f.type === 'firepit');
-  if (fp) s += `<circle cx="${n(fp.x + fp.w / 2)}" cy="${n(fp.y + fp.d / 2)}" r="${n(fp.w / 2)}" fill="#8b8577" stroke="#5d594f" stroke-width="0.2"/>`;
+
   s += lab(MID + 6, phases[1].paverGrid.y + 3, 'pavers + grass', 1.8);
-  if (fp) s += lab(fp.x + fp.w / 2, fp.y - 6.5, 'fire pit · U couch', 1.5);
+
   s += lab(9, -60, `lawn · graded flat at ${fmtFeet(t.walkoutGrade)}`, 1.8, 'text-anchor="start"');
   // Phase 2 (future): dashed outlines
   const P2 = phases[2];
+  // Phase 2 fire pit + U couch beside the pool
+  for (const f of (P2.furniture || []).filter((f) => f.type === 'sofa')) s += rect(f.x, f.y, f.w, f.d, `fill="none" stroke="#2f7fb8" stroke-width="0.3" stroke-dasharray="1 0.6"`);
+  const fp = (P2.furniture || []).find((f) => f.type === 'firepit');
+  if (fp) {
+    s += `<circle cx="${n(fp.x + fp.w / 2)}" cy="${n(fp.y + fp.d / 2)}" r="${n(fp.w / 2)}" fill="none" stroke="#2f7fb8" stroke-width="0.3" stroke-dasharray="1 0.6"/>`;
+    s += text(fp.x + fp.w / 2, fp.y - 6.5, 'Phase 2 fire pit · U couch', 1.5, `text-anchor="middle" dominant-baseline="central" fill="#2f7fb8" class="halo"`);
+  }
   const dash = (r, extra = '') => rect(r.x, r.y, r.w, r.d, `fill="none" stroke="#2f7fb8" stroke-width="0.45" stroke-dasharray="1.6 1" ${extra}`);
   const p2lab = (x, y, str, size = 2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#2f7fb8" class="halo"`);
   const pd = site.poolDeck;

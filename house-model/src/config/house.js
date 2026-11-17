@@ -503,12 +503,6 @@ export const site = {
   furniture: [
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
     { type: 'sofa',    x: 21, y: -12.3, w: 8, d: 3,   h: 2.6, elev: 'deck', faces: '+y' },  // under the covered section
-    // fire pit beside the pool (garage side) inside a big U-shaped outdoor couch,
-    // open toward the pool (both phases)
-    { type: 'firepit', x: 6,   y: -46.5, w: 4,  d: 4,  h: 1.3 },
-    { type: 'sofa',    x: 0.5, y: -51,   w: 3,  d: 13, h: 2.7, faces: '+x', label: 'U couch' },
-    { type: 'sofa',    x: 3.5, y: -41,   w: 9,  d: 3,  h: 2.7, faces: '-y' },
-    { type: 'sofa',    x: 3.5, y: -51,   w: 9,  d: 3,  h: 2.7, faces: '+y' },
   ],
   // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
   stubOuts: [
@@ -537,6 +531,11 @@ export const phases = {
       sundeck: { d: 10, water: 0.75, loungers: 3 } },
     hotTub: { x: 22, y: -34, w: 8, d: 8, raised: 1.5 },      // house end, spills into the pool
     furniture: [
+      // fire pit beside the pool (garage side) inside a big U-shaped outdoor couch, open toward the pool
+      { type: 'firepit', x: 6,   y: -46.5, w: 4,  d: 4,  h: 1.3 },
+      { type: 'sofa',    x: 0.5, y: -51,   w: 3,  d: 13, h: 2.7, faces: '+x', label: 'U couch' },
+      { type: 'sofa',    x: 3.5, y: -41,   w: 9,  d: 3,  h: 2.7, faces: '-y' },
+      { type: 'sofa',    x: 3.5, y: -51,   w: 9,  d: 3,  h: 2.7, faces: '+y' },
       // pool loungers, backs to the lawn, facing the pool
       { type: 'lounger', x: 8, y: -61,   w: 6.5, d: 2.5, h: 1.2, back: '-x' },
       { type: 'lounger', x: 8, y: -66,   w: 6.5, d: 2.5, h: 1.2, back: '-x' },

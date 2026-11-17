@@ -101,7 +101,7 @@ function setPhase(ph) {
   document.querySelectorAll('#phase button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.phase) === ph)));
   document.getElementById('phaseNote').textContent = ph === 1
     ? 'Initial build: paver grid and lawn; blue-capped posts mark the utility stub-outs for Phase 2.'
-    : 'Adds the 16 × 36 pool, raised hot tub, pool deck, ~800 sq ft pool house and the finished theater.';
+    : 'Adds the 16 × 36 pool, raised hot tub, pool deck, ~800 sq ft pool house, fire pit with U couch, and the finished theater.';
 }
 document.querySelectorAll('#phase button').forEach((b) => b.addEventListener('click', () => setPhase(Number(b.dataset.phase))));
 setPhase(phase);
