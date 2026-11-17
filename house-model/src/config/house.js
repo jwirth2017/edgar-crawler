@@ -500,8 +500,8 @@ export const site = {
   ],
   // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
   stubOuts: [
-    { id: 'S1', name: 'Pool house', services: 'water · sewer · power · data', x: 16.5, y: -107 },
-    { id: 'S2', name: 'Pool equipment pad', services: '240V power · gas · water', x: 44, y: -96 },
+    { id: 'S1', name: 'Pool house', services: 'water · sewer · power · data', x: 14, y: -112 },
+    { id: 'S2', name: 'Pool equipment pad', services: '240V power · gas · water', x: 47, y: -102 },
     { id: 'S3', name: 'Hot tub', services: 'power · gas', x: 33, y: -35.5 },
   ],
 };
@@ -527,44 +527,53 @@ export const phases = {
       { type: 'lounger', x: 9,  y: -70, w: 2.5, d: 6.5, h: 1.2 },
       { type: 'lounger', x: 9,  y: -78, w: 2.5, d: 6.5, h: 1.2 },
     ],
-    // ~500 sq ft pool house across the pool from the house: white board-and-batten,
-    // black metal roof, vaulted interior, full bath, wet bar, covered porch facing the pool.
+    // ~800 sq ft pool house across the pool from the house: white board-and-batten,
+    // black metal roof, vaulted interior with a gathering area, full bath,
+    // wet bar (no kitchen), covered porch facing the pool.
     poolHouse: {
       name: 'Pool House',
       finish: 'better',
       floor: -10,                 // 6" above the pool deck
       ceiling: 9,                 // bath ceiling; the great room is vaulted to the roof
       wallTop: 10,                // eave height above its floor
-      footprint: [{ x: 13.5, y: -110, w: 25, d: 20 }],
+      footprint: [{ x: 10, y: -115, w: 32, d: 25 }],   // 32 x 25 = 800 sq ft
       rooms: [
-        { id: 'phGreat', name: 'Great Room',  use: 'living', x: 21.5, y: -110, w: 17, d: 20, finish: { floor: 'slateTile' } },
-        { id: 'phEntry', name: 'Entry',       use: 'living', x: 13.5, y: -102, w: 8,  d: 12, finish: { floor: 'slateTile' } },
-        { id: 'phBath',  name: 'Full Bath',   use: 'bath',   x: 13.5, y: -110, w: 8,  d: 8 },
+        { id: 'phGreat', name: 'Gathering Room', use: 'living', x: 18, y: -115, w: 24, d: 25, finish: { floor: 'slateTile' } },
+        { id: 'phEntry', name: 'Entry / Towels', use: 'living', x: 10, y: -105, w: 8,  d: 15, finish: { floor: 'slateTile' } },
+        { id: 'phBath',  name: 'Full Bath',      use: 'bath',   x: 10, y: -115, w: 8,  d: 10 },
       ],
       openPlan: [['phGreat', 'phEntry']],
       openings: [
-        { kind: 'glassdoor', on: 'y', at: -90, from: 16,   to: 24 },     // onto the porch
-        { kind: 'glassdoor', on: 'y', at: -90, from: 28,   to: 36 },
-        { kind: 'window',    on: 'x', at: 38.5, from: -105, to: -100 },
-        { kind: 'window',    on: 'x', at: 38.5, from: -97,  to: -93 },
-        { kind: 'window',    on: 'x', at: 13.5, from: -99,  to: -94 },
-        { kind: 'window',    on: 'y', at: -110, from: 28,   to: 34, sill: 4.5 },  // over the wet bar
-        { kind: 'window',    on: 'y', at: -110, from: 15.5, to: 18, sill: 5.5 },  // bath, high
-        { kind: 'door',      on: 'y', at: -102, from: 15,   to: 17.7, swing: -1 }, // bath
+        { kind: 'glassdoor', on: 'y', at: -90, from: 13,   to: 21 },      // onto the porch
+        { kind: 'glassdoor', on: 'y', at: -90, from: 26,   to: 38 },
+        { kind: 'window',    on: 'x', at: 42,  from: -110, to: -104 },
+        { kind: 'window',    on: 'x', at: 42,  from: -100, to: -94 },
+        { kind: 'window',    on: 'x', at: 10,  from: -101, to: -95 },
+        { kind: 'window',    on: 'y', at: -115, from: 28,  to: 36, sill: 4.5 },   // over the wet bar
+        { kind: 'window',    on: 'y', at: -115, from: 12.5, to: 15.5, sill: 5.5 }, // bath, high
+        { kind: 'door',      on: 'y', at: -105, from: 12,  to: 14.7, swing: -1 },  // bath
       ],
       furniture: [
-        { type: 'counter',   x: 25.5, y: -109.7, w: 11, d: 2, h: 3, label: 'Wet bar', sink: true },
-        { type: 'appliance', x: 31,   y: -109.6, w: 2, d: 1.9, h: 2.8 },             // undercounter fridge
-        { type: 'tall',      x: 37,   y: -109.7, w: 1.2, d: 6, h: 7 },
-        { type: 'sofa',      x: 26,   y: -101,  w: 9,   d: 3.3, h: 2.8, faces: '+y' },
-        { type: 'table',     x: 28,   y: -97,   w: 4.5, d: 2.5, h: 1.4 },
-        { type: 'chair',     x: 23,   y: -96,   w: 3,   d: 3,   h: 2.7 },
-        { type: 'shower',    x: 13.8, y: -109.7, w: 3.5, d: 3.5, h: 7.5 },
-        { type: 'counter',   x: 19.6, y: -109.7, w: 1.8, d: 3.5, h: 3, sink: true },
-        { type: 'toilet',    x: 19.4, y: -104.6, w: 1.8, d: 2.3, h: 1.4 },
+        // wet bar on the back wall (sink + undercounter fridge, no cooking)
+        { type: 'counter',   x: 26,   y: -114.7, w: 12, d: 2, h: 3, label: 'Wet bar', sink: true },
+        { type: 'appliance', x: 35,   y: -114.6, w: 2,  d: 1.9, h: 2.8 },
+        { type: 'island',    x: 27,   y: -110,   w: 9,  d: 2.5, h: 3.5 },
+        // gathering area: sectional, chairs, coffee table, TV wall, game table
+        { type: 'sofa',      x: 20,   y: -102,   w: 10, d: 3.3, h: 2.8, faces: '+y', label: 'Sectional' },
+        { type: 'sofa',      x: 18.3, y: -102,   w: 3.3, d: 8,  h: 2.8, faces: '+x' },
+        { type: 'table',     x: 23,   y: -97.5,  w: 5,   d: 3,  h: 1.4 },
+        { type: 'chair',     x: 30.5, y: -98,    w: 3,   d: 3,  h: 2.7 },
+        { type: 'tv',        x: 40.3, y: -101,   w: 1.5, d: 6,  h: 2 },
+        { type: 'table',     x: 34,   y: -108,   w: 4,   d: 4,  h: 2.5, chairs: 4 },
+        // full bath
+        { type: 'shower',    x: 10.3, y: -114.7, w: 4,   d: 4,  h: 7.5 },
+        { type: 'counter',   x: 15.9, y: -114.7, w: 1.8, d: 4.5, h: 3, sink: true },
+        { type: 'toilet',    x: 15.7, y: -109,   w: 1.8, d: 2.3, h: 1.4 },
+        // entry: towel / storage wall
+        { type: 'tall',      x: 10.3, y: -104,   w: 1.6, d: 8,  h: 7 },
       ],
-      porch: { x: 13.5, y: -90, w: 25, d: 8 },
-      roof: { id: 'poolHouse', type: 'gable', x: 13.5, y: -110, w: 25, d: 28, ridge: 'y', eave: 0, pitch: 9, overhang: 1.5 },
+      porch: { x: 10, y: -90, w: 32, d: 8 },
+      roof: { id: 'poolHouse', type: 'gable', x: 10, y: -115, w: 32, d: 33, ridge: 'y', eave: 0, pitch: 8, overhang: 1.5 },
     },
   },
 };

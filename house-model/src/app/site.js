@@ -144,7 +144,7 @@ function poolAndHotTub(B, M, lanterns) {
   B.box(g, M.water, sx - 1.5, sx + 1.5, h.y - 0.35, h.y - 0.25, water, zt - 0.3, { shadow: false });
 }
 
-/** Phase 2: ~500 sq ft pool house, built with the same wall / opening / floor code as the house. */
+/** Phase 2: ~800 sq ft pool house, built with the same wall / opening / floor code as the house. */
 function poolHouse(B, M, lanterns) {
   const ph = phases[2].poolHouse;
   registerLevel('poolhouse', ph);

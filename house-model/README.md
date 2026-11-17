@@ -23,7 +23,7 @@ npm run build        # static site in dist/
 | **Basement / Main / Upper** | Dollhouse view of one floor: roof and floors above hidden, room names and dimensions shown. |
 | **Camera presets** | Front approach, rear from the pool, kitchen looking out the pass-through, living room, golf sim, theater. |
 | **Walkthrough** | Eye height 6'-2". Click the view to capture the mouse (or click-and-drag), WASD / arrows to move, Shift to run, Esc to release. Walls, railings and glass block you; stairs, steps and the walkout terrain are followed. |
-| **Phase** | Phase 1 (initial build: paver grid, fire pit, lawn, utility stub-out markers) or Phase 2 (adds the pool, raised hot tub, pool deck and ~500 sq ft pool house). Presets, sun and walkthrough work in both. |
+| **Phase** | Phase 1 (initial build: paver grid, fire pit, lawn, utility stub-out markers) or Phase 2 (adds the pool, raised hot tub, pool deck and ~800 sq ft pool house). Presets, sun and walkthrough work in both. |
 | **Sun** | Time-of-day slider and month. Sun position is computed from the latitude in the config; shadows, sky and window glow follow it. |
 | **Save screenshot** | Downloads the current view as a PNG. |
 
