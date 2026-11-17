@@ -93,9 +93,9 @@ export const floors = {
       { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 16, y: 0,  w: 20, d: 16 },
       { id: 'living',  name: 'Living Room', use: 'living', x: 36, y: 0,  w: 20, d: 16,
         note: "10' flat ceiling" },
-      // — center: dining (open to the loft above), foyer, coat —
+      // — center: dining, foyer (open to above), coat —
       { id: 'dining', name: 'Dining',       use: 'living', x: 18, y: 16, w: 20, d: 15,
-        vaulted: true, note: 'open to above' },
+        note: "10' flat ceiling" },
       { id: 'foyer',  name: 'Foyer',        use: 'circ',   x: 22, y: 31, w: 12, d: 9,
         vaulted: true, note: 'open to above' },
       { id: 'coat',   name: 'Coat',         use: 'service', x: 34, y: 31, w: 4, d: 9 },
@@ -239,8 +239,9 @@ export const floors = {
       { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 0,  y: 26, w: 18, d: 14, note: 'incl. closet' },
       { ...STAIR_BOX, finished: false },
       // — center: loft at the rear, open to the living room and foyer below —
-      { id: 'loft',       name: "Kids' Loft",          use: 'living', x: 18, y: 0,  w: 20, d: 16 },
-      { id: 'diningVoid', name: 'Open to Dining',      use: 'void',   x: 22, y: 16, w: 16, d: 15, void: true },
+      // dining below is closed over; the loft runs front-to-back over it
+      { id: 'loft',       name: "Kids' Loft",          use: 'living', x: 18, y: 0,  w: 20, d: 31,
+        note: 'play + homework' },
       { id: 'foyerVoid',  name: 'Open to Foyer',       use: 'void',   x: 22, y: 31, w: 12, d: 9,  void: true },
       // — right: bedroom 3, bath, laundry, attic, off a 4 ft hall —
       { id: 'bed3',     name: 'Bedroom 3',     use: 'bed',     x: 42, y: 0,  w: 14, d: 13 },
@@ -250,13 +251,11 @@ export const floors = {
       { id: 'storage',  name: 'Storage',       use: 'service', x: 50, y: 21, w: 6,  d: 6, finished: false },
       { id: 'attic',    name: 'Attic Storage', use: 'service', x: 42, y: 27, w: 14, d: 13, finished: false, note: 'unfinished' },
     ],
-    openPlan: [['loft', '_hall'], ['diningVoid', 'foyerVoid'], ['stair', '_hall']],
+    openPlan: [['loft', '_hall'], ['stair', '_hall']],
     openings: [
       // guard rails around the open-to-below areas
-      { kind: 'railing', on: 'y', at: 16, from: 22, to: 38 },     // loft overlooks the dining room
-      { kind: 'railing', on: 'x', at: 22, from: 16, to: 40 },     // left walkway
-      { kind: 'railing', on: 'x', at: 38, from: 16, to: 31 },     // right-hand gallery
-      { kind: 'railing', on: 'y', at: 31, from: 34, to: 38 },
+      { kind: 'railing', on: 'y', at: 31, from: 22, to: 34 },     // loft overlooks the foyer
+      { kind: 'railing', on: 'x', at: 22, from: 31, to: 40 },
       { kind: 'railing', on: 'x', at: 34, from: 31, to: 40 },
       // doors — left
       { kind: 'door', on: 'x', at: 18, from: 7,  to: 10, swing: -1 },        // bed 1
@@ -297,6 +296,8 @@ export const floors = {
       { type: 'chimney', x: 54.2, y: 5, w: 1.8, d: 6, h: 9, label: 'Chimney' },  // from the living-room fireplace
       { type: 'sofa',  x: 24, y: 9.5, w: 8, d: 3.2, h: 2.8, faces: '-y', label: 'Sofa' },
       { type: 'table', x: 26, y: 5,   w: 4, d: 2.5, h: 1.4 },
+      { type: 'table', x: 25, y: 18,  w: 6, d: 4,   h: 2.5, chairs: 6, label: 'Game table' },
+      { type: 'desk',  x: 35.7, y: 18, w: 2, d: 10, h: 2.5, label: 'Homework desks' },
       { type: 'tub',     x: 0.3,  y: 12.2, w: 2.6, d: 4.6, h: 1.8 },
       { type: 'counter', x: 6,    y: 14.8, w: 5,   d: 1.9, h: 3 },
       { type: 'toilet',  x: 11.5, y: 12.3, w: 1.7, d: 2.3, h: 1.4 },
