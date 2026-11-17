@@ -69,7 +69,7 @@ const BASEMENT_FLOOR = -(stair.risers.basementToMain * stair.riser); // -10.27'
 
 // Footprints ------------------------------------------------------------------
 const MAIN_BLOCK = { x: 0, y: 0, w: 56, d: 40 };  // two-story block (grew from 52 x 38)
-const WING = { x: 56, y: 4, w: 26, d: 34 };       // one-story primary wing, crawlspace below
+const WING = { x: 56, y: 0, w: 26, d: 34 };       // one-story primary wing, flush with the rear, crawlspace below
 const STAIR_BOX = { id: 'stair', name: 'Stairs', use: 'circ', stair: true,
   x: stair.x, y: stair.y, w: stair.w, d: stair.d };
 
@@ -83,79 +83,76 @@ export const floors = {
     ceiling: 10,
     footprint: [MAIN_BLOCK, WING],
     rooms: [
-      // — left side: back entry, office, stairs —
-      { id: 'mudroom',  name: 'Mudroom',       use: 'service', x: 0,  y: 0,  w: 10, d: 11 },
-      { id: 'pantry',   name: 'Walk-in Pantry', use: 'service', x: 10, y: 0, w: 8,  d: 11 },
-      { id: 'halfBath', name: 'Half Bath',     use: 'bath',    x: 0,  y: 11, w: 6,  d: 6 },
-      { id: 'office',   name: 'Shared Office', use: 'work',    x: 0,  y: 26, w: 18, d: 14 },
+      // — left side: back entry, stairs, office —
+      { id: 'mudroom',  name: 'Mudroom',        use: 'service', x: 0,  y: 0,  w: 10, d: 11 },
+      { id: 'pantry',   name: 'Walk-in Pantry', use: 'service', x: 10, y: 0,  w: 6,  d: 11 },
+      { id: 'halfBath', name: 'Half Bath',      use: 'bath',    x: 0,  y: 11, w: 6,  d: 6 },
       { ...STAIR_BOX },
-      // — center: kitchen, vaulted living, foyer (centered on the 56' block) —
-      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 18, y: 0,  w: 20, d: 15 },
-      { id: 'living',  name: 'Living Room', use: 'living', x: 18, y: 15, w: 20, d: 16,
-        vaulted: true, note: 'vaulted, open to above' },
-      { id: 'foyer',   name: 'Foyer',       use: 'circ',   x: 22, y: 31, w: 12, d: 9,
+      { id: 'office',   name: 'Shared Office',  use: 'work',    x: 0,  y: 26, w: 18, d: 14 },
+      // — rear wall: kitchen and living side by side, both facing the deck —
+      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 16, y: 0,  w: 20, d: 16 },
+      { id: 'living',  name: 'Living Room', use: 'living', x: 36, y: 0,  w: 20, d: 16,
+        note: "10' flat ceiling" },
+      // — center: dining (open to the loft above), foyer, coat —
+      { id: 'dining', name: 'Dining',       use: 'living', x: 18, y: 16, w: 20, d: 15,
         vaulted: true, note: 'open to above' },
-      { id: 'coat',    name: 'Coat',        use: 'service', x: 34, y: 31, w: 4, d: 9 },
-      // — right side: dining, powder, den, entry to the wing —
-      { id: 'dining', name: 'Dining',       use: 'living', x: 38, y: 0,  w: 18, d: 14 },
-      { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 45, y: 14, w: 11, d: 6 },
+      { id: 'foyer',  name: 'Foyer',        use: 'circ',   x: 22, y: 31, w: 12, d: 9,
+        vaulted: true, note: 'open to above' },
+      { id: 'coat',   name: 'Coat',         use: 'service', x: 34, y: 31, w: 4, d: 9 },
+      // — right side: powder, den; hall in front of the living room leads to the wing —
+      { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 45, y: 20, w: 11, d: 6 },
       { id: 'den',    name: 'TV Den',       use: 'living', x: 42, y: 26, w: 14, d: 14 },
-      // — primary wing —
-      { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 56, y: 4,  w: 16, d: 16 },
-      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 72, y: 4,  w: 10, d: 20 },
-      { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 68, y: 24, w: 14, d: 14,
+      // — primary wing (flush with the rear wall) —
+      { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 56, y: 0,  w: 16, d: 16 },
+      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 72, y: 0,  w: 10, d: 20 },
+      { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 68, y: 20, w: 14, d: 14,
         note: 'double hang, raised rods' },
-      { id: 'laundry',       name: 'Laundry',         use: 'service', x: 56, y: 24, w: 12, d: 14 },
-      // the 4 ft wing entry hall (x 56–72, y 20–24) is the auto-generated hallway
+      { id: 'laundry',       name: 'Laundry',         use: 'service', x: 56, y: 20, w: 12, d: 14 },
+      // the 4 ft wing entry hall (x 56–72, y 16–20) is the auto-generated hallway
       // — 3-car garage (slab 1 ft below main floor) —
       { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: -7, w: 36, d: 24,
         floorOffset: -1, finished: false },
     ],
     openPlan: [
-      ['kitchen', 'dining'], ['kitchen', 'living'], ['kitchen', '_hall'],
-      ['dining', '_hall'], ['living', 'foyer'], ['foyer', '_hall'],
-      ['living', '_hall'], ['stair', '_hall'],
-    ],
-    // Extra walls where two open-plan spaces still need a solid stretch:
-    // the stone fireplace wall between the living room and the side gallery.
-    partitions: [
-      { on: 'x', at: 38, from: 19, to: 27 },
+      ['kitchen', 'living'], ['kitchen', 'dining'], ['living', 'dining'],
+      ['kitchen', '_hall'], ['living', '_hall'], ['dining', '_hall'],
+      ['dining', 'foyer'], ['foyer', '_hall'], ['stair', '_hall'],
     ],
     openings: [
       // rear wall (y = 0) — glass onto the deck
       { kind: 'window',      on: 'y', at: 0, from: 2,  to: 7 },
       { kind: 'passthrough', on: 'y', at: 0, from: 22, to: 34, sill: 3.5, head: 8 },
-      { kind: 'glassdoor',   on: 'y', at: 0, from: 42, to: 54 },
-      { kind: 'window',      on: 'y', at: 4, from: 59, to: 69, sill: 1.5 },   // primary bedroom
-      { kind: 'window',      on: 'y', at: 4, from: 75, to: 79, sill: 5 },
-      // front wall (y = 40 main block, y = 38 wing)
+      { kind: 'glassdoor',   on: 'y', at: 0, from: 39, to: 53, head: 9 },    // living → deck
+      { kind: 'window',      on: 'y', at: 0, from: 59, to: 69, sill: 1.5 },  // primary bedroom
+      { kind: 'window',      on: 'y', at: 0, from: 75, to: 79, sill: 5 },
+      // front wall (y = 40 main block, y = 34 wing)
       { kind: 'entry',  on: 'y', at: 40, from: 25, to: 31 },
       { kind: 'window', on: 'y', at: 40, from: 4,  to: 10 },                  // office → porch
       { kind: 'window', on: 'y', at: 40, from: 39, to: 41, sill: 4 },         // gallery end
       { kind: 'window', on: 'y', at: 40, from: 45, to: 53 },                  // den → porch
-      { kind: 'window', on: 'y', at: 38, from: 59, to: 65 },                  // laundry
-      { kind: 'window', on: 'y', at: 38, from: 73, to: 77, sill: 6 },         // closet, high
+      { kind: 'window', on: 'y', at: 34, from: 59, to: 65 },                  // laundry
+      { kind: 'window', on: 'y', at: 34, from: 73, to: 77, sill: 6 },         // closet, high
       // side walls (x = 0 is covered by the breezeway from y = 1 to 17)
       { kind: 'door',   on: 'x', at: 0,  from: 3,  to: 6 },                   // mudroom ↔ breezeway
       { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },     // stair landing
       { kind: 'window', on: 'x', at: 0,  from: 29, to: 35 },                  // office side
-      { kind: 'window', on: 'x', at: 82, from: 7,  to: 11, sill: 5 },
-      { kind: 'window', on: 'x', at: 82, from: 16, to: 20, sill: 5 },
+      { kind: 'window', on: 'x', at: 82, from: 3,  to: 7,  sill: 5 },
+      { kind: 'window', on: 'x', at: 82, from: 12, to: 16, sill: 5 },
       // interior — left
-      { kind: 'door',    on: 'y', at: 11, from: 6.5,  to: 9.5 },              // mudroom → back hall
-      { kind: 'door',    on: 'y', at: 11, from: 13,   to: 16 },               // pantry → back hall
-      { kind: 'door',    on: 'x', at: 6,  from: 12.5, to: 15, swing: -1 },    // half bath
-      { kind: 'door',    on: 'x', at: 18, from: 33,   to: 36, swing: -1 },    // office → foyer hall
+      { kind: 'door', on: 'y', at: 11, from: 6.5,  to: 9.5 },                 // mudroom → back hall
+      { kind: 'door', on: 'y', at: 11, from: 11.5, to: 14.5 },                // pantry → back hall
+      { kind: 'door', on: 'x', at: 6,  from: 12.5, to: 15, swing: -1 },       // half bath
+      { kind: 'door', on: 'x', at: 18, from: 33,   to: 36, swing: -1 },       // office → foyer hall
       // interior — right
-      { kind: 'door',    on: 'x', at: 34, from: 34,   to: 37 },               // coat closet
-      { kind: 'door',    on: 'y', at: 20, from: 46,   to: 48.7 },             // powder
-      { kind: 'door',    on: 'x', at: 42, from: 30,   to: 33, swing: -1 },    // den
+      { kind: 'door', on: 'x', at: 34, from: 34,   to: 37 },                  // coat closet
+      { kind: 'door', on: 'y', at: 20, from: 46,   to: 48.7, swing: -1 },     // powder
+      { kind: 'door', on: 'x', at: 42, from: 30,   to: 33, swing: -1 },       // den
       // interior — primary wing
-      { kind: 'door', on: 'y', at: 20, from: 58, to: 61, swing: -1 },         // bedroom
-      { kind: 'door', on: 'x', at: 72, from: 6,  to: 9 },                     // bed → bath
-      { kind: 'door', on: 'y', at: 24, from: 75, to: 78 },                    // bath → closet
-      { kind: 'door', on: 'x', at: 68, from: 30, to: 33, swing: -1 },         // closet → laundry
-      { kind: 'door', on: 'y', at: 24, from: 59, to: 62 },                    // hall → laundry
+      { kind: 'door', on: 'y', at: 16, from: 58, to: 61, swing: -1 },         // hall → bedroom
+      { kind: 'door', on: 'x', at: 72, from: 2,  to: 5 },                     // bed → bath
+      { kind: 'door', on: 'y', at: 20, from: 75, to: 78 },                    // bath → closet
+      { kind: 'door', on: 'x', at: 68, from: 26, to: 29, swing: -1 },         // closet → laundry
+      { kind: 'door', on: 'y', at: 20, from: 59, to: 62 },                    // hall → laundry
       // garage — overhead doors face the rear motor court
       { kind: 'garage', on: 'y', at: -7, from: -50, to: -41 },
       { kind: 'garage', on: 'y', at: -7, from: -39, to: -30 },
@@ -166,19 +163,19 @@ export const floors = {
       { kind: 'window', on: 'y', at: 17, from: -27, to: -23 },
     ],
     furniture: [
-      // kitchen
-      { type: 'counter', x: 20,   y: 0.3, w: 16,  d: 2,   h: 3 },             // under pass-through
-      { type: 'counter', x: 18.3, y: 1,   w: 2,   d: 6,   h: 3, label: 'Coffee station' }, // 6 ft built-in, pantry wall
-      { type: 'tall',    x: 18.3, y: 7.5, w: 2.4, d: 3.5, h: 7.5 },           // fridge
-      { type: 'island',  x: 22,   y: 7,   w: 12,  d: 4,   h: 3, label: 'Island' },
+      // kitchen — coffee station + fridge on the pantry wall, sink run under the pass-through
+      { type: 'counter', x: 16.3, y: 1,   w: 2,   d: 6,   h: 3, label: 'Coffee station' }, // 6 ft built-in
+      { type: 'tall',    x: 16.3, y: 7.5, w: 2.4, d: 3.5, h: 7.5 },           // fridge
+      { type: 'counter', x: 20,   y: 0.3, w: 15,  d: 2,   h: 3 },             // under pass-through
+      { type: 'island',  x: 21.5, y: 8,   w: 12,  d: 4,   h: 3, label: 'Island' },
+      // living — stone fireplace on the right-hand wall, sofa facing it
+      { type: 'fireplace', x: 54.2, y: 5,   w: 1.8, d: 6,   h: 10 },
+      { type: 'sofa',      x: 44,   y: 3.5, w: 3.3, d: 9,   h: 2.8, faces: '+x', label: 'Sofa' },
+      { type: 'table',     x: 48.5, y: 6,   w: 2.5, d: 4,   h: 1.4 },
+      { type: 'chair',     x: 46.5, y: 12.4, w: 3,  d: 3,   h: 2.7 },
+      { type: 'chair',     x: 50.5, y: 12.4, w: 3,  d: 3,   h: 2.7 },
       // dining
-      { type: 'table', x: 42.5, y: 5, w: 9, d: 3.5, h: 2.5, chairs: 8, label: 'Table' },
-      // living — stone fireplace on the right wall, rising through the vault
-      { type: 'fireplace', x: 36.2, y: 20, w: 1.8, d: 6, h: 24 },
-      { type: 'sofa',  x: 25,   y: 19, w: 3.3, d: 8, h: 2.8, faces: '+x', label: 'Sofa' },
-      { type: 'table', x: 29.8, y: 21, w: 2.5, d: 4, h: 1.4 },
-      { type: 'chair', x: 31,   y: 16, w: 3,   d: 3, h: 2.7 },
-      { type: 'chair', x: 31,   y: 27, w: 3,   d: 3, h: 2.7 },
+      { type: 'table', x: 23.5, y: 21.75, w: 9, d: 3.5, h: 2.5, chairs: 8, label: 'Table' },
       // foyer
       { type: 'table', x: 22.4, y: 33, w: 1.4, d: 5, h: 2.8 },
       // office — each desk faces its own window (front wall and left side wall)
@@ -188,38 +185,38 @@ export const floors = {
       { type: 'chair', x: 3.4, y: 31,   w: 2,   d: 2,   h: 3 },
       { type: 'tall',  x: 7,   y: 26.3, w: 9,   d: 1.2, h: 7 },
       // mudroom / pantry / half bath
-      { type: 'tall',    x: 8.4,  y: 0.5,  w: 1.5, d: 9.5, h: 7 },             // lockers
-      { type: 'bench',   x: 0.3,  y: 6.5,  w: 1.5, d: 3.5, h: 1.5 },
+      { type: 'tall',    x: 8.4,  y: 0.5,  w: 1.5, d: 9.5,  h: 7 },            // lockers
+      { type: 'bench',   x: 0.3,  y: 6.5,  w: 1.5, d: 3.5,  h: 1.5 },
       { type: 'tall',    x: 10.3, y: 0.3,  w: 1.5, d: 10.4, h: 7 },
-      { type: 'tall',    x: 11.8, y: 0.3,  w: 6,   d: 1.5, h: 7 },
-      { type: 'toilet',  x: 0.4,  y: 13,   w: 2.3, d: 1.7, h: 1.4 },
-      { type: 'counter', x: 2.5,  y: 11.3, w: 3,   d: 1.7, h: 3 },
+      { type: 'tall',    x: 11.8, y: 0.3,  w: 3.9, d: 1.5,  h: 7 },
+      { type: 'toilet',  x: 0.4,  y: 13,   w: 2.3, d: 1.7,  h: 1.4 },
+      { type: 'counter', x: 2.5,  y: 11.3, w: 3,   d: 1.7,  h: 3 },
       // den — TV on the back wall, sofa facing it, window to the porch behind
       { type: 'tv',    x: 46,   y: 26.3, w: 6, d: 1.5, h: 2 },
       { type: 'sofa',  x: 45.5, y: 34,   w: 8, d: 3.5, h: 2.8, faces: '-y' },
       { type: 'table', x: 47.5, y: 30,   w: 4, d: 2.5, h: 1.3 },
       // powder / coat
-      { type: 'counter', x: 51,   y: 14.3, w: 4,   d: 1.8, h: 3 },
-      { type: 'toilet',  x: 53.4, y: 17.5, w: 2.3, d: 1.7, h: 1.4 },
+      { type: 'counter', x: 51,   y: 23.9, w: 4,   d: 1.8, h: 3 },
+      { type: 'toilet',  x: 53.4, y: 20.3, w: 2.3, d: 1.7, h: 1.4 },
       { type: 'tall',    x: 36,   y: 31.3, w: 1.8, d: 8.4, h: 7 },
       // primary suite
-      { type: 'bed',     x: 56.3, y: 8.5,  w: 7.2, d: 6.5, h: 2.2, label: 'King' },
-      { type: 'table',   x: 56.3, y: 6.3,  w: 1.7, d: 2,   h: 2 },
-      { type: 'table',   x: 56.3, y: 15.2, w: 1.7, d: 2,   h: 2 },
-      { type: 'dresser', x: 63,   y: 18.2, w: 6,   d: 1.8, h: 3 },
-      { type: 'chair',   x: 68,   y: 6,    w: 3,   d: 3,   h: 2.7 },
-      { type: 'counter', x: 74,   y: 4.3,  w: 7,   d: 2,   h: 3 },             // double vanity
-      { type: 'tub',     x: 78.8, y: 8.5,  w: 2.9, d: 5.5, h: 2 },
-      { type: 'shower',  x: 72.3, y: 16,   w: 5,   d: 5,   h: 7.5 },
-      { type: 'toilet',  x: 79.5, y: 21.6, w: 2.3, d: 1.7, h: 1.4 },
-      { type: 'counter', x: 79.9, y: 15,   w: 1.8, d: 4,   h: 2.5 },           // makeup vanity
+      { type: 'bed',     x: 64.5, y: 4.5,  w: 7.2, d: 6.5, h: 2.2, label: 'King' },
+      { type: 'table',   x: 69.8, y: 2.3,  w: 1.9, d: 2,   h: 2 },
+      { type: 'table',   x: 69.8, y: 11.2, w: 1.9, d: 2,   h: 2 },
+      { type: 'dresser', x: 56.3, y: 5,    w: 1.8, d: 6,   h: 3 },
+      { type: 'chair',   x: 58.5, y: 11.5, w: 3,   d: 3,   h: 2.7 },
+      { type: 'counter', x: 74,   y: 0.3,  w: 7,   d: 2,   h: 3 },             // double vanity
+      { type: 'tub',     x: 78.8, y: 4.5,  w: 2.9, d: 5.5, h: 2 },
+      { type: 'shower',  x: 72.3, y: 12,   w: 5,   d: 5,   h: 7.5 },
+      { type: 'toilet',  x: 79.5, y: 17.6, w: 2.3, d: 1.7, h: 1.4 },
+      { type: 'counter', x: 79.9, y: 11,   w: 1.8, d: 4,   h: 2.5 },           // makeup vanity
       // primary closet — double hanging on both long walls, rods raised for tall owners
-      { type: 'hanging', x: 68.3, y: 26,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
-      { type: 'hanging', x: 79.7, y: 26,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
-      { type: 'island',  x: 73.5, y: 29,   w: 3, d: 5,    h: 3 },
-      { type: 'appliance', x: 57,   y: 35.2, w: 5.4, d: 2.5, h: 3.3 },         // washer / dryer
-      { type: 'counter',   x: 62.8, y: 35.7, w: 4.8, d: 2,   h: 3 },           // sink + folding
-      { type: 'tall',      x: 56.3, y: 26,   w: 1.7, d: 7,   h: 7 },
+      { type: 'hanging', x: 68.3, y: 22,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
+      { type: 'hanging', x: 79.7, y: 22,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
+      { type: 'island',  x: 73.5, y: 25,   w: 3, d: 5,    h: 3 },
+      { type: 'appliance', x: 57,   y: 31.2, w: 5.4, d: 2.5, h: 3.3 },         // washer / dryer
+      { type: 'counter',   x: 62.8, y: 31.7, w: 4.8, d: 2,   h: 3 },           // sink + folding
+      { type: 'tall',      x: 56.3, y: 22,   w: 1.7, d: 7,   h: 7 },
       // garage — three cars for scale
       { type: 'car', x: -48.5, y: -3, w: 6, d: 16, h: 5 },
       { type: 'car', x: -37.5, y: -3, w: 6, d: 16, h: 5 },
@@ -242,8 +239,8 @@ export const floors = {
       { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 0,  y: 26, w: 18, d: 14, note: 'incl. closet' },
       { ...STAIR_BOX, finished: false },
       // — center: loft at the rear, open to the living room and foyer below —
-      { id: 'loft',       name: "Kids' Loft",          use: 'living', x: 18, y: 0,  w: 20, d: 15 },
-      { id: 'livingVoid', name: 'Open to Living Room', use: 'void',   x: 22, y: 15, w: 16, d: 16, void: true },
+      { id: 'loft',       name: "Kids' Loft",          use: 'living', x: 18, y: 0,  w: 20, d: 16 },
+      { id: 'diningVoid', name: 'Open to Dining',      use: 'void',   x: 22, y: 16, w: 16, d: 15, void: true },
       { id: 'foyerVoid',  name: 'Open to Foyer',       use: 'void',   x: 22, y: 31, w: 12, d: 9,  void: true },
       // — right: bedroom 3, bath, laundry, attic, off a 4 ft hall —
       { id: 'bed3',     name: 'Bedroom 3',     use: 'bed',     x: 42, y: 0,  w: 14, d: 13 },
@@ -253,12 +250,12 @@ export const floors = {
       { id: 'storage',  name: 'Storage',       use: 'service', x: 50, y: 21, w: 6,  d: 6, finished: false },
       { id: 'attic',    name: 'Attic Storage', use: 'service', x: 42, y: 27, w: 14, d: 13, finished: false, note: 'unfinished' },
     ],
-    openPlan: [['loft', '_hall'], ['livingVoid', 'foyerVoid'], ['stair', '_hall']],
+    openPlan: [['loft', '_hall'], ['diningVoid', 'foyerVoid'], ['stair', '_hall']],
     openings: [
       // guard rails around the open-to-below areas
-      { kind: 'railing', on: 'y', at: 15, from: 22, to: 38 },     // loft front edge
-      { kind: 'railing', on: 'x', at: 22, from: 15, to: 40 },     // walkway + stair landing
-      { kind: 'railing', on: 'x', at: 38, from: 15, to: 31 },     // right-hand gallery
+      { kind: 'railing', on: 'y', at: 16, from: 22, to: 38 },     // loft overlooks the dining room
+      { kind: 'railing', on: 'x', at: 22, from: 16, to: 40 },     // left walkway
+      { kind: 'railing', on: 'x', at: 38, from: 16, to: 31 },     // right-hand gallery
       { kind: 'railing', on: 'y', at: 31, from: 34, to: 38 },
       { kind: 'railing', on: 'x', at: 34, from: 31, to: 40 },
       // doors — left
@@ -295,8 +292,9 @@ export const floors = {
       { type: 'bed',  x: 0.3,  y: 30,   w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
       { type: 'desk', x: 11,   y: 37.7, w: 5,   d: 2,   h: 2.5 },
       { type: 'tall', x: 15.8, y: 31,   w: 1.9, d: 6,   h: 7 },
-      { type: 'bed',  x: 49,   y: 3,    w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
+      { type: 'bed',  x: 46,   y: 6,    w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
       { type: 'desk', x: 43,   y: 0.3,  w: 5,   d: 2,   h: 2.5 },
+      { type: 'chimney', x: 54.2, y: 5, w: 1.8, d: 6, h: 9, label: 'Chimney' },  // from the living-room fireplace
       { type: 'sofa',  x: 24, y: 9.5, w: 8, d: 3.2, h: 2.8, faces: '-y', label: 'Sofa' },
       { type: 'table', x: 26, y: 5,   w: 4, d: 2.5, h: 1.4 },
       { type: 'tub',     x: 0.3,  y: 12.2, w: 2.6, d: 4.6, h: 1.8 },
@@ -405,9 +403,9 @@ export const exterior = {
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
     { id: 'main',   type: 'gable', x: 0,   y: 0,  w: 56, d: 40, ridge: 'x', eave: 20.5, pitch: 8,  overhang: 1.5 },
-    // center gable, front and rear, over the foyer / living vault / loft
+    // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 28, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
-    { id: 'wing',   type: 'gable', x: 56,  y: 4,  w: 26, d: 34, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
+    { id: 'wing',   type: 'gable', x: 56,  y: 0,  w: 26, d: 34, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
     { id: 'breezeway', type: 'gable', x: -16, y: 1, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
     { id: 'garage', type: 'gable', x: -52, y: -7, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   ],

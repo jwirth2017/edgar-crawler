@@ -321,7 +321,7 @@ export function floorPlanSVG(key) {
   }
 
   if (key === 'upper') {
-    s += note(69, 21, 'primary wing roof below', 0.85);
+    s += note(69, 17, 'primary wing roof below', 0.85);
     s += note(28, 44, 'porch roof below', 0.85);
   }
   if (key === 'basement') {
@@ -342,8 +342,8 @@ export function floorPlanSVG(key) {
     s += text(-0.8, -18, 'retaining wall', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
     s += text(-0.8, -16.8, 'motor court above', 0.7, `text-anchor="end" fill="#77746b" class="halo"`);
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
-    s += note(69, 20, 'crawlspace under', 0.8);
-    s += note(69, 21.3, 'primary wing', 0.8);
+    s += note(69, 16, 'crawlspace under', 0.8);
+    s += note(69, 17.3, 'primary wing', 0.8);
   }
 
   // room fills
@@ -432,11 +432,11 @@ export function sitePlanSVG() {
   s += rect(g.x, g.y, g.w, g.d, `fill="#2e2e2e"`);
   const ridge = `stroke="#7a7a7a" stroke-width="0.25"`;
   const cg = exterior.roofs.find((r) => r.id === 'center');
-  s += line(0, 20, 56, 20, ridge) + line(cg.centerX, 0, cg.centerX, 40, ridge) + line(69, 4, 69, 38, ridge);
+  s += line(0, 20, 56, 20, ridge) + line(cg.centerX, 0, cg.centerX, 40, ridge) + line(69, 0, 69, 34, ridge);
   s += line(g.x, g.y + g.d / 2, g.x + g.w, g.y + g.d / 2, ridge) + line(-8, 1, -8, 17, ridge);
   const w = (x, y, str, size = 2.2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += w(14, 10, 'Main block') + w(14, 13, '(2-story)', 1.9);
-  s += w(69.5, 18, 'Primary') + w(69.5, 21, 'wing', 2.2);
+  s += w(69.5, 15, 'Primary') + w(69.5, 18, 'wing', 2.2);
   s += w(-34, 5, '3-car garage');
   s += lab(28, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
   s += lab(-8, 95, 'Driveway', 2.2);
