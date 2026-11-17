@@ -404,7 +404,7 @@ export function siteTexture(site, extent, ppf = 4) {
   const [[dx, dy0], [, dy1]] = site.driveway.path;
   R(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1 + site.road.width / 2, '#cdc9bf');
   const ct = site.courtyard;
-  R(ct.x, ct.y, ct.w, ct.d + 8, '#cdc9bf');
+  R(ct.x, ct.y, ct.w, ct.d + 12, '#cdc9bf');   // court + apron under the breezeway
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');
   // pool deck (travertine-look pavers)

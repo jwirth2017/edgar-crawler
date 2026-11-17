@@ -2,6 +2,7 @@
 // the bottom of the page; the rear (west, pool side) is at the top.
 import { floors, exterior, site, build, stair } from '../config/house.js';
 import { deriveWalls, solidSpans, allRooms, roomAt, fmtFeet } from '../model/layout.js';
+import { patioEdgeWall } from '../model/terrain.js';
 
 const FILL = {
   living: '#f3ead7', bed: '#e3ebf3', bath: '#dcefe9', service: '#ecebe6',
@@ -271,9 +272,23 @@ function paverGrid(g, strokeW = 0.05) {
   return s;
 }
 
-function retainingWall(width = 0.9) {
-  const rw = site.retainingWall.path;
-  return `<polyline points="${rw.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="#7d786c" stroke-width="${width}" stroke-linejoin="miter"/>`;
+function patioWallSVG(width = 0.6) {
+  const w = patioEdgeWall();
+  if (w.y1 - w.y0 < 0.5) return '';
+  return line(w.x - width / 2, w.y0, w.x - width / 2, w.y1, `stroke="#7d786c" stroke-width="${width}"`);
+}
+
+/** Down-slope arrows + label for the 3:1 side lawns. */
+function slopeArrows(size = 0.9) {
+  const t = site.terrain;
+  const sY = t.south.highY;
+  const nY = t.north.highY;
+  const run = (t.courtGrade - t.walkoutGrade) * t.maxSlope;
+  const arrow = (x, y0, y1) => `<path d="M${x},${y0} L${x},${y1} m0,0 l-0.8,1.4 m0.8,-1.4 l0.8,1.4" stroke="#6f8558" stroke-width="0.18" fill="none"/>`;
+  let s = arrow(-8, sY - 2, sY - run + 2) + arrow(84, nY - 2, nY - run + 2);
+  s += text(-10, sY - run / 2, `lawn ${t.maxSlope}:1`, size, `text-anchor="end" dominant-baseline="central" fill="#55683f" class="halo"`);
+  s += text(86, nY - run / 2, `lawn ${t.maxSlope}:1`, size, `dominant-baseline="central" fill="#55683f" class="halo"`);
+  return s;
 }
 
 export function floorPlanSVG(key) {
@@ -287,7 +302,7 @@ export function floorPlanSVG(key) {
     text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#77746b" class="halo" ${extra}`);
 
   if (key === 'main') {
-    bounds = [-58, -36, 88, 58];
+    bounds = [-58, -36, 92, 76];
     // porch
     s += rect(porch.x, porch.y, porch.w, porch.d, `fill="#efe9dc" stroke="${INK}" stroke-width="0.12"`);
     s += rect(porch.steps.x, porch.y + porch.d, porch.steps.w, 2.5, `fill="#e7e2d6" stroke="${INK}" stroke-width="0.1"`);
@@ -315,12 +330,16 @@ export function floorPlanSVG(key) {
     }
     s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 - 0.7, 'Breezeway', 0.95, `fill="${INK}" font-weight="650"`);
     s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 + 0.7, `${fmtFeet(bw.w)} × ${fmtFeet(bw.d)} drive-through`, 0.7);
-    s += `<path d="M-8,52 L-8,-24 M-8,-24 l-0.9,1.6 M-8,-24 l0.9,1.6" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
-    s += note(-8, 54, 'driveway from street', 0.8);
-    s += note(-30, -20, 'Rear motor court', 0.95);
-    s += note(-30, -18.3, 'garage doors face this side', 0.75);
-    s += retainingWall(0.6);
-    s += text(-0.8, -26, 'retaining wall', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
+    const ct = site.courtyard;
+    s += rect(ct.x, ct.y, ct.w, ct.d, `fill="#ebe8e1" stroke="#c9c4b8" stroke-width="0.1"`);
+    const stp = exterior.stoop;
+    if (stp) s += rect(stp.x, stp.y, stp.w, stp.d + 1, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.1"`);
+    s += `<path d="M-8,${bw.y + bw.d + 14} L-8,${ct.y + 6} M-8,${ct.y + 6} l-0.9,1.6 M-8,${ct.y + 6} l0.9,1.6" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
+    s += note(-8, bw.y + bw.d + 15.5, 'driveway from street', 0.8);
+    s += note(-36, ct.y + 9, 'Motor court', 0.95);
+    s += note(-36, ct.y + 10.7, `main-floor level · garage doors face the court`, 0.75);
+    s += patioWallSVG(0.6) + slopeArrows(0.85);
+    s += text(-1.2, -4, 'low wall ≤ 3\'', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
   } else {
     bounds = key === 'upper' ? [-8, -8, 90, 50] : [-8, -40, 90, 52];
     s += mainFootprintGhost();
@@ -344,9 +363,8 @@ export function floorPlanSVG(key) {
     s += note(MID, -7, `Covered pool patio · ${fmtFeet(cp.w)} × ${fmtFeet(cp.d)} · under the deck`, 0.9);
     s += note(14, -20, 'concrete pavers + grass strips', 0.8);
     s += note(h.x + h.w / 2, h.y - 2, '↑ pool 16 × 36', 0.8);
-    s += retainingWall(0.6);
-    s += text(-0.8, -18, 'retaining wall', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
-    s += text(-0.8, -16.8, 'motor court above', 0.7, `text-anchor="end" fill="#77746b" class="halo"`);
+    s += patioWallSVG(0.6) + slopeArrows(0.85);
+    s += text(-1.2, -4, 'low wall ≤ 3\'', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
     s += note(WCX, WCY - 0.6, 'crawlspace under', 0.8);
     s += note(WCX, WCY + 0.7, 'primary wing', 0.8);
@@ -387,7 +405,8 @@ export function sitePlanSVG() {
     text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#3d3c38" class="halo" ${extra}`);
 
   s += `<defs><linearGradient id="fall" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#c3d4b0"/><stop offset="0.55" stop-color="#d6e2c4"/><stop offset="1" stop-color="#dfe8cf"/></linearGradient></defs>`;
+    <stop offset="0" stop-color="#c3d4b0"/><stop offset="0.55" stop-color="#d6e2c4"/><stop offset="1" stop-color="#dfe8cf"/></linearGradient>
+    <pattern id="slope" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><line x1="0" y1="0" x2="0" y2="3" stroke="#a9bd93" stroke-width="0.35"/></pattern></defs>`;
   s += rect(b[0], b[1], site.lot.w, site.lot.d, `fill="url(#fall)"`);
   for (let y = 34; y >= b[1] + 6; y -= 9) {
     const amp = 3 + (Math.abs(y) % 4);
@@ -401,7 +420,7 @@ export function sitePlanSVG() {
   const c = site.courtyard;
   s += rect(c.x, c.y, c.w, c.d, `fill="#cfccc4"`);
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
-  s += lab(c.x + c.w / 2, c.y + c.d / 2, `grade ${fmtFeet(t.courtyardGrade)}`, 2);
+  s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
   // pool deck, pavers, pool, hot tub, pavilion
   const pd = site.poolDeck;
   s += rect(pd.x, pd.y, pd.w, pd.d, `fill="#e4dccb" stroke="#b9b09b" stroke-width="0.2"`);
@@ -422,9 +441,16 @@ export function sitePlanSVG() {
   s += lab(9, -60, 'Pool deck', 2.1);
   s += lab(9, -56.8, `${fmtFeet(t.walkoutGrade)}`, 1.9);
   s += lab(MID, -20, 'pavers + grass', 1.9);
-  // retaining wall
-  s += retainingWall(1.2);
-  s += text(-2, -40, 'stone retaining wall', 1.9, `text-anchor="end" fill="#55534d" class="halo"`);
+  // low wall at the patio corner + 3:1 lawn slopes on both sides
+  s += patioWallSVG(1.2);
+  {
+    const run = (t.courtGrade - t.walkoutGrade) * t.maxSlope;
+    const band = (x0, x1, yHi) => rect(x0, yHi - run, x1 - x0, run, `fill="url(#slope)"`);
+    s += band(b[0], 0, t.south.highY) + band(WG.x + WG.w, b[2], t.north.highY);
+    s += lab(-30, t.south.highY - run / 2, `lawn slope ${t.maxSlope}:1 ↓ to patio`, 1.9);
+    s += lab(104, t.north.highY - run / 2, `lawn slope ${t.maxSlope}:1 ↓`, 1.9);
+    s += text(-2, -6, 'low wall ≤ 3\'', 1.6, `text-anchor="end" fill="#55534d" class="halo"`);
+  }
   // deck + porch
   const { deck, porch, breezeway: bw } = exterior;
   s += rect(deck.x, deck.y, deck.w, deck.d, `fill="#d9c39d" stroke="${INK}" stroke-width="0.2"`);
@@ -439,14 +465,14 @@ export function sitePlanSVG() {
   const ridge = `stroke="#7a7a7a" stroke-width="0.25"`;
   const cg = exterior.roofs.find((r) => r.id === 'center');
   s += line(MB.x, MB.y + MB.d / 2, MB.x + MB.w, MB.y + MB.d / 2, ridge) + line(cg.centerX, MB.y, cg.centerX, MB.y + MB.d, ridge) + line(WCX, WG.y, WCX, WG.y + WG.d, ridge);
-  s += line(g.x, g.y + g.d / 2, g.x + g.w, g.y + g.d / 2, ridge) + line(-8, 1, -8, 17, ridge);
+  s += line(g.x, g.y + g.d / 2, g.x + g.w, g.y + g.d / 2, ridge) + line(bw.x + bw.w / 2, bw.y, bw.x + bw.w / 2, bw.y + bw.d, ridge);
   const w = (x, y, str, size = 2.2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += w(14, 10, 'Main block') + w(14, 13, '(2-story)', 1.9);
   s += w(WCX, WCY - 1.5, 'Primary') + w(WCX, WCY + 1.5, 'wing', 2.2);
-  s += w(-34, 5, '3-car garage');
+  s += w(g.x + g.w / 2, g.y + g.d / 2, '3-car garage');
   s += lab(MID, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
   s += lab(-8, 95, 'Driveway', 2.2);
-  s += lab(-8, 23, 'breezeway', 1.8);
+  s += lab(bw.x + bw.w / 2, bw.y + bw.d / 2, 'breezeway', 1.8);
   for (const x of [-92, 112]) {
     s += `<path d="M${x},80 L${x},-10 m0,0 l-2,4 m2,-4 l2,4" stroke="#6f8558" stroke-width="0.5" fill="none"/>`;
     s += text(x, 86, 'slopes down', 2, `text-anchor="middle" fill="#55683f"`);

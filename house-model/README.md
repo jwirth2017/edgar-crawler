@@ -61,7 +61,7 @@ Elevations are relative to the main floor.
 | `src/app/furniture.js` | Block furniture |
 | `src/app/roofs.js` | Gable, cross-gable, shed and hip roofs, cedar gable timbers |
 | `src/app/exterior.js` | Porch, deck, breezeway arch, foundations, lanterns |
-| `src/app/site.js` | Terrain, pool, hot tub, pavilion, retaining wall, trees |
+| `src/app/site.js` | Terrain, pool, hot tub, pavilion, low patio wall, trees |
 | `src/app/sun.js` | Solar position and lighting |
 | `src/app/walk.js` | First-person walkthrough with collisions |
 | `src/plan/plan2d.js` | 2D plan drawings |

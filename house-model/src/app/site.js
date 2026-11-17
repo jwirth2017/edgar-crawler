@@ -1,7 +1,7 @@
-// Terrain, pool, hot tub, pavilion, retaining wall and trees.
+// Terrain, pool, hot tub, pavilion, low patio wall and trees.
 import * as THREE from 'three';
 import { site } from '../config/house.js';
-import { grade, terrainHoles } from '../model/terrain.js';
+import { grade, terrainHoles, patioEdgeWall } from '../model/terrain.js';
 import { siteTexture } from './materials.js';
 import { slabPoly } from './roofs.js';
 
@@ -132,39 +132,23 @@ export function buildPoolAndYard(B, M, lanterns) {
   // string lights' glow points under the eaves
   for (let i = 0; i < 4; i++) lanterns.push(new THREE.Vector3(pv.x + 2 + i * (pv.w - 4) / 3, zp - 0.4, pv.y + pv.d / 2));
 
-  retainingWall(B, M);
+  patioWall(B, M);
   trees(B, M);
 }
 
-function retainingWall(B, M) {
-  const rw = site.retainingWall;
-  const [[ax, ay], [bx, by], [cx, cy]] = rw.path;
-  const low = site.terrain.walkoutGrade - 1.5;
-  const t = rw.thickness;
-  // along x = 0 (wall body on the terrace side) and along y = -47 (on the low side)
-  const seg1 = [ax - t, ax, Math.min(ay, by), Math.max(ay, by) ];
-  const seg2 = [Math.min(bx, cx), Math.max(bx, cx), by - 1, by - 1 + t];
-  for (const r of [seg1, seg2]) {
-    B.box('site', M.stone, ...r, low, rw.top, { collide: true });
-    B.box('site', M.trimWhite, r[0] - 0.15, r[1] + 0.15, r[2] - 0.15, r[3] + 0.15, rw.top, rw.top + 0.25);
-  }
-  // black guard rail on top
-  for (const [x0, x1, y0, y1] of [seg1, seg2]) {
-    const isX = x1 - x0 > y1 - y0;
-    const len = isX ? x1 - x0 : y1 - y0;
-    const n = Math.round(len / 6);
-    const mx = (x0 + x1) / 2;
-    const my = (y0 + y1) / 2;
-    for (let i = 0; i <= n; i++) {
-      const tt = i / n;
-      const px = isX ? x0 + (x1 - x0) * tt : mx;
-      const py = isX ? my : y0 + (y1 - y0) * tt;
-      B.box('site', M.rail, px - 0.1, px + 0.1, py - 0.1, py + 0.1, rw.top + 0.25, rw.top + 3.5);
-    }
-    const tr = isX ? [x0, x1, my - 0.08, my + 0.08] : [mx - 0.08, mx + 0.08, y0, y1];
-    B.box('site', M.rail, ...tr, rw.top + 3.35, rw.top + 3.5);
-    B.box('site', M.rail, ...tr, rw.top + 1.6, rw.top + 1.7);
-    B.collider(...tr, rw.top, rw.top + 4);
+/** Low stone wall at the patio's south edge, where the side lawn is still above the patio (≤ 3 ft). */
+function patioWall(B, M) {
+  const w = patioEdgeWall();
+  if (w.y1 - w.y0 < 0.5) return;
+  const low = site.terrain.walkoutGrade - 0.5;
+  const step = 1;
+  for (let y = w.y0; y < w.y1 - 1e-6; y += step) {
+    const y1 = Math.min(w.y1, y + step);
+    const h = Math.max(w.heightAt(y), w.heightAt(y1));
+    if (h < 0.2) continue;
+    const top = site.terrain.walkoutGrade + h + 0.25;
+    B.box('site', M.stone, w.x - 1.2, w.x, y, y1, low, top, { collide: true });
+    B.box('site', M.trimWhite, w.x - 1.35, w.x + 0.15, y, y1, top, top + 0.2);
   }
 }
 
@@ -173,7 +157,7 @@ function trees(B, M) {
   const r = () => ((s = (s * 1103515245 + 12345) >>> 0) / 4294967296);
   // trees stay along the lot edges so the house, yard and street views stay open
   const edge = (x, y) => x < -95 || x > 125 || y < -125 || y > 176;
-  const accents = [[-78, 30], [-70, 52], [96, -20], [104, 18], [92, 46], [-66, -70], [100, -92]];
+  const accents = [[-80, 10], [-74, 78], [96, -20], [104, 18], [92, 46], [-66, -70], [100, -92]];
   let placed = 0;
   for (let tries = 0; tries < 1200 && placed < 75; tries++) {
     let x = -150 + r() * 360;

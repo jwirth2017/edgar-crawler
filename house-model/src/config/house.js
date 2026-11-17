@@ -143,7 +143,8 @@ export const floors = {
       { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
       // the 4 ft wing entry hall (x 52–64, y 16–20) is the auto-generated hallway
       // — 3-car garage (slab 1 ft below main floor) —
-      { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: -7, w: 36, d: 24,
+      // — 3-car garage beside the front of the house, doors facing the motor court —
+      { id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 44, w: 36, d: 24,
         floorOffset: -1, finished: false },
     ],
     openPlan: [
@@ -164,8 +165,8 @@ export const floors = {
       { kind: 'window', on: 'y', at: 40, from: 41, to: 49 },                    // den → porch
       { kind: 'window', on: 'y', at: 30, from: 55, to: 61 },                    // laundry
       { kind: 'window', on: 'y', at: 30, from: 69, to: 73, sill: 6 },           // closet, high
-      // side walls (x = 0 is covered by the breezeway from y = 1 to 17)
-      { kind: 'door',   on: 'x', at: 0,  from: 3,  to: 6 },                     // mudroom ↔ breezeway
+      // side walls (x = 0 faces the motor court from y = 19 to 40)
+      { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → stoop → motor court
       { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },       // stair landing
       { kind: 'window', on: 'x', at: 0,  from: 29, to: 35 },                    // office desk → side
       { kind: 'window', on: 'x', at: 78, from: 3,  to: 7,  sill: 5 },
@@ -184,14 +185,15 @@ export const floors = {
       { kind: 'door', on: 'y', at: 16, from: 70.5, to: 73.5 },                // bath → closet
       { kind: 'door', on: 'x', at: 64, from: 22, to: 25, swing: -1 },         // closet → laundry
       { kind: 'door', on: 'y', at: 20, from: 55, to: 58 },                    // hall → laundry
-      // garage — overhead doors face the rear motor court
-      { kind: 'garage', on: 'y', at: -7, from: -50, to: -41 },
-      { kind: 'garage', on: 'y', at: -7, from: -39, to: -30 },
-      { kind: 'garage', on: 'y', at: -7, from: -28, to: -19 },
-      { kind: 'door',   on: 'x', at: -16, from: 6, to: 9, swing: -1 },        // garage ↔ breezeway
-      { kind: 'window', on: 'y', at: 17, from: -45, to: -41 },
-      { kind: 'window', on: 'y', at: 17, from: -36, to: -32 },
-      { kind: 'window', on: 'y', at: 17, from: -27, to: -23 },
+      // garage — overhead doors face the motor court (not the road)
+      { kind: 'garage', on: 'y', at: 44, from: -50, to: -41 },
+      { kind: 'garage', on: 'y', at: 44, from: -39, to: -30 },
+      { kind: 'garage', on: 'y', at: 44, from: -28, to: -19 },
+      { kind: 'door',   on: 'x', at: -16, from: 50, to: 53, swing: -1 },      // garage ↔ breezeway
+      { kind: 'window', on: 'y', at: 68, from: -46, to: -42 },
+      { kind: 'window', on: 'y', at: 68, from: -36, to: -32 },
+      { kind: 'window', on: 'y', at: 68, from: -26, to: -22 },
+      { kind: 'window', on: 'x', at: -52, from: 52, to: 58 },
     ],
     furniture: [
       // kitchen — coffee station + fridge on the pantry wall, sink run under the pass-through
@@ -246,9 +248,9 @@ export const floors = {
       { type: 'counter',   x: 58.8, y: 27.7, w: 4.8, d: 2,   h: 3, sink: true },
       { type: 'tall',      x: 52.3, y: 21,   w: 1.7, d: 5,   h: 7 },
       // garage — three cars for scale
-      { type: 'car', x: -48.5, y: -3, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -37.5, y: -3, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -26.5, y: -3, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -48.5, y: 47.5, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -37.5, y: 47.5, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -26.5, y: 47.5, w: 6, d: 16, h: 5 },
     ],
   },
 
@@ -261,13 +263,13 @@ export const floors = {
     footprint: [MAIN_BLOCK],
     rooms: [
       // — left: two kids' bedrooms and the shared bath, stairs between them —
-      { id: 'bed1',   name: 'Bedroom 1', use: 'bed',  x: 0,  y: 0,  w: 18, d: 12, note: 'incl. closet' },
+      { id: 'bed1',   name: 'Bedroom 1', use: 'bed',  x: 0,  y: 0,  w: 17.5, d: 12, note: 'incl. closet' },
       { id: 'jjBath', name: 'Shared Bath', use: 'bath', x: 0, y: 12, w: 14, d: 5 },
       { ...STAIR_BOX, finished: false },
-      { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 0,  y: 26, w: 18, d: 14 },
-      { id: 'closet2', name: 'Closet',   use: 'service', x: 18, y: 31, w: 2, d: 9 },
+      { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 0,  y: 26, w: 17.5, d: 14 },
+      { id: 'closet2', name: 'Closet',   use: 'service', x: 17.5, y: 31, w: 2.5, d: 9 },  // 2'-6" deep
       // — center: the loft runs front-to-back over the dining room —
-      { id: 'loft',      name: "Kids' Loft",    use: 'living', x: 18, y: 0,  w: 16, d: 31,
+      { id: 'loft',      name: "Kids' Loft",    use: 'living', x: 17.5, y: 0,  w: 16.5, d: 31,
         note: 'play + homework' },
       { id: 'foyerVoid', name: 'Open to Foyer', use: 'void',   x: 20, y: 31, w: 12, d: 9, void: true },
       // — right: bedroom 3, bath, laundry, attic, off a 4 ft hall —
@@ -284,11 +286,11 @@ export const floors = {
       { kind: 'railing', on: 'y', at: 31, from: 20, to: 32 },     // loft overlooks the foyer
       { kind: 'railing', on: 'x', at: 32, from: 31, to: 40 },
       // doors — left
-      { kind: 'door', on: 'x', at: 18, from: 7,  to: 10, swing: -1 },        // bed 1
+      { kind: 'door', on: 'x', at: 17.5, from: 7,  to: 10, swing: -1 },      // bed 1
       { kind: 'door', on: 'y', at: 12, from: 3,  to: 5.5, swing: -1 },       // bed 1 → shared bath
       { kind: 'door', on: 'x', at: 14, from: 12.3, to: 14.8 },               // hall → shared bath
-      { kind: 'door', on: 'x', at: 18, from: 27, to: 30, swing: -1 },        // bed 2
-      { kind: 'door', on: 'x', at: 18, from: 33, to: 36 },                   // bed 2 → closet
+      { kind: 'door', on: 'x', at: 17.5, from: 27, to: 30, swing: -1 },      // bed 2
+      { kind: 'door', on: 'x', at: 17.5, from: 33, to: 36 },                 // bed 2 → closet
       // doors — right
       { kind: 'door', on: 'x', at: 38, from: 8,    to: 11 },                 // bed 3
       { kind: 'door', on: 'x', at: 38, from: 15,   to: 17.7 },               // bath 2
@@ -314,7 +316,7 @@ export const floors = {
     furniture: [
       { type: 'bed',  x: 0.3,  y: 3.5,  w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
       { type: 'desk', x: 9,    y: 0.3,  w: 5,   d: 2,   h: 2.5 },
-      { type: 'tall', x: 15.8, y: 0.3,  w: 1.9, d: 6,   h: 7 },
+      { type: 'tall', x: 15.4, y: 0.3,  w: 1.9, d: 6,   h: 7 },
       { type: 'bed',  x: 0.3,  y: 30,   w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
       { type: 'desk', x: 11,   y: 37.7, w: 5,   d: 2,   h: 2.5 },
       { type: 'bed',  x: 42,   y: 6,    w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
@@ -426,9 +428,10 @@ export const exterior = {
     stairs: { x: 0, y: -30, w: 4, d: 16 },  // down to the pool deck, garage side
     barCounter: { x: 18, y: -1.8, w: 12, d: 1.5, h: 3.5 }, // outside the pass-through
   },
-  // Arched drive-through between house and garage. Cars pass front → back.
+  // Arched drive-through between the porch end and the garage. Cars pass
+  // front → back through it into the motor court.
   breezeway: {
-    x: -16, y: 1, w: 16, d: 16,
+    x: -16, y: 40, w: 16, d: 16,
     floorOffset: -1, wallHeight: 12,
     archWidth: 12, archSpring: 7.5, archTop: 10.5,
   },
@@ -438,30 +441,33 @@ export const exterior = {
     // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 26, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
     { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 30, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
-    { id: 'breezeway', type: 'gable', x: -16, y: 1, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
-    { id: 'garage', type: 'gable', x: -52, y: -7, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    { id: 'breezeway', type: 'gable', x: -16, y: 40, w: 16, d: 16, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
+    { id: 'garage', type: 'gable', x: -52, y: 44, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
+  // stone stoop at main-floor level outside the mudroom door, stepping down to the court
+  stoop: { x: -5, y: 12.5, w: 5, d: 7, top: -0.4 },
 };
 
 // Site ---------------------------------------------------------------------------
 export const site = {
   lot: { x: -110, y: -120, w: 240, d: 290 },
   terrain: {
-    frontGrade: -1.5,       // grade at the front wall
+    frontGrade: -1.5,       // lawn grade in front of the house
+    courtGrade: -1.25,      // motor court, breezeway and garage apron: main-floor level
     walkoutGrade: -10.5,    // patio level = basement floor
-    slopeFrontY: 40,        // side yards fall between these two lines
-    slopeRearY: 0,
-    courtyardGrade: -1.25,  // motor court stays up at the garage slab
+    // Side yards are smooth lawn slopes falling from main-floor level at the
+    // front to the patio at the rear, no steeper than `maxSlope` (run : rise).
+    // Each side stays at main-floor level forward of its `highY` line.
+    maxSlope: 3,
+    south: { highY: 19 },   // garage side: the court's rear edge
+    north: { highY: 28 },   // wing side: just behind the wing's front corner
     westFall: 0.035,        // continued fall past the pool, ft per ft
     rollAmplitude: 1.8,     // gentle rolling away from the house
   },
   road:      { y: 156, width: 22 },
-  driveway:  { width: 12, path: [[-8, 145], [-8, -7]] },        // through the breezeway
-  courtyard: { x: -56, y: -47, w: 56, d: 40 },                  // rear motor court
-  // Stone retaining wall holding the motor court up above the patio / pool
-  // level: along the court's patio side, then across its back edge.
-  retainingWall: { path: [[0, 0], [0, -47], [-56, -47]], top: -1, thickness: 1.5 },
+  driveway:  { width: 12, path: [[-8, 145], [-8, 56]] },        // to the breezeway arch
+  courtyard: { x: -56, y: 19, w: 56, d: 25 },                   // motor court behind the arch, at main-floor level
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck
   paverGrid: { x: 6, y: -26, w: 40, d: 12, paver: 3.5, grass: 0.5 },

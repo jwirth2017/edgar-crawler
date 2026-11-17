@@ -8,7 +8,24 @@ export function buildExterior(B, M, lanterns) {
   porch(B, M, lanterns);
   deck(B, M, lanterns);
   breezeway(B, M, lanterns);
+  stoop(B, M, lanterns);
   foundations(B, M);
+}
+
+/** Stone stoop at main-floor level outside the mudroom door, one step down to the court. */
+function stoop(B, M, lanterns) {
+  const s = exterior.stoop;
+  if (!s) return;
+  const court = site.terrain.courtGrade;
+  B.box('main', M.stone, s.x, s.x + s.w, s.y, s.y + s.d, site.terrain.walkoutGrade, s.top);
+  B.surface(s.x, s.x + s.w, s.y, s.y + s.d, s.top, 'stoop');
+  // low guard on the open (downhill) sides
+  B.box('main', M.stone, s.x - 0.6, s.x, s.y, s.y + s.d, s.top, s.top + 1.5, { collide: true });
+  B.box('main', M.stone, s.x - 0.6, s.x + s.w, s.y - 0.6, s.y, s.top, s.top + 1.5, { collide: true });
+  // step down to the court
+  B.box('main', M.stone, s.x, s.x + s.w, s.y + s.d, s.y + s.d + 1, court - 0.5, (s.top + court) / 2);
+  B.surface(s.x, s.x + s.w, s.y + s.d, s.y + s.d + 1, (s.top + court) / 2, 'stoop-step');
+  lantern(B, M, lanterns, s.x + s.w - 0.4, s.y + 0.6, 7);
 }
 
 function porch(B, M, lanterns) {
