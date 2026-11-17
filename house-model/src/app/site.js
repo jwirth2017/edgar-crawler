@@ -2,7 +2,7 @@
 // low patio wall and trees.
 import * as THREE from 'three';
 import { site, phases } from '../config/house.js';
-import { grade, terrainHoles, poolHole, patioEdgeWall } from '../model/terrain.js';
+import { grade, terrainHoles, poolHole, retainingWalls } from '../model/terrain.js';
 import { siteTexture } from './materials.js';
 import { slabPoly, buildPoolHouseRoof } from './roofs.js';
 import { registerLevel, buildLevelWalls, buildLevelFloors, buildLevelFurniture } from './house.js';
@@ -97,7 +97,7 @@ export function buildPoolAndYard(B, M, lanterns) {
   poolAndHotTub(B, M, lanterns);
   poolHouse(B, M, lanterns);
   B.phase = null;
-  patioWall(B, M);
+  retainingWall(B, M);
   trees(B, M);
 }
 
@@ -229,6 +229,43 @@ function poolHouse(B, M, lanterns) {
     }
   }
   buildPoolHouseRoof(B, M, ph, 'poolhouse');
+}
+
+/**
+ * Retaining wall along the motor court's edge where the ground drops away:
+ * stone face from the lawn up to a 6" curb above the court, white cap, and a
+ * black guard rail on top wherever the drop is over 2'-6".
+ */
+function retainingWall(B, M) {
+  const court = site.terrain.courtGrade;
+  for (const run of retainingWalls()) {
+    const [nx, ny] = run.n;
+    for (let i = 0; i < run.pts.length - 1; i++) {
+      const [ax, ay] = run.pts[i];
+      const [bx, by] = run.pts[i + 1];
+      const h = Math.max(run.h[i], run.h[i + 1]);
+      const len = Math.hypot(bx - ax, by - ay) + 0.15;
+      const t = 1;                                     // wall thickness, just outside the court's edge
+      const mx = (ax + bx) / 2 + nx * t / 2;
+      const my = (ay + by) / 2 + ny * t / 2;
+      const rot = -Math.atan2(by - ay, bx - ax);
+      const place = (sx, sz, sy, zc, mat, ox = 0) => {
+        const m = new THREE.Matrix4().makeRotationY(rot);
+        m.setPosition(mx + nx * ox, zc, my + ny * ox);
+        B.boxM('site', mat, sx, sz, sy, m);
+      };
+      const z0 = court - h - 0.8;
+      const z1 = court + 0.5;
+      place(len, z1 - z0, t, (z0 + z1) / 2, M.stone);
+      place(len, 0.2, t + 0.3, z1 + 0.1, M.trimWhite);
+      const rail = h > 2.5;
+      if (rail) {
+        place(len, 0.12, 0.18, z1 + 3.2, M.rail);
+        if (i % 6 === 0) place(0.18, 3.1, 0.18, z1 + 1.65, M.rail);
+      }
+      B.collider(Math.min(ax, bx) - 0.3, Math.max(ax, bx) + 0.3, Math.min(ay, by) - 0.3, Math.max(ay, by) + 0.3, court - 0.2, z1 + (rail ? 3.3 : 0.3) + 2);
+    }
+  }
 }
 
 /** Low stone wall at the patio's south edge, where the side lawn is still above the patio (≤ 3 ft). */

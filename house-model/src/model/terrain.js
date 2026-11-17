@@ -27,7 +27,7 @@ const SOUTH_HIGH = [
   ...[].concat(site.courtyard),
   { x: BW.x, y: BW.y, w: BW.w, d: BW.d },
   GARAGE,
-  { poly: garageLink().poly },
+  ...(garageLink() ? [{ poly: garageLink().poly }] : []),
 ];
 const distBox = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
 /** Distance from (x, y) to a convex polygon (0 inside). */
@@ -60,19 +60,21 @@ const distRect = (r, x, y) => (r.poly ? distPoly(r.poly, x, y) : distBox(r, x, y
 const LOW = { x: MAIN.x, y: PD.y, w: PD.w, d: -PD.y };
 
 /**
- * Garage-side lawn, graded with no retaining walls: falls at maxSlope : 1 away
- * from the high areas (court, drive, breezeway, garage, front yard), and where
- * those sit close to the walkout-level yard it blends evenly between the two,
- * so the ground meets the patio level at the house's edge.
+ * Garage-side ground. The motor court, breezeway, garage and front yard are
+ * pads at main-floor level. Off the pads the lawn falls away from them at up
+ * to maxSlope : 1 and rises from the walkout-level yard (patio, pool deck) at
+ * the same slope; where the two can't meet within that slope, the pad's edge
+ * is a retaining wall (see retainingWalls()).
  */
 function southGrade(x, y) {
   const front = MAIN.y + MAIN.d;
   let dHigh = Math.max(0, front - y);
   for (const r of SOUTH_HIGH) dHigh = Math.min(dHigh, distRect(r, x, y));
+  if (dHigh <= 0) return T.courtGrade;
   const dLow = distRect(LOW, x, y);
   const fall = T.courtGrade - dHigh / T.maxSlope;
-  const blend = T.walkoutGrade + (T.courtGrade - T.walkoutGrade) * (dLow / Math.max(1e-6, dLow + dHigh));
-  return Math.max(T.walkoutGrade, Math.min(fall, blend));
+  const rise = T.walkoutGrade + dLow / T.maxSlope;
+  return Math.max(T.walkoutGrade, Math.min(fall, rise));
 }
 
 // Gentle rolling that fades in well away from the house and yard.
@@ -124,6 +126,48 @@ export function grade(x, y) {
 export const terrainHoles = [...floors.main.footprint];
 /** The Phase 2 pool basin (the terrain is cut away there only in Phase 2). */
 export const poolHole = (() => { const p = phases[2].pool; return { x: p.x, y: p.y, w: p.w, d: p.d }; })();
+
+/** Inside one of the house's footprints (where the house's own walls hold the grade). */
+const inHouse = (x, y) => floors.main.footprint.some((r) => x > r.x - 0.01 && x < r.x + r.w + 0.01 && y > r.y - 0.01 && y < r.y + r.d + 0.01);
+
+/**
+ * Retaining walls along the edges of walled courtyard pads ({ wall: true }):
+ * runs of points where the ground just outside drops below the pad by more
+ * than a few inches. Each run: { pts: [[x, y], …], h: [height…], n: [nx, ny] }
+ * (n points outward). Height is the drop from the pad to the lawn outside.
+ */
+export function retainingWalls(step = 1) {
+  const runs = [];
+  for (const c of [].concat(site.courtyard)) {
+    if (!c.wall || !c.poly) continue;
+    const P = c.poly;
+    const cx = P.reduce((s, p) => s + p[0], 0) / P.length;
+    const cy = P.reduce((s, p) => s + p[1], 0) / P.length;
+    for (let i = 0; i < P.length; i++) {
+      const [ax, ay] = P[i];
+      const [bx, by] = P[(i + 1) % P.length];
+      const len = Math.hypot(bx - ax, by - ay);
+      let nx = (by - ay) / len;
+      let ny = -(bx - ax) / len;
+      if (nx * ((ax + bx) / 2 - cx) + ny * ((ay + by) / 2 - cy) < 0) { nx = -nx; ny = -ny; }
+      const n = Math.max(1, Math.round(len / step));
+      let run = null;
+      for (let k = 0; k <= n; k++) {
+        const x = ax + ((bx - ax) * k) / n;
+        const y = ay + ((by - ay) * k) / n;
+        const ox = x + nx * 1.2;
+        const oy = y + ny * 1.2;
+        const h = inHouse(ox, oy) ? 0 : T.courtGrade - grade(ox, oy);
+        if (h - 1.2 / T.maxSlope > 0.3) {                 // more than the lawn's own fall away from the edge
+          if (!run) { run = { pts: [], h: [], n: [nx, ny] }; runs.push(run); }
+          run.pts.push([x, y]);
+          run.h.push(h);
+        } else run = null;
+      }
+    }
+  }
+  return runs;
+}
 
 /**
  * The low stone wall at the patio's south edge: where the south lawn plane is

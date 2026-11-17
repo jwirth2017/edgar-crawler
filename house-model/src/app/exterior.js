@@ -200,7 +200,7 @@ function breezeway(B, M, lanterns) {
     s.lineTo(bw.w / 2, zr - 0.05);
     s.lineTo(0, roof.eave);
     s.closePath();
-    const a0 = (bw.w - bw.archWidth) / 2;
+    const a0 = bw.archX ?? (bw.w - bw.archWidth) / 2;
     const a1 = a0 + bw.archWidth;
     const spring = z0 + bw.archSpring;
     const top = z0 + bw.archTop;
@@ -208,7 +208,7 @@ function breezeway(B, M, lanterns) {
     hole.moveTo(a0, z0);
     hole.lineTo(a1, z0);
     hole.lineTo(a1, spring);
-    hole.absellipse(bw.w / 2, spring, bw.archWidth / 2, top - spring, 0, Math.PI, false);
+    hole.absellipse(a0 + bw.archWidth / 2, spring, bw.archWidth / 2, top - spring, 0, Math.PI, false);
     hole.lineTo(a0, z0);
     s.holes.push(hole);
     const g = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 24 });
@@ -222,16 +222,14 @@ function breezeway(B, M, lanterns) {
     lantern(B, M, lanterns, bw.x + a0 - 1, yFace + (yFace < bw.y + 1 ? -0.4 : t + 0.4), z0 + 7);
     lantern(B, M, lanterns, bw.x + a1 + 1, yFace + (yFace < bw.y + 1 ? -0.4 : t + 0.4), z0 + 7);
   }
-  // far side wall (the garage is its own building now): stone base, siding, walk-through door
-  const wx0 = bw.x;
-  const wx1 = bw.x + 0.6;
-  const [d0, d1] = bw.sideDoor || [bw.y + bw.d / 2 - 1.5, bw.y + bw.d / 2 + 1.5];
-  for (const [ya, yb] of [[bw.y + 1, d0], [d1, bw.y + bw.d - 1]]) {
+  // far-side wall beside the motor court (the garage's own wall closes the rest)
+  if (bw.sideWall) {
+    const [ya, yb] = bw.sideWall;
+    const wx0 = bw.x - 0.25;
+    const wx1 = bw.x + 0.35;
     B.box('main', M.stone, wx0 - 0.05, wx1 + 0.05, ya, yb, z0 - 1, z0 + 3.5, { collide: true });
     B.box('main', M.siding, wx0, wx1, ya, yb, z0 + 3.5, roof.eave, { collide: true });
   }
-  B.box('main', M.siding, wx0, wx1, d0, d1, z0 + 8, roof.eave);                          // header over the door
-  for (const yy of [d0, d1 - 0.2]) B.box('main', M.black, wx0 - 0.05, wx1 + 0.05, yy, yy + 0.2, z0, z0 + 8);
 }
 
 function foundations(B, M) {

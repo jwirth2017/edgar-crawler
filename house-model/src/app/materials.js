@@ -421,7 +421,7 @@ export function siteTexture(site, extent, ppf = 4, phase = 1) {
       g.fill();
     } else R(ct.x, ct.y, ct.w, ct.d, '#cfc8b8');
   }
-  { const bw = exterior.breezeway; R(bw.x + (bw.w - bw.archWidth) / 2, bw.y, bw.archWidth, bw.d, '#cfc8b8'); }
+  { const bw = exterior.breezeway; R(bw.x + (bw.archX ?? (bw.w - bw.archWidth) / 2), bw.y, bw.archWidth, bw.d, '#cfc8b8'); }
   // front walk from the porch steps to the driveway
   R(-2, 50, 32, 5, '#cdc9bf');
   // pool deck (travertine-look pavers) — Phase 2 only; Phase 1 leaves it lawn
