@@ -1,4 +1,4 @@
-import { floors, meta, build, stair } from './config/house.js';
+import { floors, meta, build, stair, finishLevels } from './config/house.js';
 import { deriveWalls, floorAreas, overlaps, narrowHalls, unreachable, fmtFeet } from './model/layout.js';
 import { floorPlanSVG, sitePlanSVG } from './plan/plan2d.js';
 
@@ -37,6 +37,7 @@ function show(key) {
   facts.innerHTML = `
     <span><b>${Math.round(a.finished).toLocaleString()} sq ft</b> finished (target ~${target.toLocaleString()}, ${diff >= 0 ? '+' : ''}${diff}%)</span>
     ${a.unfinished ? `<span>${Math.round(a.unfinished).toLocaleString()} sq ft unfinished / garage / stair</span>` : ''}
+    <span>finish: <b>${finishLevels[f.finish]?.label ?? '—'}</b></span>
     <span>${f.ceiling}' ceilings · floor at ${f.floor >= 0 ? '+' : ''}${fmtFeet(f.floor)}</span>
     <span>stair ${key === 'upper' ? 'down' : 'up'}: ${rise} risers × ${(stair.riser * 12).toFixed(2)}" · ${stair.tread * 12}" treads</span>
     ${problems.length ? problems.map((p) => `<span class="warn">⚠ ${p}</span>`).join('') : `<span class="ok">✓ all rooms reachable · halls ≥ ${fmtFeet(build.minHall)}</span>`}`;

@@ -122,7 +122,8 @@ function setMode(next, { fly = true } = {}) {
   } else {
     setVisibility(next);
     const z = floors[next].floor;
-    const cx = next === 'main' ? 30 : 28;
+    const mb = floors.upper.footprint[0];
+    const cx = mb.x + mb.w / 2 + (next === 'main' ? 4 : 0);
     flyTo(W(cx + 10, 92, z + 92), W(cx, 18, z));
   }
 }
@@ -158,7 +159,8 @@ function goPreset(v) {
 }
 document.getElementById('walkBtn').addEventListener('click', () => {
   setMode('walk');
-  walker.enter([28, 54], [28, 30], floors.main.floor);
+  const mb = floors.upper.footprint[0];
+  walker.enter([mb.x + mb.w / 2, 54], [mb.x + mb.w / 2, 30], floors.main.floor);
 });
 
 // ─── sun ─────────────────────────────────────────────────────────────────────

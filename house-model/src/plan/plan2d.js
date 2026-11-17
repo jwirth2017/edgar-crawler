@@ -234,6 +234,12 @@ function mainFootprintGhost() {
     `fill="none" stroke="#b9b6ab" stroke-width="0.12" stroke-dasharray="0.6 0.5"`)).join('');
 }
 
+const MB = floors.main.footprint[0];          // main block
+const WG = floors.main.footprint[1];          // primary wing
+const MID = MB.x + MB.w / 2;
+const WCX = WG.x + WG.w / 2;
+const WCY = WG.y + WG.d / 2;
+
 function wrap(body, [x0, y0, x1, y1]) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n(x0)} ${n(y0)} ${n(x1 - x0)} ${n(y1 - y0)}" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
   <style>.halo{paint-order:stroke;stroke:#fff;stroke-opacity:.82;stroke-width:.32px;stroke-linejoin:round}</style>
@@ -297,8 +303,8 @@ export function floorPlanSVG(key) {
     s += rect(st.x, st.y, st.w, st.d, `fill="#efe6d5" stroke="${INK}" stroke-width="0.1"`);
     for (let y = st.y + 1; y < st.y + st.d; y += 10 / 12) s += line(st.x, y, st.x + st.w, y, `stroke="${FURN}" stroke-width="0.05"`);
     s += text(st.x + st.w + 0.8, st.y + 4, 'DN to pool deck', 0.8, `fill="#77746b" dominant-baseline="central"`);
-    s += note(28, -9.5, `Deck · ${fmtFeet(deck.w)} × ${fmtFeet(deck.d)} · cable rail, stone piers`, 0.9);
-    s += text(28, -3.2, 'Pass-through bar', 0.8, `text-anchor="middle" fill="${GLASS}"`);
+    s += note(MID, -9.5, `Deck · ${fmtFeet(deck.w)} × ${fmtFeet(deck.d)} · cable rail, stone piers`, 0.9);
+    s += text(exterior.deck.barCounter.x + exterior.deck.barCounter.w / 2, -3.2, 'Pass-through bar', 0.8, `text-anchor="middle" fill="${GLASS}"`);
     // breezeway
     s += rect(bw.x, bw.y, bw.w, bw.d, `fill="#dedcd4" stroke="none"`);
     for (const yy of [bw.y, bw.y + bw.d]) {
@@ -321,8 +327,8 @@ export function floorPlanSVG(key) {
   }
 
   if (key === 'upper') {
-    s += note(69, 17, 'primary wing roof below', 0.85);
-    s += note(28, 44, 'porch roof below', 0.85);
+    s += note(WCX, WCY, 'primary wing roof below', 0.85);
+    s += note(MID, 44, 'porch roof below', 0.85);
   }
   if (key === 'basement') {
     // covered patio under the deck, then paver grid out to the pool deck
@@ -335,15 +341,15 @@ export function floorPlanSVG(key) {
     const h = site.hotTub;
     s += rect(h.x, h.y, h.w, h.d, `fill="#7fc4dc" stroke="#8b8577" stroke-width="0.5"`);
     s += note(h.x + h.w / 2, h.y + h.d / 2, 'Hot tub', 0.8, `fill="${INK}"`);
-    s += note(28, -7, `Covered pool patio · ${fmtFeet(cp.w)} × ${fmtFeet(cp.d)} · under the deck`, 0.9);
+    s += note(MID, -7, `Covered pool patio · ${fmtFeet(cp.w)} × ${fmtFeet(cp.d)} · under the deck`, 0.9);
     s += note(14, -20, 'concrete pavers + grass strips', 0.8);
     s += note(h.x + h.w / 2, h.y - 2, '↑ pool 16 × 36', 0.8);
     s += retainingWall(0.6);
     s += text(-0.8, -18, 'retaining wall', 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
     s += text(-0.8, -16.8, 'motor court above', 0.7, `text-anchor="end" fill="#77746b" class="halo"`);
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
-    s += note(69, 16, 'crawlspace under', 0.8);
-    s += note(69, 17.3, 'primary wing', 0.8);
+    s += note(WCX, WCY - 0.6, 'crawlspace under', 0.8);
+    s += note(WCX, WCY + 0.7, 'primary wing', 0.8);
   }
 
   // room fills
@@ -365,7 +371,7 @@ export function floorPlanSVG(key) {
   const maxY = Math.max(...fp.map((r) => r.y + r.d));
   const dimY = key === 'main' ? 53 : key === 'basement' ? 49.5 : 45;
   s += dimLine(minX, dimY, maxX, dimY, fmtFeet(maxX - minX), 1);
-  if (key === 'main') s += dimLine(0, dimY - 2.6, 56, dimY - 2.6, fmtFeet(56) + ' main block', 1);
+  if (key === 'main') s += dimLine(MB.x, dimY - 2.6, MB.x + MB.w, dimY - 2.6, fmtFeet(MB.w) + ' main block', 1);
   s += dimLine(maxX + 3.5, 0, maxX + 3.5, maxY, fmtFeet(maxY), -1);
 
   s += compass(bounds[2] - 7, bounds[1] + 5.5);
@@ -415,7 +421,7 @@ export function sitePlanSVG() {
   s += text(pv.x + pv.w / 2, pv.y + pv.d / 2 + 1.5, 'pavilion', 2, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += lab(9, -60, 'Pool deck', 2.1);
   s += lab(9, -56.8, `${fmtFeet(t.walkoutGrade)}`, 1.9);
-  s += lab(28, -20, 'pavers + grass', 1.9);
+  s += lab(MID, -20, 'pavers + grass', 1.9);
   // retaining wall
   s += retainingWall(1.2);
   s += text(-2, -40, 'stone retaining wall', 1.9, `text-anchor="end" fill="#55534d" class="halo"`);
@@ -432,13 +438,13 @@ export function sitePlanSVG() {
   s += rect(g.x, g.y, g.w, g.d, `fill="#2e2e2e"`);
   const ridge = `stroke="#7a7a7a" stroke-width="0.25"`;
   const cg = exterior.roofs.find((r) => r.id === 'center');
-  s += line(0, 20, 56, 20, ridge) + line(cg.centerX, 0, cg.centerX, 40, ridge) + line(69, 0, 69, 34, ridge);
+  s += line(MB.x, MB.y + MB.d / 2, MB.x + MB.w, MB.y + MB.d / 2, ridge) + line(cg.centerX, MB.y, cg.centerX, MB.y + MB.d, ridge) + line(WCX, WG.y, WCX, WG.y + WG.d, ridge);
   s += line(g.x, g.y + g.d / 2, g.x + g.w, g.y + g.d / 2, ridge) + line(-8, 1, -8, 17, ridge);
   const w = (x, y, str, size = 2.2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += w(14, 10, 'Main block') + w(14, 13, '(2-story)', 1.9);
-  s += w(69.5, 15, 'Primary') + w(69.5, 18, 'wing', 2.2);
+  s += w(WCX, WCY - 1.5, 'Primary') + w(WCX, WCY + 1.5, 'wing', 2.2);
   s += w(-34, 5, '3-car garage');
-  s += lab(28, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
+  s += lab(MID, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
   s += lab(-8, 95, 'Driveway', 2.2);
   s += lab(-8, 23, 'breezeway', 1.8);
   for (const x of [-92, 112]) {

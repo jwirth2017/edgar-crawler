@@ -2,7 +2,7 @@
 // labels for each level, built from the config via the shared layout module.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { floors, build, stair, exterior } from '../config/house.js';
+import { floors, build, stair, exterior, finishLevels, doors } from '../config/house.js';
 import { deriveWalls, allRooms, roomAt, fmtFeet } from '../model/layout.js';
 import { furniture } from './furniture.js';
 
@@ -13,13 +13,32 @@ const GARAGE = floors.main.rooms.find((r) => r.id === 'garage');
 const inRect = (r, x, y) => x > r.x - EPS && x < r.x + r.w + EPS && y > r.y - EPS && y < r.y + r.d + EPS;
 const roofById = (id) => exterior.roofs.find((r) => r.id === id);
 
+/** Finish level for a room: the floor's level, or 'unfinished', plus the room's own overrides. */
+export function finishOf(levelKey, room) {
+  const lvlName = room && room.finished === false && !room.stair ? 'unfinished' : floors[levelKey].finish || 'better';
+  const lvl = finishLevels[lvlName];
+  const o = (room && room.finish) || {};
+  const floorName = o.floor
+    || (room && lvl.floors[room.id]) || (room && lvl.floors[room.use]) || lvl.floors.default;
+  return { level: lvlName, floor: floorName, walls: o.walls || lvl.walls || null, ceiling: o.ceiling || lvl.ceiling || null, roughIn: !!o.roughIn, ...lvl };
+}
+
+/** Cabinet / counter / fixture materials for furniture in a room. */
+export function paletteFor(M, levelKey, room) {
+  const f = finishOf(levelKey, room);
+  return {
+    cabinet: M.get(f.cabinets), island: M.get(f.island), counter: M.get(f.counters),
+    fixture: M.get(f.fixtures), tub: M.get(f.tub), tubKind: f.tub,
+  };
+}
+
 export const floorZ = (levelKey, room) => floors[levelKey].floor + ((room && room.floorOffset) || 0);
 const ceilingOf = (levelKey, room) => (room && room.ceiling) || floors[levelKey].ceiling;
 
 // faces of the main block that are covered by the porch / deck (no stone wainscot)
 const COVERED_FACES = [
-  { axis: 'y', at: 0, from: 0, to: 56 },
-  { axis: 'y', at: 40, from: 0, to: 56 },
+  { axis: 'y', at: MAIN_BLOCK.y, from: MAIN_BLOCK.x, to: MAIN_BLOCK.x + MAIN_BLOCK.w },
+  { axis: 'y', at: MAIN_BLOCK.y + MAIN_BLOCK.d, from: MAIN_BLOCK.x, to: MAIN_BLOCK.x + MAIN_BLOCK.w },
 ];
 
 /** Wall-line geometry helpers. */
@@ -58,12 +77,18 @@ function buildLevelWalls(B, M, key) {
       if (hi > w.from + EPS && hi < w.to - EPS) cuts.add(hi);
     }
     const pts = [...cuts].sort((p, q) => p - q);
+    // segments with the same rooms on both sides are merged back together so
+    // an opening is never split by a cut that doesn't change anything
+    const segs = [];
     for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i];
-      const b = pts[i + 1];
-      const mid = (a + b) / 2;
+      const mid = (pts[i] + pts[i + 1]) / 2;
       const A = roomAt(rooms, ...along(w, mid, -0.3));
       const C = roomAt(rooms, ...along(w, mid, 0.3));
+      const last = segs[segs.length - 1];
+      if (last && last.A === A && last.C === C) last.b = pts[i + 1];
+      else segs.push({ a: pts[i], b: pts[i + 1], A, C });
+    }
+    for (const { a, b, A, C } of segs) {
       const present = [A, C].filter(Boolean);
       const zLow = Math.min(...present.map((r) => floorZ(key, r)));
       const zRef = Math.max(...present.map((r) => floorZ(key, r)));
@@ -82,8 +107,8 @@ function buildLevelWalls(B, M, key) {
         B.box(key, M.drywall, ...rectAlong(w, ta, tb, -t / 2, t / 2), zTop, zU);
         B.box(key, M.siding, ...rectAlong(w, ta, tb, wingSide * (t / 2), wingSide * (t / 2 + 0.07)), zTop, zU);
       }
-      if (present.every((r) => r.void)) continue;
-      const voidSide = present.some((r) => r.void);
+      if (present.length === 2 && present.every((r) => r.void)) continue; // between two open-to-below areas
+      const voidSide = present.some((r) => r.void) && present.some((r) => r.hall);
       if (voidSide) zTop = Math.min(zTop, zRef + 3.5);
       const ea = Math.abs(a - w.from) < EPS ? a - t / 2 : a;
       const eb = Math.abs(b - w.to) < EPS ? b + t / 2 : b;
@@ -96,6 +121,16 @@ function buildLevelWalls(B, M, key) {
         if (p.rail) { railing(B, M, key, w, p.a, p.b, p.z0); continue; }
         B.box(key, M.drywall, ...rectAlong(w, p.a, p.b, -t / 2, t / 2), p.z0, p.z1, { collide: true });
         if (ext) cladding(B, M, key, w, p, out, t, zRef);
+        // room-side wall finish (painted block, bare drywall) on unfinished rooms
+        for (const [room, sign] of [[A, -1], [C, 1]]) {
+          if (!room || room.void || room.hall) continue;
+          const wf = finishOf(key, room).walls;
+          if (!wf) continue;
+          const zf = floorZ(key, room);
+          const z0 = Math.max(p.z0, zf);
+          const z1 = Math.min(p.z1, zf + ceilingOf(key, room));
+          if (z1 > z0) B.box(key, M.get(wf), ...rectAlong(w, Math.max(p.a, w.axis === 'y' ? room.x : room.y), Math.min(p.b, w.axis === 'y' ? room.x + room.w : room.y + room.d), sign * (t / 2), sign * (t / 2 + 0.03)), z0, z1);
+        }
       }
       for (const o of ops) openingUnit(B, M, key, w, o, zRef, t, ext, A ? -1 : 1);
     }
@@ -230,6 +265,17 @@ function openingUnit(B, M, key, w, o, zRef, t, ext, inSign) {
       B.box(key, M.black, x0, x1, y0, y1, z1 - fw - 0.4, z1 - fw);
       B.box(key, M.glass, x0, x1, y0, y1, zRef + 0.6, z1 - fw - 0.4, { shadow: false });
     }
+  } else if (o.kind === 'door' && !ext) {
+    // interior doors: 8 ft, black, shown swung open against the wall
+    const dh = doors.height;
+    const side = o.swing === -1 ? -1 : 1;
+    const len = width - 0.15;
+    const [hx, hy] = along(w, o.from + 0.05, side * (t / 2));
+    const [tx, ty] = along(w, o.from + 0.2, side * (t / 2 + len));
+    B.box(key, M.matteBlack, Math.min(hx, tx), Math.max(hx, tx), Math.min(hy, ty), Math.max(hy, ty), zRef, zRef + dh - 0.05);
+    frame(o.from, o.from + 0.12, zRef, zRef + dh, M.matteBlack);
+    frame(o.to - 0.12, o.to, zRef, zRef + dh, M.matteBlack);
+    frame(o.from, o.to, zRef + dh - 0.12, zRef + dh, M.matteBlack);
   } else if (o.kind === 'door' && ext) {
     const z1 = zRef + head;
     frame(o.from, o.from + 0.18, zRef, z1, M.trimWhite);
@@ -274,10 +320,9 @@ function slabBottom(key, room) {
   return z - 0.5;
 }
 
-function floorMaterial(M, room) {
-  if (room.id === 'sim') return M.turf;
-  if (room.finished === false && room.use !== 'garage' && !room.stair) return M.concrete;
-  return M.floorFor(room.use);
+function floorMaterial(M, key, room) {
+  if (room.use === 'garage') return M.concrete;
+  return M.get(finishOf(key, room).floor);
 }
 
 function buildLevelFloors(B, M, key) {
@@ -286,7 +331,13 @@ function buildLevelFloors(B, M, key) {
     if (r.void || r.stair) continue;
     const z = floorZ(key, r);
     // finish flooring on top, drywall structure below (so ceilings read as ceilings)
-    B.box(key, floorMaterial(M, r), r.x, r.x + r.w, r.y, r.y + r.d, z - 0.15, z);
+    B.box(key, floorMaterial(M, key, r), r.x, r.x + r.w, r.y, r.y + r.d, z - 0.15, z);
+    const fin = finishOf(key, r);
+    if (!r.hall && fin.ceiling) {
+      const zc = z + ceilingOf(key, r);
+      B.box(key, M.get(fin.ceiling), r.x + 0.2, r.x + r.w - 0.2, r.y + 0.2, r.y + r.d - 0.2, zc - 0.03, zc);
+    }
+    if (!r.hall && fin.roughIn) roughIn(B, M, key, r, z, ceilingOf(key, r));
     B.box(key, M.drywall, r.x, r.x + r.w, r.y, r.y + r.d, slabBottom(key, r), z - 0.15);
     B.surface(r.x, r.x + r.w, r.y, r.y + r.d, z, `${key}:${r.id}`);
   }
@@ -303,6 +354,31 @@ function buildLevelFloors(B, M, key) {
       if (inRect(MAIN_BLOCK, cx, cy)) continue;
       const zc = floorZ(key, r) + (r.id === 'garage' ? 10 : ceilingOf(key, r));
       B.box(ceilGroup, M.drywall, r.x, r.x + r.w, r.y, r.y + r.d, zc, zc + 0.3);
+    }
+  }
+}
+
+/** Exposed rough-in for unfinished rooms: a trunk duct with branches, cable runs and outlet boxes. */
+function roughIn(B, M, key, r, z, ceiling) {
+  const zc = z + ceiling;
+  const alongX = r.w >= r.d;
+  const cy = r.y + r.d * 0.35;
+  const cx = r.x + r.w * 0.35;
+  // trunk duct
+  if (alongX) B.box(key, M.duct, r.x + 0.4, r.x + r.w - 0.4, cy - 0.6, cy + 0.6, zc - 1.1, zc - 0.05);
+  else B.box(key, M.duct, cx - 0.6, cx + 0.6, r.y + 0.4, r.y + r.d - 0.4, zc - 1.1, zc - 0.05);
+  // round-ish branch runs
+  const n = Math.max(2, Math.floor((alongX ? r.w : r.d) / 6));
+  for (let i = 1; i < n; i++) {
+    const t = (alongX ? r.x : r.y) + ((alongX ? r.w : r.d) * i) / n;
+    if (alongX) B.box(key, M.duct, t - 0.3, t + 0.3, cy + 0.6, r.y + r.d - 1, zc - 0.7, zc - 0.1, { shadow: false });
+    else B.box(key, M.duct, cx + 0.6, r.x + r.w - 1, t - 0.3, t + 0.3, zc - 0.7, zc - 0.1, { shadow: false });
+  }
+  // outlet / switch boxes on the walls with cable runs up to the ceiling
+  for (let t = r.x + 3; t < r.x + r.w - 1; t += 8) {
+    for (const [y0, y1] of [[r.y + 0.22, r.y + 0.35], [r.y + r.d - 0.35, r.y + r.d - 0.22]]) {
+      B.box(key, M.eBox, t, t + 0.3, y0, y1, z + 1.3, z + 1.65, { shadow: false });
+      B.box(key, M.wire, t + 0.12, t + 0.17, y0, y1, z + 1.65, zc, { shadow: false });
     }
   }
 }
@@ -337,15 +413,15 @@ function buildStairs(B, M) {
     for (let k = 1; k < f.r1; k++) {
       const top = f.z0 + k * f.rise;
       const xa0 = f.xs1 - k * s.tread;
-      B.box(group, M.oak, xa0, xa0 + s.tread + 0.08, ...band1, Math.max(f.z0, top - 0.9), top);
+      B.box(group, M.oakLVP, xa0, xa0 + s.tread + 0.08, ...band1, Math.max(f.z0, top - 0.9), top);
     }
     // landing
-    B.box(group, M.oak, s.x, f.xL, s.y, s.y + s.d, f.zl - 0.9, f.zl);
+    B.box(group, M.oakLVP, s.x, f.xL, s.y, s.y + s.d, f.zl - 0.9, f.zl);
     // upper flight (band 2): from the landing back toward the open end
     for (let k = 1; k < f.r2; k++) {
       const top = f.zl + k * f.rise;
       const x0 = f.xL + (k - 1) * s.tread;
-      B.box(group, M.oak, x0 - 0.08, x0 + s.tread, ...band2, top - 0.9, top);
+      B.box(group, M.oakLVP, x0 - 0.08, x0 + s.tread, ...band2, top - 0.9, top);
     }
     // walkable ramps
     const r1 = f.rise / s.tread;
@@ -358,15 +434,15 @@ function buildStairs(B, M) {
   B.box('basement', M.concrete, s.x, s.x + s.w, s.y, s.y + s.d, zB - 0.5, zB);
   B.surface(lower.xs1, s.x + s.w, s.y, s.y + s.d, zB, 'stair-base');
   const zMainBottom = floors.basement.floor + floors.basement.ceiling;
-  B.box('main', M.oak, upper.xs1, s.x + s.w, ...band1, zM - 0.15, zM);
-  B.box('main', M.oak, lower.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zM - 0.15, zM);
+  B.box('main', M.oakLVP, upper.xs1, s.x + s.w, ...band1, zM - 0.15, zM);
+  B.box('main', M.oakLVP, lower.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zM - 0.15, zM);
   B.box('main', M.drywall, upper.xs1, s.x + s.w, ...band1, zMainBottom, zM - 0.15);
   B.box('main', M.drywall, lower.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zMainBottom, zM - 0.15);
   B.surface(upper.xs1, s.x + s.w, ...band1, zM, 'main:stairtop');
   B.surface(lower.xa, s.x + s.w, ...band2, zM, 'main:stairtop');
   const zUpperBottom = floors.main.floor + floors.main.ceiling;
-  B.box('upper', M.oak, upper.xs1, s.x + s.w, ...band1, zU - 0.15, zU);
-  B.box('upper', M.oak, upper.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zU - 0.15, zU);
+  B.box('upper', M.carpet, upper.xs1, s.x + s.w, ...band1, zU - 0.15, zU);
+  B.box('upper', M.carpet, upper.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zU - 0.15, zU);
   B.box('upper', M.drywall, upper.xs1, s.x + s.w, ...band1, zUpperBottom, zU - 0.15);
   B.box('upper', M.drywall, upper.xa, s.x + s.w, s.y + half - 0.17, s.y + s.d, zUpperBottom, zU - 0.15);
   B.surface(upper.xs1, s.x + s.w, ...band1, zU, 'upper:stairtop');
@@ -379,7 +455,7 @@ function buildStairs(B, M) {
   B.box('basement', M.drywall, dx0, dx1, dy0, dy1, zB, zM, { collide: true });
   B.box('main', M.drywall, dx0, dx1, dy0, dy1, zM, zU, { collide: true });
   B.box('upper', M.drywall, dx0, dx1, dy0, dy1, zU, zU + 3.5, { collide: true });
-  B.box('upper', M.oak, dx0, dx1, dy0 - 0.05, dy1 + 0.05, zU + 3.5, zU + 3.65);
+  B.box('upper', M.oakLVP, dx0, dx1, dy0 - 0.05, dy1 + 0.05, zU + 3.5, zU + 3.65);
   // guard across the stairwell at the top
   B.box('upper', M.rail, upper.xs1 - 0.1, upper.xs1 + 0.1, s.y, dy0, zU + 3.35, zU + 3.5);
   for (let y = s.y + 0.3; y < dy0; y += 0.42) B.box('upper', M.rail, upper.xs1 - 0.03, upper.xs1 + 0.03, y - 0.03, y + 0.03, zU, zU + 3.4);
@@ -412,7 +488,7 @@ function buildLevelFurniture(B, M, key) {
     if (f.type === 'chimney') continue;
     const room = roomAt(rooms, f.x + f.w / 2, f.y + f.d / 2);
     const base = floorZ(key, room) + (typeof f.elev === 'number' ? f.elev : 0);
-    furniture(B, M, key, f, base, room);
+    furniture(B, M, key, f, base, room, paletteFor(M, key, room));
   }
 }
 

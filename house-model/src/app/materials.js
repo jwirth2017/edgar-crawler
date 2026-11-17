@@ -118,6 +118,134 @@ const tex = {
       g.fillRect(0, i * b, w, b - 2);
     }
   }, 6),
+  // wide-plank light oak LVP: 9" x 6' planks, staggered
+  oakLVP: () => canvasTexture(512, 512, (g, w, h) => {
+    const r = rng(17);
+    const rows = 8;                      // 8 x 9" = 6 ft tile
+    const ph = h / rows;
+    for (let i = 0; i < rows; i++) {
+      let x = -((i * 0.37) % 1) * w * 0.5;
+      while (x < w) {
+        const len = w * (0.55 + r() * 0.3);
+        const t = 200 + r() * 18;
+        g.fillStyle = `rgb(${t + 18},${t - 2},${t - 38})`;
+        g.fillRect(x, i * ph, len, ph);
+        for (let k = 0; k < 6; k++) {
+          g.fillStyle = `rgba(150,110,70,${0.06 + r() * 0.08})`;
+          g.fillRect(x, i * ph + r() * ph, len, 1);
+        }
+        g.fillStyle = 'rgba(90,65,40,0.35)';
+        g.fillRect(x, i * ph, 1.5, ph);
+        x += len;
+      }
+      g.fillStyle = 'rgba(90,65,40,0.3)';
+      g.fillRect(0, i * ph, w, 1);
+    }
+  }, 6),
+  lvpGray: () => canvasTexture(512, 512, (g, w, h) => {
+    const r = rng(19);
+    const rows = 8;
+    const ph = h / rows;
+    for (let i = 0; i < rows; i++) {
+      let x = -r() * w * 0.5;
+      while (x < w) {
+        const len = w * (0.5 + r() * 0.35);
+        const t = 168 + r() * 16;
+        g.fillStyle = `rgb(${t},${t - 2},${t - 6})`;
+        g.fillRect(x, i * ph, len, ph);
+        g.fillStyle = 'rgba(60,60,60,0.3)';
+        g.fillRect(x, i * ph, 1.5, ph);
+        x += len;
+      }
+      g.fillStyle = 'rgba(60,60,60,0.25)';
+      g.fillRect(0, i * ph, w, 1);
+    }
+  }, 5),
+  // slate-look tile, 12 x 24
+  slate: () => canvasTexture(256, 256, (g, w, h) => {
+    const r = rng(23);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
+      const off = (i % 2) * 0.5;
+      for (const k of [-1, 0, 1]) {
+        const t = 62 + r() * 18;
+        g.fillStyle = `rgb(${t},${t + 3},${t + 6})`;
+        g.fillRect(((j + off + k) * w) / 2 + 2, (i * h) / 4 + 2, w / 2 - 4, h / 4 - 4);
+      }
+    }
+    for (let n = 0; n < 900; n++) { g.fillStyle = `rgba(255,255,255,${r() * 0.05})`; g.fillRect(r() * w, r() * h, 2, 1); }
+  }, 4),
+  sealed: () => canvasTexture(256, 256, (g, w, h) => {
+    const r = rng(29);
+    g.fillStyle = '#a7a59f';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 70; i++) {
+      const v = r() > 0.5 ? 255 : 0;
+      g.fillStyle = `rgba(${v},${v},${v},0.018)`;
+      g.beginPath(); g.arc(r() * w, r() * h, 10 + r() * 40, 0, 7); g.fill();
+    }
+    g.fillStyle = 'rgba(0,0,0,0.25)';
+    g.fillRect(0, 0, w, 1);   // saw-cut control joints every 10 ft
+    g.fillRect(0, 0, 1, h);
+  }, 10),
+  // 4 x 6 ft black rubber horse-stall mats
+  stallMats: () => canvasTexture(256, 384, (g, w, h) => {
+    const r = rng(31);
+    g.fillStyle = '#1f2021';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2500; i++) { g.fillStyle = `rgba(255,255,255,${r() * 0.04})`; g.fillRect(r() * w, r() * h, 2, 2); }
+    g.fillStyle = '#0b0b0c';
+    g.fillRect(0, 0, w, 3);
+    g.fillRect(0, 0, 3, h);
+  }, 4, 6),
+  // painted concrete block, 8 x 16
+  block: () => canvasTexture(256, 256, (g, w, h) => {
+    g.fillStyle = '#dcdad4';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#c4c1b9';
+    const rows = 6; // 6 x 8" = 4 ft tile
+    for (let i = 0; i < rows; i++) {
+      const y = (i * h) / rows;
+      g.fillRect(0, y, w, 3);
+      const off = (i % 2) * (w / 6);
+      for (let k = 0; k < 4; k++) g.fillRect(off + (k * w) / 3, y, 3, h / rows);
+    }
+  }, 4),
+  // bare drywall: taped joints every 4 ft, screw spots
+  drywallBare: () => canvasTexture(256, 512, (g, w, h) => {
+    const r = rng(37);
+    g.fillStyle = '#d9d6cf';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#ecebe6';
+    g.fillRect(0, 0, 14, h);
+    g.fillRect(0, h / 2 - 7, w, 14);
+    g.fillStyle = 'rgba(120,120,110,0.35)';
+    for (let x = 32; x < w; x += 64) for (let y = 16; y < h; y += 48) g.fillRect(x + r() * 2, y, 3, 3);
+  }, 4, 8),
+  shaker: () => canvasTexture(128, 128, (g, w, h) => {
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(0,0,0,0.16)';
+    g.lineWidth = 3;
+    g.strokeRect(14, 14, w - 28, h - 28);
+    g.strokeStyle = 'rgba(0,0,0,0.25)';
+    g.lineWidth = 2;
+    g.strokeRect(1, 1, w - 2, h - 2);
+  }, 1.5, 2.5, false),
+  quartz: () => canvasTexture(256, 256, (g, w, h) => {
+    const r = rng(41);
+    g.fillStyle = '#f4f3ef';
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(150,150,150,0.25)';
+    for (let i = 0; i < 6; i++) {
+      g.lineWidth = 0.5 + r() * 1.5;
+      g.beginPath();
+      let x = r() * w;
+      let y = 0;
+      g.moveTo(x, y);
+      while (y < h) { x += (r() - 0.5) * 40; y += 20 + r() * 20; g.lineTo(x, y); }
+      g.stroke();
+    }
+  }, 4),
   concrete: () => canvasTexture(128, 128, (g, w, h) => {
     const r = rng(13);
     g.fillStyle = '#b9b6ae';
@@ -220,9 +348,33 @@ export function makeMaterials() {
     screenGolf: new THREE.MeshBasicMaterial({ map: screenTexture('golf') }),
     screenMovie: new THREE.MeshBasicMaterial({ map: screenTexture('movie') }),
   };
-  M.floorFor = (use) => ({
-    bath: M.tile, bed: M.carpet, service: M.tile, garage: M.concrete, rec: M.carpet,
-  }[use] || M.oak);
+  // finish-level materials (names used in config.finishLevels)
+  Object.assign(M, {
+    oakLVP: std({ map: texture('oakLVP'), roughness: 0.55 }),
+    lvpGray: std({ map: texture('lvpGray'), roughness: 0.55 }),
+    slateTile: std({ map: texture('slate'), roughness: 0.6 }),
+    sealedConcrete: std({ map: texture('sealed'), roughness: 0.45, metalness: 0.05 }),
+    stallMats: std({ map: texture('stallMats'), roughness: 0.95 }),
+    paintedBlock: std({ map: texture('block'), roughness: 0.9 }),
+    bareDrywall: std({ map: texture('drywallBare'), roughness: 1 }),
+    shakerWhite: std({ map: texture('shaker'), roughness: 0.55 }),
+    cabinetWhite: std({ color: '#f4f3ef', roughness: 0.6 }),
+    navy: std({ color: '#1f2d47', roughness: 0.5, map: texture('shaker') }),
+    quartzWhite: std({ map: texture('quartz'), roughness: 0.25 }),
+    laminateWhite: std({ color: '#ebe9e3', roughness: 0.5 }),
+    matteBlack: std({ color: '#161718', roughness: 0.8, metalness: 0.2 }),
+    chrome: std({ color: '#d4d7da', roughness: 0.15, metalness: 1 }),
+    fiberglass: std({ color: '#fbfbf8', roughness: 0.3 }),
+    acrylic: std({ color: '#ffffff', roughness: 0.2 }),
+    duct: std({ color: '#c9ccce', roughness: 0.45, metalness: 0.25 }),
+    eBox: std({ color: '#2b5fae', roughness: 0.6 }),
+    wire: std({ color: '#e4c24a', roughness: 0.6 }),
+  });
+  M.navy.color.set('#2a3d60');
+  M.get = (name) => {
+    if (!M[name]) throw new Error(`unknown material "${name}" in config`);
+    return M[name];
+  };
   return M;
 }
 

@@ -35,6 +35,17 @@ rectangles automatically, and both the 3D model and the plan page rebuild from
 that file. The plan page flags any hallway narrower than 3'-6" and any room that
 can't be reached from the stairs.
 
+Finishes are set per floor with `finish: 'good' | 'better'` and defined in
+`finishLevels` (floor materials by room type, cabinets, island, counters,
+fixtures, tub type). Rooms marked `finished: false` use the `unfinished` level,
+and any room can override it with `finish: { floor, walls, roughIn }`. Current
+setup: main floor and basement **Better** (wide-plank light oak LVP, slate-look
+mudroom tile, white shaker cabinets, navy island, white quartz, matte black
+fixtures), upstairs **Good** (carpet, LVP in baths and laundry, white fixtures,
+fiberglass tub units), gym in sealed concrete with stall mats and painted block,
+theater and attic in bare drywall with exposed rough-in, all interior doors
+8 ft and black.
+
 Plan axes: `x` runs left → right as seen from the street (south → north), `y`
 runs from the rear wall (west, pool side) toward the front (east, street).
 Elevations are relative to the main floor.

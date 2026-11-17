@@ -27,24 +27,26 @@ function strip(f, side, t) {
 const opposite = { '-x': '+x', '+x': '-x', '-y': '+y', '+y': '-y' };
 const R = (f) => [f.x, f.x + f.w, f.y, f.y + f.d];
 
-export function furniture(B, M, g, f, base, room) {
+export function furniture(B, M, g, f, base, room, P) {
+  P = P || { cabinet: M.cabinet, island: M.island, counter: M.counterTop, fixture: M.steel, tub: M.porcelain, tubKind: 'acrylic' };
   const h = f.h;
   const box = (mat, rect, z0, z1, opts) => B.box(g, mat, ...rect, base + z0, base + z1, opts);
   const inset = (r, d) => [r[0] + d, r[1] - d, r[2] + d, r[3] - d];
 
   switch (f.type) {
     case 'counter': {
-      box(M.cabinet, inset(R(f), 0.05), 0, h - 0.15);
-      box(M.counterTop, R(f), h - 0.15, h);
-      if (f.label === 'Coffee station') box(M.cabinet, strip(f, wallSide(f, room, true), 1.1), 4.6, 7.3);
+      box(P.cabinet, inset(R(f), 0.05), 0, h - 0.15);
+      box(P.counter, R(f), h - 0.15, h);
+      if (f.label === 'Coffee station') box(P.cabinet, strip(f, wallSide(f, room, true), 1.1), 4.6, 7.3);
+      if (f.sink) sinks(B, M, g, f, base, room, P);
       break;
     }
     case 'tall':
-      box(M.cabinet, R(f), 0, h);
+      box(P.cabinet, R(f), 0, h);
       break;
     case 'island':
-      box(M.island, inset(R(f), 0.1), 0, h - 0.15);
-      box(M.counterTop, R(f), h - 0.15, h);
+      box(P.island, inset(R(f), 0.1), 0, h - 0.15);
+      box(P.counter, R(f), h - 0.15, h);
       break;
     case 'table': {
       const top = h >= 2 ? h : h;
@@ -103,11 +105,18 @@ export function furniture(B, M, g, f, base, room) {
       box(M.porcelain, strip(f, wallSide(f, room, true), 0.6), 0, h + 1.2);
       break;
     case 'tub':
-      box(M.porcelain, R(f), 0, h);
+      box(P.tub, R(f), 0, h);
+      if (P.tubKind === 'fiberglass') {
+        // one-piece fiberglass tub/shower unit: molded surround on the wall side
+        box(P.tub, strip(f, wallSide(f, room, true), 0.12), h, 6.2);
+      }
+      faucet(B, P, g, strip(f, wallSide(f, room, true), 0.3), base + h, 0.6);
       break;
     case 'shower':
-      box(M.tile, R(f), 0, 0.3);
+      box(P.tub === M.fiberglass ? M.fiberglass : M.tile, R(f), 0, 0.3);
       box(M.glass, inset(R(f), 0.02), 0.3, h, { shadow: false });
+      box(P.fixture, inset(R(f), 0.0), h - 0.08, h);           // frame / header bar
+      faucet(B, P, g, strip(f, wallSide(f, room, true), 0.25), base + 6.2, 0.6);
       break;
     case 'bed': {
       const head = wallSide(f, room);
@@ -199,6 +208,33 @@ export function furniture(B, M, g, f, base, room) {
     }
     default:
       box(M.fabric, R(f), 0, h);
+  }
+}
+
+/** Small faucet: a riser on the wall side of a rectangle strip. */
+function faucet(B, P, g, s, z, h) {
+  const cx = (s[0] + s[1]) / 2;
+  const cy = (s[2] + s[3]) / 2;
+  B.box(g, P.fixture, cx - 0.07, cx + 0.07, cy - 0.07, cy + 0.07, z, z + h, { shadow: false });
+}
+
+/** One or two sink basins set into a counter, with faucets on the wall side. */
+function sinks(B, M, g, f, base, room, P) {
+  const n = f.sink === 2 ? 2 : 1;
+  const wall = wallSide(f, room, true);
+  const alongX = wall === '-y' || wall === '+y';
+  const len = alongX ? f.w : f.d;
+  for (let i = 0; i < n; i++) {
+    const c = (len * (i + 0.5)) / n;
+    const bw = 1.6;
+    const r = alongX
+      ? [f.x + c - bw / 2, f.x + c + bw / 2, f.y + 0.35, f.y + f.d - 0.35]
+      : [f.x + 0.35, f.x + f.w - 0.35, f.y + c - bw / 2, f.y + c + bw / 2];
+    B.box(g, f.label === 'Wet bar' || (room && room.id === 'kitchen') ? M.steel : M.porcelain, ...r, base + f.h - 0.02, base + f.h + 0.01, { shadow: false });
+    const fs = strip({ x: r[0], y: r[2], w: r[1] - r[0], d: r[3] - r[2] }, wall, 0.15);
+    const off = { '-x': -0.2, '+x': 0.2, '-y': -0.2, '+y': 0.2 }[wall];
+    const shifted = alongX ? [fs[0], fs[1], fs[2] + off, fs[3] + off] : [fs[0] + off, fs[1] + off, fs[2], fs[3]];
+    faucet(B, P, g, shifted, base + f.h, 1.0);
   }
 }
 
