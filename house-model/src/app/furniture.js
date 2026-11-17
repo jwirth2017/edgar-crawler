@@ -47,7 +47,21 @@ export function furniture(B, M, g, f, base, room, P) {
     case 'island':
       box(P.island, inset(R(f), 0.1), 0, h - 0.15);
       box(P.counter, R(f), h - 0.15, h);
+      if (f.cooktop) cooktop(B, M, g, f, base, room);
       break;
+    case 'oven': {
+      // tall cabinet with a stacked double wall oven on its open face
+      box(P.cabinet, R(f), 0, h);
+      const face = opposite[wallSide(f, room, true)];
+      const fs = strip(f, face, 0.02);
+      const out = face === '+x' || face === '+y' ? 0.04 : -0.04;
+      const shifted = face[1] === 'x' ? [fs[0] + out, fs[1] + out, fs[2] + 0.2, fs[3] - 0.2] : [fs[0] + 0.2, fs[1] - 0.2, fs[2] + out, fs[3] + out];
+      for (const [z0, z1] of [[1.9, 3.95], [4.1, 6.15]]) {
+        box(M.matteBlack, shifted, z0, z1, { shadow: false });
+        box(M.tv, face[1] === 'x' ? [shifted[0], shifted[1], shifted[2] + 0.25, shifted[3] - 0.25] : [shifted[0] + 0.25, shifted[1] - 0.25, shifted[2], shifted[3]], z0 + 0.35, z1 - 0.25, { shadow: false });
+      }
+      break;
+    }
     case 'table': {
       const top = h >= 2 ? h : h;
       box(M.wood, R(f), top - 0.15, top);
@@ -212,6 +226,38 @@ export function furniture(B, M, g, f, base, room, P) {
     }
     default:
       box(M.fabric, R(f), 0, h);
+  }
+}
+
+/** Gas cooktop centered in an island (black glass, cast-iron grates, knobs), plus an optional hood above. */
+function cooktop(B, M, g, f, base, room) {
+  const c = typeof f.cooktop === 'object' ? f.cooktop : { w: 3, d: 1.75 };
+  const along = f.w >= f.d;
+  const [cw, cd] = along ? [c.w, c.d] : [c.d, c.w];
+  const cx = f.x + f.w / 2;
+  const cy = f.y + f.d / 2;
+  const top = base + f.h;
+  const r = [cx - cw / 2, cx + cw / 2, cy - cd / 2, cy + cd / 2];
+  B.box(g, M.tv, ...r, top - 0.01, top + 0.03, { shadow: false });
+  // five burners under grates
+  const spots = [[-0.32, -0.28], [0.32, -0.28], [0, 0], [-0.32, 0.28], [0.32, 0.28]];
+  for (const [u, v] of spots) {
+    const bx = cx + (along ? u * cw : v * cw);
+    const by = cy + (along ? v * cd : u * cd);
+    B.box(g, M.steel, bx - 0.18, bx + 0.18, by - 0.18, by + 0.18, top + 0.03, top + 0.07, { shadow: false });
+  }
+  for (let k = 0; k <= 3; k++) {   // grate bars
+    const t = -0.5 + k / 3;
+    if (along) B.box(g, M.matteBlack, cx + t * cw - 0.03, cx + t * cw + 0.03, r[2], r[3], top + 0.07, top + 0.14, { shadow: false });
+    else B.box(g, M.matteBlack, r[0], r[1], cy + t * cd - 0.03, cy + t * cd + 0.03, top + 0.07, top + 0.14, { shadow: false });
+  }
+  if (f.hood) {
+    // island hood hung from the ceiling, sized a little larger than the cooktop
+    const ceil = base + 10;
+    const hw = cw + 0.5;
+    const hd = cd + 0.5;
+    B.box(g, M.matteBlack, cx - hw / 2, cx + hw / 2, cy - hd / 2, cy + hd / 2, top + 3.2, top + 3.9);
+    B.box(g, M.matteBlack, cx - 0.6, cx + 0.6, cy - 0.5, cy + 0.5, top + 3.9, ceil);
   }
 }
 

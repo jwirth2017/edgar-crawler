@@ -124,7 +124,7 @@ export const floors = {
       { ...STAIR_BOX },
       { id: 'office',   name: 'Shared Office',  use: 'work',    x: 0,  y: 26, w: 14, d: 14 },
       // — rear wall: kitchen and living side by side, both facing the deck —
-      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 14, y: 0,  w: 18, d: 16 },
+      { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 14, y: 0,  w: 18, d: 16, labelDy: -3 },
       { id: 'living',  name: 'Living Room', use: 'living', x: 32, y: 0,  w: 20, d: 16,
         note: "10' flat ceiling" },
       // — center: dining, foyer (open to above), coat —
@@ -157,7 +157,7 @@ export const floors = {
       // rear wall (y = 0) — glass onto the deck
       { kind: 'window',      on: 'y', at: 0, from: 1.5, to: 4.5, sill: 4 },     // mudroom
       { kind: 'window',      on: 'y', at: 0, from: 8.5, to: 11.5, sill: 4.5 },  // butler's pantry, over the counter
-      { kind: 'passthrough', on: 'y', at: 0, from: 18, to: 30, sill: 3.5, head: 8 },
+      { kind: 'passthrough', on: 'y', at: 0, from: 19, to: 29, sill: 3.5, head: 8 },   // 10 ft: fridge on one side, ovens on the other
       { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // living → deck
       { kind: 'window',      on: 'y', at: 0, from: 55, to: 65, sill: 1.5 },    // primary bedroom
       { kind: 'window',      on: 'y', at: 0, from: 71, to: 75, sill: 5 },
@@ -199,10 +199,12 @@ export const floors = {
       { kind: 'window', on: 'x', at: -52, from: 32, to: 38 },
     ],
     furniture: [
-      // kitchen — sink run under the pass-through, island centered on it, fridge on the pantry wall
-      { type: 'counter', x: 14.3, y: 0.3,  w: 16.7, d: 2,   h: 3, sink: true }, // under the pass-through
-      { type: 'island',  x: 17.5, y: 8,    w: 12,   d: 4,   h: 3, label: 'Island' },
-      { type: 'tall',    x: 14.3, y: 12.3, w: 2.4,  d: 3.5, h: 7.5, label: 'Fridge' },
+      // kitchen — rear wall: fridge | sink run under the pass-through | double wall ovens;
+      // island with a 36" gas cooktop and a hood above, centered on the pass-through
+      { type: 'tall',    x: 14.3, y: 0.3,  w: 3,    d: 2.6, h: 7.5, label: 'Fridge' },
+      { type: 'counter', x: 17.3, y: 0.3,  w: 11.9, d: 2,   h: 3, sink: true }, // under the pass-through
+      { type: 'oven',    x: 29.2, y: 0.3,  w: 2.6,  d: 2.2, h: 7.5, label: 'Double ovens' },
+      { type: 'island',  x: 18,   y: 8,    w: 12,   d: 4,   h: 3, cooktop: { w: 3, d: 1.75 }, hood: true },
       // butler's pantry — counter on the rear wall under the window, open shelves opposite the kitchen
       { type: 'counter', x: 6.3,  y: 0.3,  w: 7.4,  d: 2,   h: 3, sink: true, uppers: true, label: 'Coffee bar · prep sink' },
       { type: 'tall',    x: 6.3,  y: 3,    w: 1.3,  d: 7.7, h: 7.5, label: 'Open shelves' },
@@ -446,7 +448,7 @@ export const exterior = {
     // heat-resistant porcelain pad under the cooking area.
     kitchen: { x: 3, y: -7.5, len: 9.5, depth: 2.5, returnLen: 5, returnDepth: 2.5,
       grillAt: 4.5, grillW: 3, ledgeDepth: 1.3, ledgeH: 3.5, stools: 3, minWalk: 3 },
-    barCounter: { x: 18, y: -1.8, w: 12, d: 1.5, h: 3.5 }, // outside the pass-through
+    barCounter: { x: 19, y: -1.8, w: 10, d: 1.5, h: 3.5 }, // outside the pass-through
   },
   // Arched drive-through linking the house and garage. Cars pass front → back
   // through it into the motor court in front of the garage doors.

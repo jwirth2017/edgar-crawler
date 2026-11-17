@@ -145,6 +145,16 @@ function drawFurniture(list = [], rooms = []) {
         s += line(f.x, yy, f.x + f.w, yy, st);
       }
     }
+    if (f.cooktop) {
+      const c = typeof f.cooktop === 'object' ? f.cooktop : { w: 3, d: 1.75 };
+      const [cw, cd] = f.w >= f.d ? [c.w, c.d] : [c.d, c.w];
+      const cx = f.x + f.w / 2;
+      const cy = f.y + f.d / 2;
+      s += rect(cx - cw / 2, cy - cd / 2, cw, cd, `fill="#3a3b3e" stroke="${INK}" stroke-width="0.06"`);
+      for (const [u, v] of [[-0.3, -0.25], [0.3, -0.25], [0, 0], [-0.3, 0.25], [0.3, 0.25]]) {
+        s += `<circle cx="${n(cx + u * cw)}" cy="${n(cy + v * cd)}" r="0.22" fill="none" stroke="#d9d6cd" stroke-width="0.05"/>`;
+      }
+    }
     if (f.rods) {
       const st = `stroke="${FURN}" stroke-width="0.06" stroke-dasharray="0.3 0.2"`;
       for (const k of [0.35, 0.65]) {
