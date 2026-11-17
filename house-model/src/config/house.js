@@ -445,9 +445,9 @@ export const exterior = {
     x: -18, y: 12, w: 18, d: 28,
     floorOffset: -1, wallHeight: 12,
     archWidth: 12, archX: 1, archSpring: 7.5, archTop: 10.5,   // arch from x + archX
-    sideWall: [13, 24],                     // far-side wall beside the court; the garage closes the rest
+    sideWall: [36, 39],                     // far-side wall past the garage; the garage closes the rest
   },
-  // 3-car garage, attached to the breezeway's far side, doors facing the motor
+  // 3-car garage, attached to the breezeway's far side and lined up with it, doors facing the motor
   // court. Built as its own building (rotatable via `place`; currently square).
   garage: {
     name: '3-Car Garage',
@@ -456,24 +456,24 @@ export const exterior = {
     ceiling: 10,
     wallTop: 11,                            // eave 10 ft above the main floor
     place: { anchor: [-18, 31.5], at: [-18, 31.5], angle: 0 },
-    footprint: [{ x: -54, y: 24, w: 36, d: 24 }],
-    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -54, y: 24, w: 36, d: 24, finished: false }],
+    footprint: [{ x: -54, y: 12, w: 36, d: 24 }],
+    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -54, y: 12, w: 36, d: 24, finished: false }],
     openings: [
-      { kind: 'garage', on: 'y', at: 24, from: -52, to: -43 },    // doors face the motor court
-      { kind: 'garage', on: 'y', at: 24, from: -41, to: -32 },
-      { kind: 'garage', on: 'y', at: 24, from: -30, to: -21 },
-      { kind: 'door',   on: 'x', at: -18, from: 30, to: 33 },     // into the breezeway
-      { kind: 'window', on: 'y', at: 48, from: -48, to: -44 },
-      { kind: 'window', on: 'y', at: 48, from: -38, to: -34 },
-      { kind: 'window', on: 'y', at: 48, from: -28, to: -24 },
-      { kind: 'window', on: 'x', at: -54, from: 32, to: 38 },
+      { kind: 'garage', on: 'y', at: 12, from: -52, to: -43 },    // doors face the motor court
+      { kind: 'garage', on: 'y', at: 12, from: -41, to: -32 },
+      { kind: 'garage', on: 'y', at: 12, from: -30, to: -21 },
+      { kind: 'door',   on: 'x', at: -18, from: 22, to: 25 },     // into the breezeway, across from the mudroom
+      { kind: 'window', on: 'y', at: 36, from: -48, to: -44 },
+      { kind: 'window', on: 'y', at: 36, from: -38, to: -34 },
+      { kind: 'window', on: 'y', at: 36, from: -28, to: -24 },
+      { kind: 'window', on: 'x', at: -54, from: 21, to: 27 },
     ],
     furniture: [
-      { type: 'car', x: -50.5, y: 30, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
-      { type: 'car', x: -39.5, y: 30, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -28.5, y: 30, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -50.5, y: 18, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
+      { type: 'car', x: -39.5, y: 18, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -28.5, y: 18, w: 6, d: 16, h: 5 },
     ],
-    roof: { id: 'garage', type: 'gable', x: -54, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    roof: { id: 'garage', type: 'gable', x: -54, y: 12, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -538,7 +538,7 @@ function hull(pts) {
  */
 function motorCourt() {
   return [
-    { poly: hull([[0, 12], [0, -14], [-20, -38], [-45, -46], [-66, -32], [-66, 16], [-54, 24], [-18, 24]]), wall: true },
+    { poly: hull([[0, 12], [0, -14], [-20, -38], [-45, -46], [-66, -32], [-66, 4], [-54, 12], [-18, 12]]), wall: true },
   ];
 }
 
