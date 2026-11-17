@@ -503,10 +503,12 @@ export const site = {
   furniture: [
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
     { type: 'sofa',    x: 21, y: -12.3, w: 8, d: 3,   h: 2.6, elev: 'deck', faces: '+y' },  // under the covered section
-    // fire pit with two chairs on the paver grid (both phases)
-    { type: 'firepit', x: 11, y: -22, w: 3.5, d: 3.5, h: 1.3 },
-    { type: 'chair',   x: 7.5,  y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
-    { type: 'chair',   x: 14.5, y: -25, w: 2.6, d: 2.6, h: 2.7, faces: '+y' },
+    // fire pit beside the pool (garage side) inside a big U-shaped outdoor couch,
+    // open toward the pool (both phases)
+    { type: 'firepit', x: 6,   y: -46.5, w: 4,  d: 4,  h: 1.3 },
+    { type: 'sofa',    x: 0.5, y: -51,   w: 3,  d: 13, h: 2.7, faces: '+x', label: 'U couch' },
+    { type: 'sofa',    x: 3.5, y: -41,   w: 9,  d: 3,  h: 2.7, faces: '-y' },
+    { type: 'sofa',    x: 3.5, y: -51,   w: 9,  d: 3,  h: 2.7, faces: '+y' },
   ],
   // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
   stubOuts: [

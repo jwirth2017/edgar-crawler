@@ -462,9 +462,11 @@ export function sitePlanSVG() {
   s += paverGrid(phases[1].paverGrid, 0.08);
   const cp = site.coveredPatio;
   s += rect(cp.x, cp.y, cp.w, cp.d, `fill="#d8cfbd"`);
+  for (const f of site.furniture.filter((f) => f.type === 'sofa' && !f.elev)) s += rect(f.x, f.y, f.w, f.d, `fill="#e9e4d8" stroke="#77746b" stroke-width="0.15"`);
   const fp = site.furniture.find((f) => f.type === 'firepit');
   if (fp) s += `<circle cx="${n(fp.x + fp.w / 2)}" cy="${n(fp.y + fp.d / 2)}" r="${n(fp.w / 2)}" fill="#8b8577" stroke="#5d594f" stroke-width="0.2"/>`;
-  s += lab(MID + 6, phases[1].paverGrid.y + 3, 'pavers + grass · fire pit', 1.8);
+  s += lab(MID + 6, phases[1].paverGrid.y + 3, 'pavers + grass', 1.8);
+  if (fp) s += lab(fp.x + fp.w / 2, fp.y - 6.5, 'fire pit · U couch', 1.5);
   s += lab(9, -60, `lawn · graded flat at ${fmtFeet(t.walkoutGrade)}`, 1.8, 'text-anchor="start"');
   // Phase 2 (future): dashed outlines
   const P2 = phases[2];

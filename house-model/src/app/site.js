@@ -153,7 +153,12 @@ function poolAndHotTub(B, M, lanterns) {
   B.box(g, M.stone, h.x, h.x + h.w, h.y + h.d - 0.8, h.y + h.d, deck - 2, zt, { collide: true });
   B.box(g, M.stone, h.x, h.x + 0.8, h.y, h.y + h.d, deck - 2, zt, { collide: true });
   B.box(g, M.stone, h.x + h.w - 0.8, h.x + h.w, h.y, h.y + h.d, deck - 2, zt, { collide: true });
-  B.box(g, M.trimWhite, h.x - 0.3, h.x + h.w + 0.3, h.y - 0.3, h.y + h.d + 0.3, zt, zt + 0.25);
+  // coping ring on top of the stone walls (open in the middle so the water shows)
+  const cp = 1.1;
+  for (const r of [
+    [h.x - 0.3, h.x + h.w + 0.3, h.y - 0.3, h.y + cp - 0.3], [h.x - 0.3, h.x + h.w + 0.3, h.y + h.d - cp + 0.3, h.y + h.d + 0.3],
+    [h.x - 0.3, h.x + cp - 0.3, h.y + cp - 0.3, h.y + h.d - cp + 0.3], [h.x + h.w - cp + 0.3, h.x + h.w + 0.3, h.y + cp - 0.3, h.y + h.d - cp + 0.3],
+  ]) B.box(g, M.trimWhite, ...r, zt, zt + 0.25);
   B.box(g, M.poolTile, h.x + 0.8, h.x + h.w - 0.8, h.y + 0.8, h.y + h.d - 0.8, deck - 2.5, deck - 2);
   B.box(g, M.water, h.x + 0.8, h.x + h.w - 0.8, h.y + 0.8, h.y + h.d - 0.8, zt - 0.4, zt - 0.3, { shadow: false });
   const sx = h.x + h.w / 2;
