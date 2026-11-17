@@ -358,7 +358,7 @@ export const floors = {
         finish: { walls: 'paintedBlock' } },
       { id: 'safe',       name: 'Storm Safe Room', use: 'service', x: 0, y: 33, w: 14, d: 7, finished: false,
         finish: { walls: 'paintedBlock' } },
-      { id: 'lounge',  name: 'Sports Lounge & Bar', use: 'rec', x: 18, y: 0,  w: 22, d: 18 },
+      { id: 'lounge',  name: 'Sports Lounge & Bar', use: 'rec', x: 18, y: 0,  w: 22, d: 18, labelDy: 4.8 },
       { id: 'gym',     name: 'Gym',            use: 'rec',  x: 40, y: 0,  w: 12, d: 20, finished: false,
         note: 'unfinished', finish: { floor: 'stallMats', walls: 'paintedBlock' } },
       { id: 'sim',     name: 'Golf Sim Bay',   use: 'rec',  x: 18, y: 18, w: 14, d: 22,
@@ -375,7 +375,7 @@ export const floors = {
       { kind: 'window',    on: 'y', at: 0, from: 14.75, to: 17.25 },         // end of the hall
       { kind: 'window',    on: 'y', at: 0, from: 18.75, to: 21.25 },         // lounge, beside its doors
       { kind: 'glassdoor', on: 'y', at: 0, from: 22, to: 36 },               // lounge
-      { kind: 'window',    on: 'y', at: 0, from: 37, to: 39.5 },             // lounge
+      { kind: 'window',    on: 'y', at: 0, from: 37, to: 39.5, sill: 4 },    // lounge, above the back bar
       { kind: 'glassdoor', on: 'y', at: 0, from: 42, to: 50 },               // gym
       // south side, where the lawn falls away: a high window in the guest suite
       { kind: 'window',    on: 'x', at: 0, from: 2.5, to: 6.5, sill: 5.5 },
@@ -402,13 +402,14 @@ export const floors = {
       { type: 'mat',    x: 22.5, y: 27,   w: 5,  d: 5,   h: 0.15, label: 'Hitting mat' },
       { type: 'steps',  x: 18.3, y: 19.5, w: 3,  d: 5,   h: 2 },
       { type: 'sofa',   x: 24,   y: 18.5, w: 7,  d: 3,   h: 2.6, faces: '+y' },
-      // sports lounge
-      { type: 'counter', x: 20.5, y: 15.7, w: 13,  d: 2,   h: 3, label: 'Wet bar', sink: true },
-      { type: 'island',  x: 20.5, y: 11.5, w: 13,  d: 2,   h: 3.5 },
-      // big sports TV (~98") centered on the gym wall, sofa facing it
-      { type: 'tv',      x: 38.2, y: 3,    w: 1.5, d: 7.6, h: 2, screenH: 4, label: '98" TV' },
-      { type: 'sofa',    x: 29,   y: 3,    w: 3.5, d: 7.5, h: 2.8, faces: '+x', label: 'Sofa' },
-      { type: 'table',   x: 33.5, y: 5,    w: 2.5, d: 3.5, h: 1.4 },
+      // sports lounge — TV area on the back (golf sim) wall, bar along the gym wall
+      { type: 'tv',       x: 21,   y: 16.3, w: 8,   d: 1.5, h: 2, screenH: 4.2, label: '98" TV' },
+      { type: 'sofa',     x: 19.5, y: 3.5,  w: 11,  d: 3.5, h: 2.8, faces: '+y', label: 'Sectional' },
+      { type: 'sofa',     x: 18.3, y: 3.5,  w: 3.5, d: 9,   h: 2.8, faces: '+x' },
+      { type: 'recliner', x: 28.5, y: 7.8,  w: 3.3, d: 3.6, h: 3.4, faces: '+y', label: 'Recliner' },
+      { type: 'table',    x: 22.5, y: 8.5,  w: 5,   d: 2.5, h: 1.4 },
+      { type: 'counter',  x: 38.2, y: 0.8,  w: 1.8, d: 12,  h: 3, label: 'Wet bar', sink: true, uppers: true },
+      { type: 'island',   x: 33,   y: 2,    w: 2,   d: 9,   h: 3.5, label: 'Bar top' },
       // gym (unfinished: sealed concrete with rubber stall mats)
       { type: 'equipment', x: 44.5, y: 16.5, w: 6.5, d: 3,   h: 4.5 },
       { type: 'equipment', x: 46.5, y: 8,   w: 5,   d: 4.5, h: 7.5 },
