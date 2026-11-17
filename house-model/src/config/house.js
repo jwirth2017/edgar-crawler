@@ -474,6 +474,21 @@ export const exterior = {
   stoop: { x: -4, y: 12.5, w: 4, d: 5, top: -0.4 },
 };
 
+/**
+ * Paving that fills an inside corner with a curve: the corner at (x0, y1), the
+ * curve a circle of radius r centered at (cx, cy). Returned as thin strips so
+ * the terrain, ground paint and plans can treat it like any other rectangle.
+ */
+function courtFillet({ cx, cy, r, x0, y1 }, step = 0.5) {
+  const out = [];
+  for (let x = x0; x < cx - 1e-6; x += step) {
+    const xm = Math.min(x + step / 2, cx);
+    const y = cy + Math.sqrt(Math.max(0, r * r - (xm - cx) ** 2));
+    if (y1 - y > 0.05) out.push({ x, y, w: step, d: y1 - y });
+  }
+  return out;
+}
+
 // Site ---------------------------------------------------------------------------
 export const site = {
   lot: { x: -110, y: -120, w: 240, d: 290 },
@@ -502,6 +517,8 @@ export const site = {
     { x: -56, y: -12, w: 37, d: 36 },
     { x: -19, y: 19,  w: 19, d: 5 },
     { x: -4,  y: 12,  w: 4,  d: 7 },     // walk from the drive to the mudroom door
+    // curved corner so cars can swing from the breezeway arch into the court
+    ...courtFillet({ cx: -3, cy: 3, r: 16, x0: -19, y1: 19 }),
   ],
   coveredPatio: { x: 0, y: -14, w: 52, d: 14 },                 // under the deck
   // Large concrete pavers in a grid with grass strips, patio → pool deck
