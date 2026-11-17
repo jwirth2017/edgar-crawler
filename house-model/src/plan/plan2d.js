@@ -1,6 +1,6 @@
 // Top-down SVG plan, drawn straight from the config. Front of the house is at
 // the bottom of the page; the rear (west, pool side) is at the top.
-import { floors, exterior, site, build, stair, phases, garageFrame } from '../config/house.js';
+import { floors, exterior, site, build, stair, phases, garageFrame, garageLink } from '../config/house.js';
 import { deriveWalls, solidSpans, allRooms, roomAt, fmtFeet } from '../model/layout.js';
 import { patioEdgeWall } from '../model/terrain.js';
 import { deckStair } from '../model/deckStair.js';
@@ -319,7 +319,19 @@ function garageSVG() {
   s += drawFurniture(g.furniture, rooms);
   for (const w of walls) s += drawWall(w);
   for (const r of g.rooms) s += roomLabel(r);
-  return `<g transform="${garageFrame().svg}">${s}</g>`;
+  let link = '';
+  if (g.link) {
+    const L = garageLink();
+    link += `<path d="M${L.poly.map(([x, y]) => `${n(x)},${n(y)}`).join(' L')} Z" fill="${FILL.circ}"/>`;
+    for (const wy of [L.y0, L.y1]) {
+      link += line(L.xg(wy), wy, L.window[0], wy, `stroke="${INK}" stroke-width="0.5"`);
+      link += line(L.window[1], wy, L.xb, wy, `stroke="${INK}" stroke-width="0.5"`);
+      link += line(L.window[0], wy, L.window[1], wy, `stroke="${GLASS}" stroke-width="0.18"`);
+    }
+    const cx = (L.xb + L.xg((L.y0 + L.y1) / 2)) / 2;
+    link += text(cx, (L.y0 + L.y1) / 2, 'Link', 0.8, `text-anchor="middle" dominant-baseline="central" fill="${INK}" font-weight="650" class="halo"`);
+  }
+  return link + `<g transform="${garageFrame().svg}">${s}</g>`;
 }
 
 /** Garage outline corners in the site plan. */
@@ -588,6 +600,7 @@ export function sitePlanSVG() {
   for (const f of floors.main.footprint) s += rect(f.x, f.y, f.w, f.d, `fill="#2e2e2e" stroke="#2e2e2e" stroke-width="0.5"`);
   const go = garageOutline();
   s += `<path d="M${go.map(([x, y]) => `${n(x)},${n(y)}`).join(' L')} Z" fill="#2e2e2e"/>`;
+  if (exterior.garage.link) s += `<path d="M${garageLink().poly.map(([x, y]) => `${n(x)},${n(y)}`).join(' L')} Z" fill="#3b3b3b"/>`;
   const ridge = `stroke="#7a7a7a" stroke-width="0.25"`;
   const cg = exterior.roofs.find((r) => r.id === 'center');
   s += line(MB.x, MB.y + MB.d / 2, MB.x + MB.w, MB.y + MB.d / 2, ridge) + line(cg.centerX, MB.y, cg.centerX, MB.y + MB.d, ridge) + line(WCX, WG.y, WCX, WG.y + WG.d, ridge);

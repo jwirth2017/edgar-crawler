@@ -456,14 +456,15 @@ export const exterior = {
     floor: -1,
     ceiling: 10,
     wallTop: 11,                            // eave 10 ft above the main floor
-    place: { anchor: [-34.5, 24], at: [-59.3, 27.6], angle: -18 },
+    // the side door (local -16, 31.5) sits 12 ft from the breezeway, joined by an angled link
+    place: { anchor: [-16, 31.5], at: [-30, 32], angle: -18 },
     footprint: [{ x: -52, y: 24, w: 36, d: 24 }],
     rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -52, y: 24, w: 36, d: 24, finished: false }],
     openings: [
       { kind: 'garage', on: 'y', at: 24, from: -50, to: -41 },    // doors face the turnaround
       { kind: 'garage', on: 'y', at: 24, from: -39, to: -30 },
       { kind: 'garage', on: 'y', at: 24, from: -28, to: -19 },
-      { kind: 'door',   on: 'x', at: -16, from: 30, to: 33 },     // side door, walk to the breezeway
+      { kind: 'door',   on: 'x', at: -16, from: 30, to: 33 },     // side door into the link to the breezeway
       { kind: 'window', on: 'y', at: 48, from: -46, to: -42 },
       { kind: 'window', on: 'y', at: 48, from: -36, to: -32 },
       { kind: 'window', on: 'y', at: 48, from: -26, to: -22 },
@@ -475,6 +476,9 @@ export const exterior = {
       { type: 'car', x: -26.5, y: 30, w: 6, d: 16, h: 5 },
     ],
     roof: { id: 'garage', type: 'gable', x: -52, y: 24, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    // enclosed link from the garage side door to the breezeway's walk-through door:
+    // straight walls along y = y0 / y1, square to the breezeway, mitred to the angled garage
+    link: { y0: 28, y1: 36, eave: 9, window: [-25, -21.5] },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -503,6 +507,22 @@ export function garageFrame() {
   };
 }
 
+/**
+ * The garage link's outline: from the breezeway's far wall to the angled garage
+ * wall, between y0 and y1. Also returns where the garage wall crosses any y.
+ */
+export function garageLink() {
+  const G = garageFrame();
+  const g = exterior.garage;
+  const f = g.footprint[0];
+  const [ax, ay] = G.toWorld([f.x + f.w, f.y]);
+  const [bx, by] = G.toWorld([f.x + f.w, f.y + f.d]);
+  const xg = (y) => ax + ((y - ay) / (by - ay)) * (bx - ax);   // garage east wall at y
+  const { y0, y1 } = g.link;
+  const xb = exterior.breezeway.x;
+  return { ...g.link, xb, xg, poly: [[xb, y0], [xg(y0), y0], [xg(y1), y1], [xb, y1]] };
+}
+
 /** Convex hull of points (for paved areas given as a handful of corners). */
 function hull(pts) {
   const P = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -520,21 +540,18 @@ function motorCourt() {
   const g = exterior.garage;
   const f = g.footprint[0];
   const circle = [];
-  const [cx, cy, r] = [-44, 10, 25];       // turnaround: 50 ft across (about 40 ft centerline circle + car width)
+  const [cx, cy, r] = [-46.3, 2.9, 25];       // turnaround: 50 ft across (about 40 ft centerline circle + car width)
   for (let i = 0; i < 28; i++) circle.push([cx + r * Math.cos((i / 28) * 2 * Math.PI), cy + r * Math.sin((i / 28) * 2 * Math.PI)]);
   const apron = [[f.x, f.y], [f.x + f.w, f.y], [f.x + f.w, f.y - 22], [f.x, f.y - 22]].map(G.toWorld);  // 22 ft in front of the doors
   const bw = exterior.breezeway;
   const ax0 = bw.x + (bw.w - bw.archWidth) / 2;
   const ax1 = ax0 + bw.archWidth;
   const lane = [[ax0, bw.y], [ax1, bw.y], [ax1 - 4, 16], [-19, 9], [-33, 18]];   // from the arch onto the loop
-  const [sd0, sd1] = bw.sideDoor;
-  const walk = [G.toWorld([f.x + f.w, 30]), G.toWorld([f.x + f.w, 33]), [bw.x, sd1], [bw.x, sd0]];   // garage side door → breezeway
   return [
     { poly: hull(circle), name: 'turnaround' },
     { poly: hull(apron) },
     { poly: hull(lane) },
     { x: -4, y: 12, w: 4, d: 12 },        // walk to the mudroom door
-    { poly: hull(walk) },
   ];
 }
 
@@ -558,8 +575,8 @@ export const site = {
   road:      { y: 156, width: 22 },
   driveway:  { width: 12, path: [[-9, 145], [-9, 40]] },        // to the breezeway arch
   // motor court at main-floor level: come through the breezeway, loop around a
-  // 50 ft turnaround and pull nose-first into the angled garage; walks to the
-  // mudroom door and from the garage side door to the breezeway.
+  // 50 ft turnaround and pull nose-first into the angled garage; walk to the
+  // mudroom door.
   // Entries are rectangles, or { poly } (convex) for curved / angled paving.
   courtyard: motorCourt(),
 

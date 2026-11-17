@@ -8,7 +8,7 @@
 // walkout patio level. On the wing side the lawn is a plane falling toward the
 // rear. Behind the house the pool deck and patio are flat at the walkout
 // level, then the lot falls away west.
-import { site, floors, exterior, phases, garageFrame } from '../config/house.js';
+import { site, floors, exterior, phases, garageFrame, garageLink } from '../config/house.js';
 
 const T = site.terrain;
 const smooth = (a, b, v) => {
@@ -27,6 +27,7 @@ const SOUTH_HIGH = [
   ...[].concat(site.courtyard),
   { x: BW.x, y: BW.y, w: BW.w, d: BW.d },
   GARAGE,
+  { poly: garageLink().poly },
 ];
 const distBox = (r, x, y) => Math.hypot(Math.max(r.x - x, 0, x - (r.x + r.w)), Math.max(r.y - y, 0, y - (r.y + r.d)));
 /** Distance from (x, y) to a convex polygon (0 inside). */
