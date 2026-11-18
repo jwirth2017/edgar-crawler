@@ -486,36 +486,36 @@ export const exterior = {
   },
   // (no breezeway: the garage attaches straight to the house at the mudroom)
   breezeway: null,
-  // 3-car garage attached to the house's south wall, doors facing the motor court at the
-  // rear (side-load: nothing faces the street). Door from the garage into the mudroom.
+  // 3-car garage attached to the house's south wall. Doors face the side yard (south), so cars
+  // pull straight in toward the house, nose or tail to the mudroom wall; nothing faces the street.
   garage: {
     name: '3-Car Garage',
-    noSqueeze: true,                        // drawn at the final size: 24 ft deep
+    noSqueeze: true,                        // drawn at the final size
     finish: 'better',
     floor: -1,
     ceiling: 10,
     wallTop: 11,                            // eave 10 ft above the main floor
-    place: { anchor: [0, 22], at: [0, 22], angle: 0 },
-    footprint: [{ x: -36, y: 10, w: 36, d: 24 }],
-    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -36, y: 10, w: 36, d: 24, finished: false,
+    place: { anchor: [0, 18], at: [0, 18], angle: 0 },
+    footprint: [{ x: -24, y: 0, w: 24, d: 36 }],
+    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -24, y: 0, w: 24, d: 36, finished: false,
       note: 'attic storage above · pull-down stairs' }],
     openings: [
-      { kind: 'garage', on: 'y', at: 10, from: -34, to: -25 },    // doors face the motor court
-      { kind: 'garage', on: 'y', at: 10, from: -23, to: -14 },
-      { kind: 'garage', on: 'y', at: 10, from: -12, to: -3 },
-      { kind: 'door',   on: 'x', at: 0,   from: 11.5, to: 14.5 }, // into the mudroom (fire-rated, self-closing)
-      { kind: 'window', on: 'y', at: 34, from: -31, to: -27 },
-      { kind: 'window', on: 'y', at: 34, from: -20, to: -16 },
-      { kind: 'window', on: 'y', at: 34, from: -9, to: -5 },
-      { kind: 'window', on: 'x', at: -36, from: 19, to: 25 },
+      { kind: 'garage', on: 'x', at: -24, from: 1.5,  to: 10.5 },   // doors face the side yard
+      { kind: 'garage', on: 'x', at: -24, from: 13.5, to: 22.5 },
+      { kind: 'garage', on: 'x', at: -24, from: 25.5, to: 34.5 },
+      { kind: 'door',   on: 'x', at: 0,   from: 11.5, to: 14.5 },   // into the mudroom (fire-rated, self-closing)
+      { kind: 'window', on: 'y', at: 0,   from: -17, to: -13 },
+      { kind: 'window', on: 'y', at: 36,  from: -19, to: -15 },
+      { kind: 'window', on: 'y', at: 36,  from: -11, to: -7 },
     ],
     furniture: [
-      { type: 'tall', x: -35.7, y: 30.2, w: 20, d: 2.5, h: 7, label: 'Storage + workbench wall' },
-      { type: 'car', x: -32.5, y: 13, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
-      { type: 'car', x: -21.5, y: 13, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -10.5, y: 13, w: 6, d: 16, h: 5 },
+      { type: 'tall', x: -2.8, y: 17,  w: 2.5, d: 18.7, h: 7, label: 'Storage + workbench' },  // along the house wall
+      { type: 'tall', x: -2.8, y: 0.3, w: 2.5, d: 10,   h: 7, label: 'Storage' },
+      { type: 'car', x: -21.5, y: 3,    w: 16, d: 6, h: 5 },        // three cars, nose to the house wall
+      { type: 'car', x: -21.5, y: 15,   w: 16, d: 6, h: 5 },
+      { type: 'car', x: -21.5, y: 27,   w: 16, d: 6, h: 5 },
     ],
-    roof: { id: 'garage', type: 'gable', x: -36, y: 10, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    roof: { id: 'garage', type: 'gable', x: -24, y: 0, w: 24, d: 36, ridge: 'y', eave: 10, pitch: 8, overhang: 1.5 },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -578,15 +578,10 @@ function hull(pts) {
  * patio and pool; the wall tapers out away from them (see retainingWalls()).
  */
 function motorCourt() {
-  // drawn at the final size: an apron across the garage doors and the arch
-  // (22 ft to back out), and a hammerhead arm to back into, so a truck can
-  // come up the drive past the garage, turn and pull nose-first into any bay. The
-  // apron's corner by the house is clipped so the retaining wall is one short
-  // run from the house corner, tapering out.
+  // drawn at the final size: a 32 ft apron in front of the garage doors (room to back out
+  // and turn around), wrapping behind the garage with a short retaining wall at the patio corner.
   return [
-    { poly: hull([[0, 10], [0, 0], [-16, -12], [-58, -12], [-58, 10]]), wall: true, noSqueeze: true },
-    { x: -49, y: 10, w: 12, d: 30, noSqueeze: true, name: 'drive' },   // drive along the garage's end wall
-    { poly: hull([[-52, -12], [-38, -12], [-38, -32], [-52, -32]]), wall: true, noSqueeze: true, name: 'hammerhead' },
+    { poly: hull([[0, 0], [-8, -6], [-56, -6], [-56, 38], [-24, 38]]), wall: true, noSqueeze: true, labelAt: [-40, 6] },
   ];
 }
 
@@ -609,8 +604,8 @@ export const site = {
     rollAmplitude: 1.8,     // gentle rolling away from the house
   },
   road:      { y: 156, width: 22 },
-  driveway:  { width: 12, path: [[-43, 145], [-43, 10]] },        // past the garage's end wall to the court
-  // motor court at main-floor level: come up the drive past the garage, turn around
+  driveway:  { width: 12, path: [[-43, 145], [-43, 38]] },        // up to the apron in front of the garage doors
+  // apron at main-floor level: come up the drive, turn and pull straight in
   // and pull nose-first into the garage.
   // Entries are rectangles, or { poly } (convex) for curved / angled paving.
   courtyard: motorCourt(),

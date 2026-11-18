@@ -436,10 +436,11 @@ export function floorPlanSVG(key) {
     const stp = exterior.stoop;
     if (stp) s += rect(stp.x, stp.y, stp.w, stp.d, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.1"`);
     { const dx = site.driveway.path[0][0];
-      s += `<path d="M${dx},50 L${dx},2 Q${dx},-4 ${dx + 6},-4 L-14,-4 Q-9,-4 -9,1 L-9,6 m0,0 l-0.9,-1.6 m0.9,1.6 l0.9,-1.6" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
+      s += `<path d="M${dx},50 L${dx},22 Q${dx},18 ${dx + 5},18 L-26,18 m0,0 l-1.6,-0.9 m1.6,0.9 l-1.6,0.9" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
       s += note(dx, 52, 'driveway from street', 0.8); }
-    s += note(ct.x + ct.w / 2, ct.y + ct.d / 2 - 2, 'Motor court', 0.95);
-    s += note(ct.x + ct.w / 2, ct.y + ct.d / 2 - 0.3, `about ${Math.round(ct.w)}' × ${Math.round(ct.d)}' · main-floor level`, 0.75);
+    const [lx, ly] = courts[0].labelAt || [ct.x + ct.w / 2, ct.y + ct.d / 2];
+    s += note(lx, ly - 2, 'Motor court', 0.95);
+    s += note(lx, ly - 0.3, `about ${Math.round(ct.w)}' × ${Math.round(ct.d)}' · main-floor level`, 0.75);
     s += garageSVG();
     s += patioWallSVG(0.6) + slopeArrows(0.85);
     if (patioWallSVG()) s += text(-2, -10, `retaining wall · up to ${Math.round(wallMax())}', tapers out`, 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
@@ -523,7 +524,8 @@ export function sitePlanSVG() {
   const courts = [].concat(site.courtyard);
   for (const cc of courts) s += area(cc, `fill="#cfccc4"`);
   { const b = exterior.breezeway; if (b) s += rect(b.x + (b.archX ?? (b.w - b.archWidth) / 2), b.y, b.archWidth, b.d, `fill="#cfccc4"`); }
-  const c = bbox(courts[0]);
+  const c0 = bbox(courts[0]);
+  const c = courts[0].labelAt ? { x: courts[0].labelAt[0], y: courts[0].labelAt[1] + 2, w: 0, d: 0 } : c0;
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
   s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
   // Phase 1 (built): paver grid off the covered patio, lawn beyond
@@ -615,7 +617,9 @@ export function sitePlanSVG() {
   {
     const G = garageFrame();
     const f = exterior.garage.footprint[0];
-    const [a, b] = [G.toWorld([f.x, f.y + f.d / 2]), G.toWorld([f.x + f.w, f.y + f.d / 2])];
+    const [a, b] = exterior.garage.roof.ridge === 'y'
+      ? [G.toWorld([f.x + f.w / 2, f.y]), G.toWorld([f.x + f.w / 2, f.y + f.d])]
+      : [G.toWorld([f.x, f.y + f.d / 2]), G.toWorld([f.x + f.w, f.y + f.d / 2])];
     s += line(a[0], a[1], b[0], b[1], ridge);
   }
   if (bw) s += line(bw.x + bw.w / 2, bw.y, bw.x + bw.w / 2, bw.y + bw.d, ridge);
