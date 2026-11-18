@@ -135,7 +135,7 @@ export const floors = {
       { id: 'coat',   name: 'Coat',         use: 'service', x: 32, y: 31, w: 6, d: 9 },
       // — right side: powder, den; hall in front of the living room leads to the wing —
       { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 46, y: 20, w: 6,  d: 6 },
-      { id: 'dropZone', name: 'Drop Zone',  use: 'service', x: 41, y: 20, w: 5,  d: 6, note: 'closet' },
+      { id: 'wetBar', name: 'Wet Bar',      use: 'living', x: 41, y: 20, w: 5,  d: 6, note: 'open to the hall' },
       { id: 'den',    name: 'TV Den',       use: 'living', x: 38, y: 26, w: 14, d: 14 },
       // — primary wing (flush with the rear wall) —
       { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 52, y: 0,  w: 16, d: 16 },
@@ -180,7 +180,7 @@ export const floors = {
       // interior — right
       { kind: 'door', on: 'x', at: 32, from: 33,   to: 36 },                    // coat closet (off the foyer)
       { kind: 'door', on: 'y', at: 20, from: 47.5, to: 50, swing: -1 },        // powder
-      { kind: 'door', on: 'y', at: 20, from: 42,   to: 44.5, swing: -1 },       // drop-zone closet
+      { kind: 'opening', on: 'y', at: 20, from: 41.4, to: 45.6 },              // wet bar nook, open to the hall
       { kind: 'door', on: 'y', at: 26, from: 38.25, to: 40.75, swing: -1 },    // den, from the gallery
       // interior — primary wing
       { kind: 'door', on: 'x', at: 52, from: 16.5, to: 19.5 },                  // house → primary entry (pocket door)
@@ -229,7 +229,7 @@ export const floors = {
       // powder / coat
       { type: 'counter', x: 46.3, y: 23.9, w: 3.2, d: 1.8, h: 3, sink: true },
       { type: 'toilet',  x: 50.1, y: 22.4, w: 1.7, d: 2.3, h: 1.4 },
-      { type: 'tall',    x: 41.3, y: 23.8, w: 4.4, d: 2,   h: 7, label: 'Coats + bags' },
+      { type: 'counter', x: 41.3, y: 23.8, w: 4.4, d: 2,   h: 3, sink: true, uppers: true, label: 'Wet bar · bev fridge' },
       { type: 'tall',    x: 36.1, y: 31.3, w: 1.7, d: 8.4, h: 7 },
       // primary suite
       { type: 'bed',     x: 60.5, y: 4.5,  w: 7.2, d: 6.5, h: 2.2, label: 'King' },
