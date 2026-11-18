@@ -138,7 +138,9 @@ export function gableRoof(B, M, r, notch = null, group = 'roof') {
   B.box(group, M.black, ...cap, zr - 0.1, zr + 0.18);
   // gable-end walls
   if (r.id !== 'breezeway') {
-    for (const end of [a0, a1]) gableTriangle(B, group, M.siding, along === 'x' ? 'x' : 'y', end, b0, b1, r.eave - 0.05, zr - 0.05);
+    // gable-end walls, except an end that butts into another building (the roof dies into its wall)
+    const ends = [[a0, along === 'x' ? 'x0' : 'y0'], [a1, along === 'x' ? 'x1' : 'y1']];
+    for (const [end, side] of ends) if (!abuts(r.id, r, side)) gableTriangle(B, group, M.siding, along === 'x' ? 'x' : 'y', end, b0, b1, r.eave - 0.05, zr - 0.05);
   }
   return { a0, a1, b0, b1, zr, along };
 }
@@ -174,7 +176,7 @@ export function buildRoofs(B, M) {
       const cross = exterior.roofs.find((c) => c.type === 'crossGable');
       const notch = r.id === 'main' && cross ? [cross.centerX - cross.width / 2, cross.centerX + cross.width / 2] : null;
       const g = gableRoof(B, M, r, notch);
-      if (r.id === 'wing') cedarTruss(B, M, 'y', g.a1, 1, g.b0, g.b1, r.eave, g.zr);
+      if (r.id === 'wing') cedarTruss(B, M, r.ridge === 'x' ? 'x' : 'y', g.a1, 1, g.b0, g.b1, r.eave, g.zr);
       if (r.id === 'breezeway') for (const [end, sign] of [[g.a0, -1], [g.a1, 1]]) cedarTruss(B, M, 'y', end, sign, g.b0, g.b1, r.eave, g.zr);
     } else if (r.type === 'crossGable') {
       const main = floors.upper.footprint[0];

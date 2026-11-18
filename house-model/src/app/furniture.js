@@ -1,6 +1,8 @@
 // Simple block furniture so room scale reads at a glance. Each item is the
 // config's plan rectangle (x, y, w, d) and height h, standing on `base`.
+import * as THREE from 'three';
 import { exterior } from '../config/house.js';
+import { W } from './builder.js';
 
 /** Side of the rectangle that sits against a wall of `room` (for headboards etc.). */
 function wallSide(f, room, anySide = false) {
@@ -229,6 +231,7 @@ export function furniture(B, M, g, f, base, room, P) {
       box(M.bedding, strip(f, f.back || '-y', 1.8), 0.9, h + 1.1);   // raised back end
       break;
     case 'fireplace': {
+      if (f.corner) { cornerFireplace(B, M, g, f, base, h); break; }
       box(M.stone, R(f), 0, h, { collide: true });
       const face = opposite[wallSide(f, room, true)];
       const hearth = strip({ ...f, x: f.x - (face === '-x' ? 1.5 : 0), w: f.w + 1.5 }, face, 1.6);
@@ -245,6 +248,37 @@ export function furniture(B, M, g, f, base, room, P) {
     default:
       box(M.fabric, R(f), 0, h);
   }
+}
+
+/**
+ * Corner fireplace: a triangular stone surround filling the room corner at the
+ * rectangle's +x/+y corner, firebox and cedar mantel on the diagonal face.
+ */
+function cornerFireplace(B, M, g, f, base, h) {
+  const X1 = f.x + f.w;
+  const Y1 = f.y + f.d;
+  const a = Math.min(f.w, f.d);
+  const tri = (k, z0, z1, mat) => {
+    const sh = new THREE.Shape();
+    sh.moveTo(X1 - a - k, -Y1);
+    sh.lineTo(X1, -Y1);
+    sh.lineTo(X1, -(Y1 - a - k));
+    sh.closePath();
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: z1 - z0, bevelEnabled: false });
+    geo.rotateX(-Math.PI / 2);
+    geo.translate(0, z0, 0);
+    B.geom(g, mat, geo);
+  };
+  tri(0, base, base + h, M.stone);
+  tri(1.4, base, base + 0.6, M.stone);                       // raised hearth
+  const panel = (off, len, thick, z0, z1, mat) => {
+    const m = new THREE.Matrix4().makeRotationY(Math.PI / 4);
+    const c = X1 - a / 2 - off / Math.SQRT2;
+    m.setPosition(W(c, Y1 - a / 2 - off / Math.SQRT2 + (X1 - a / 2 - off / Math.SQRT2 - c), (z0 + z1) / 2));
+    B.boxM(g, mat, len, z1 - z0, thick, m);
+  };
+  panel(0.04, a * 1.1, 0.08, base + 1.6, base + 3.4, M.black);   // linear electric firebox
+  panel(0.3, a * 1.25, 0.6, base + 4.4, base + 4.8, M.cedar);    // mantel
 }
 
 /** The island's work surface (without the bar ledge). */

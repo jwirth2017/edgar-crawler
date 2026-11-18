@@ -143,7 +143,10 @@ function drawFurniture(list = [], rooms = []) {
     const strong = ['screen', 'mat', 'island', 'bed', 'car', 'hanging'].includes(f.type);
     // Phase 2 furniture is drawn dashed blue, like the other Phase 2 items
     const stroke = f.phase === 2 ? `stroke="#2f7fb8" stroke-dasharray="0.4 0.3"` : `stroke="${FURN}"`;
-    s += rect(f.x, f.y, f.w, f.d,
+    if (f.corner) {
+      const X1 = f.x + f.w, Y1 = f.y + f.d;
+      s += `<path d="M${n(X1 - f.w)},${n(Y1)} L${n(X1)},${n(Y1)} L${n(X1)},${n(Y1 - f.d)} Z" fill="#cfc9bd" ${stroke} stroke-width="0.1"/>`;
+    } else s += rect(f.x, f.y, f.w, f.d,
       `fill="${f.type === 'mat' ? '#cfe3c4' : '#ffffff'}" fill-opacity="0.7" ${stroke} stroke-width="${strong ? 0.14 : 0.09}" rx="0.15"`);
     if (f.type === 'bed') {
       // pillow end = the end against the nearest wall is unknown here; just mark a band
@@ -619,7 +622,7 @@ export function sitePlanSVG() {
   if (exterior.garage.link) s += `<path d="M${garageLink().poly.map(([x, y]) => `${n(x)},${n(y)}`).join(' L')} Z" fill="#3b3b3b"/>`;
   const ridge = `stroke="#7a7a7a" stroke-width="0.25"`;
   const cg = exterior.roofs.find((r) => r.id === 'center');
-  s += line(MB.x, MB.y + MB.d / 2, MB.x + MB.w, MB.y + MB.d / 2, ridge) + line(cg.centerX, MB.y, cg.centerX, MB.y + MB.d, ridge) + line(WCX, WG.y, WCX, WG.y + WG.d, ridge);
+  s += line(MB.x, MB.y + MB.d / 2, MB.x + MB.w, MB.y + MB.d / 2, ridge) + line(cg.centerX, MB.y, cg.centerX, MB.y + MB.d, ridge) + (exterior.roofs.find((r) => r.id === 'wing')?.ridge === 'x' ? line(WG.x, WG.y + WG.d / 2, WG.x + WG.w, WG.y + WG.d / 2, ridge) : line(WCX, WG.y, WCX, WG.y + WG.d, ridge));
   {
     const G = garageFrame();
     const f = exterior.garage.footprint[0];
