@@ -260,8 +260,8 @@ export const floors = {
       { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 36, y: 20, w: 16, d: 16, note: 'incl. closet' },
       // — left: enclosed bonus room (closet + egress window: a bedroom or study later),
       //   kids' laundry, stairs, bedroom 3 with its own bath at the front —
-      { id: 'bonus',    name: 'Bonus Room',    use: 'living', x: 0, y: 0, w: 14, d: 11,
-        note: 'future bedroom / study' },
+      { id: 'bonus',    name: "Kids' Hangout", use: 'living', x: 0, y: 0, w: 14, d: 11,
+        note: 'bonus room · future bedroom / study' },
       { id: 'bonusCloset', name: 'Closet',     use: 'service', x: 0, y: 11, w: 5, d: 4 },
       { id: 'laundry2', name: "Kids' Laundry", use: 'service', x: 5, y: 11, w: 9, d: 4 },
       { ...STAIR_BOX, y: 15, finished: false },
@@ -329,10 +329,12 @@ export const floors = {
       { type: 'shower',  x: 14.3, y: 33,   w: 3.4, d: 2.7, h: 7.5 },
       { type: 'counter', x: 17.9, y: 28.3, w: 1.8, d: 3.2, h: 3, sink: true },
       { type: 'toilet',  x: 18,   y: 31.8, w: 1.7, d: 2.3, h: 1.4 },
-      // bonus room: TV wall, sofa, homework desks; closet; kids' laundry
-      { type: 'tv',    x: 0.3, y: 2.5,  w: 1.5, d: 5,   h: 2 },
-      { type: 'sofa',  x: 6,   y: 2,    w: 3.2, d: 6.5, h: 2.8, faces: '-x', label: 'Sofa' },
-      { type: 'desk',  x: 9.5, y: 0.3,  w: 4.2, d: 2,   h: 2.5, label: 'Desks' },
+      // kids' hangout: TV + gaming wall, L sectional, bean bags, a desk by the window
+      { type: 'tv',    x: 0.3, y: 2.5,  w: 1.5, d: 5.5, h: 2, label: 'TV + games' },
+      { type: 'sofa',  x: 7.5, y: 1.5,  w: 3.2, d: 7,   h: 2.8, faces: '-x', label: 'Sectional' },
+      { type: 'sofa',  x: 3,   y: 7.4,  w: 7.7, d: 3.2, h: 2.8, faces: '-y' },
+      { type: 'chair', x: 3.5, y: 3.5,  w: 2.4, d: 2.4, h: 1.6, label: 'Bean bags' },
+      { type: 'desk',  x: 11,  y: 0.3,  w: 2.7, d: 4,   h: 2.5 },
       { type: 'tall',  x: 0.3, y: 12.6, w: 4.4, d: 2.1, h: 7 },
       { type: 'appliance', x: 5.5, y: 12.2, w: 5, d: 2.5, h: 3.3 },
     ],
@@ -354,9 +356,7 @@ export const floors = {
       { id: 'guestCloset',name: 'Closet',       use: 'service', x: 0, y: 9.5, w: 5,  d: 5.5 },
       { id: 'guestBath',  name: 'Guest / Pool Bath', use: 'bath', x: 5, y: 9.5, w: 9, d: 5.5 },
       { ...STAIR_BOX, y: 15, finished: false },
-      { id: 'mechanical', name: 'Mechanical',   use: 'service', x: 0,  y: 24, w: 14, d: 12, finished: false,
-        finish: { walls: 'paintedBlock' } },
-      { id: 'safe',       name: 'Storm Safe Room', use: 'service', x: 14, y: 28, w: 4, d: 8, finished: false,
+      { id: 'mechanical', name: 'Mechanical',   use: 'service', x: 0,  y: 24, w: 18, d: 12, finished: false,
         finish: { walls: 'paintedBlock' } },
       // — center/right: lounge and bar on the walkout side, theater and sim behind —
       { id: 'lounge',  name: 'Sports Lounge', use: 'rec', x: 18, y: 0,  w: 17, d: 18, labelDy: 4.8 },
@@ -364,7 +364,10 @@ export const floors = {
       // gym in the dug-out space under the primary wing: unfinished, stall mats after move-in
       { id: 'gym',     name: 'Gym',           use: 'rec', x: 52, y: 0,  w: 26, d: 16, finished: false,
         note: 'unfinished · stall mats', finish: { floor: 'stallMats', walls: 'paintedBlock' } },
-      { id: 'wingStorage', name: 'Storage',   use: 'service', x: 52, y: 16, w: 26, d: 10, finished: false,
+      // storm shelter under the wing: poured-concrete walls and its own concrete lid
+      { id: 'safe',        name: 'Storm Shelter', use: 'service', x: 52, y: 16, w: 12, d: 10, finished: false,
+        note: 'concrete walls + lid', finish: { walls: 'paintedBlock' } },
+      { id: 'wingStorage', name: 'Storage',   use: 'service', x: 64, y: 16, w: 14, d: 10, finished: false,
         finish: { walls: 'paintedBlock' } },
       { id: 'sim',     name: 'Golf Sim Bay',  use: 'rec', x: 36, y: 12, w: 16, d: 24,
         floorOffset: -2, ceiling: 11, note: "11' ceiling, slab dropped 2'", finish: { floor: 'turf' } },
@@ -388,13 +391,13 @@ export const floors = {
       { kind: 'door', on: 'y', at: 9.5, from: 10.5, to: 13 },               // guest suite → bath
       { kind: 'door', on: 'x', at: 14,  from: 10.5, to: 13 },               // hall → bath (pool guests)
       // utility
-      { kind: 'door', on: 'x', at: 14,  from: 24.5, to: 27.5, swing: -1 },  // mechanical
-      { kind: 'door', on: 'y', at: 28,  from: 14.5, to: 17.5 },             // safe room (steel)
+      { kind: 'door', on: 'y', at: 24,  from: 14.5, to: 17.5 },             // mechanical
       // rec
       { kind: 'door',    on: 'x', at: 18, from: 20, to: 23, swing: -1 },    // theater
       { kind: 'opening', on: 'y', at: 12, from: 36.5, to: 39.5 },           // sim (steps down from the bar)
       { kind: 'opening', on: 'x', at: 52, from: 1,  to: 6 },               // bar & game room → gym
-      { kind: 'door',    on: 'y', at: 16, from: 54, to: 57 },               // gym → storage
+      { kind: 'door',    on: 'y', at: 16, from: 55, to: 58 },               // gym → storm shelter (steel)
+      { kind: 'door',    on: 'y', at: 16, from: 70, to: 73 },               // gym → storage
     ],
     furniture: [
       // theater (Phase 2) — screen on the front wall, two rows of four recliners
@@ -437,7 +440,8 @@ export const floors = {
       { type: 'appliance', x: 8.5, y: 24.5, w: 2.2, d: 2.2, h: 5.5 },
       { type: 'appliance', x: 0.5, y: 33,   w: 2.5, d: 2.5, h: 5.5 },
       { type: 'appliance', x: 8,   y: 34,   w: 5.5, d: 1.5, h: 6 },          // electrical panels
-      { type: 'bench',     x: 14.3, y: 34,  w: 3.4, d: 1.7, h: 1.5 },        // safe-room bench
+      { type: 'appliance', x: 14.5, y: 32,  w: 3,   d: 3,   h: 6 },          // generator transfer / Starlink + network rack
+      { type: 'bench',     x: 52.3, y: 24,  w: 11,  d: 1.7, h: 1.5 },        // storm shelter bench
     ],
   },
 };
