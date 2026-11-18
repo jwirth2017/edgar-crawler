@@ -269,7 +269,14 @@ function foundations(B, M) {
     B.box('main', M.stone, x0, x1, y0, y1, low - 1, zTop);
   };
   const t = 0.62;
-  if (floors.basement.footprint.some((r) => r.x === wing.x && r.y === wing.y)) return;   // dug out: basement walls instead
+  const dug = floors.basement.footprint.find((r) => r.x === wing.x && r.y === wing.y);
+  if (dug) {
+    // dug out under the back of the wing (basement walls there); crawlspace walls for the rest
+    if (dug.d >= wing.d) return;
+    run(wing.x, wing.x + wing.w, wing.y + wing.d - t / 2, wing.y + wing.d + t / 2, 0);
+    run(wing.x + wing.w - t / 2, wing.x + wing.w + t / 2, wing.y + dug.d, wing.y + wing.d, 0);
+    return;
+  }
   run(wing.x, wing.x + wing.w, wing.y - t / 2, wing.y + t / 2, 0);
   run(wing.x, wing.x + wing.w, wing.y + wing.d - t / 2, wing.y + wing.d + t / 2, 0);
   run(wing.x + wing.w - t / 2, wing.x + wing.w + t / 2, wing.y, wing.y + wing.d, 0);

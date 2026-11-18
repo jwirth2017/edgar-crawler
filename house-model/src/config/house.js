@@ -76,7 +76,9 @@ const BASEMENT_FLOOR = -(stair.risers.basementToMain * stair.riser); // -10.27'
 
 // Footprints ------------------------------------------------------------------
 const MAIN_BLOCK = { x: 0, y: 0, w: 52, d: 40 };  // two-story block
-const WING = { x: 52, y: 0, w: 26, d: 30 };       // one-story primary wing, flush with the rear, crawlspace below
+const WING = { x: 52, y: 0, w: 26, d: 40 };       // one-story primary wing, flush with the rear and the front
+// basement under the wing (gym, shelter, storage) stops 10 ft short of the front; crawlspace beyond
+const WING_BASE = { x: 52, y: 0, w: 26, d: 26, noSqueeze: true };
 const STAIR_BOX = { id: 'stair', name: 'Stairs', use: 'circ', stair: true,
   x: stair.x, y: stair.y, w: stair.w, d: stair.d };
 
@@ -137,21 +139,23 @@ export const floors = {
       { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 46, y: 20, w: 6,  d: 6 },
       { id: 'wetBar', name: 'Wet Bar',      use: 'living', x: 41, y: 20, w: 5,  d: 6, note: 'open to the hall' },
       { id: 'den',    name: 'TV Den',       use: 'living', x: 38, y: 26, w: 14, d: 14 },
-      // — primary wing (flush with the rear wall) —
-      { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 52, y: 0,  w: 16, d: 16 },
-      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 68, y: 0,  w: 10, d: 16,
+      // — primary wing (flush with the rear and front walls; final coordinates) —
+      // bedroom across the whole rear; hall, laundry and an L-shaped closet wrapped
+      // around the laundry; the bath runs front to back along the north wall
+      { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 52, y: 0,  w: 26, d: 14, noSqueeze: true },
+      { id: 'primaryEntry',  name: 'Primary Entry',   use: 'circ',    x: 52, y: 14, w: 16, d: 4,  noSqueeze: true },
+      { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 18, w: 10, d: 9,  noSqueeze: true },
+      { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 62, y: 18, w: 6,  d: 18, noSqueeze: true, noLabel: true },
+      { id: 'closetB',       name: 'Primary Closet',  use: 'service', x: 52, y: 27, w: 10, d: 9,  noSqueeze: true,
+        sizeText: 'L-shaped · ~200 sq ft', note: 'raised rods' },
+      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 68, y: 14, w: 10, d: 22, noSqueeze: true,
         note: 'curbless shower · grab-bar blocking' },
-      { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 64, y: 16, w: 14, d: 14,
-        note: 'double hang, raised rods' },
-      { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
-      // private entry: the wing hall closes off from the house with a pocket door
-      { id: 'primaryEntry', name: 'Primary Entry', use: 'circ', x: 52, y: 16, w: 12, d: 4 },
       // (the 3-car garage is its own angled building: exterior.garage)
     ],
     openPlan: [
       ['kitchen', 'living'], ['kitchen', 'dining'], ['living', 'dining'],
       ['kitchen', '_hall'], ['living', '_hall'], ['dining', '_hall'],
-      ['foyer', '_hall'], ['stair', '_hall'],
+      ['foyer', '_hall'], ['stair', '_hall'], ['primaryCloset', 'closetB'],
     ],
     openings: [
       // rear wall (y = 0) — glass onto the deck
@@ -159,19 +163,12 @@ export const floors = {
       { kind: 'window',      on: 'y', at: 0, from: 8.5, to: 11.5, sill: 4.5 },  // butler's pantry, over the counter
       { kind: 'passthrough', on: 'y', at: 0, from: 19, to: 29, sill: 3.5, head: 8 },   // 10 ft: fridge on one side, ovens on the other
       { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // dining → deck
-      { kind: 'glassdoor',   on: 'y', at: 0, from: 54.5, to: 60.5 },          // primary bedroom → deck
-      { kind: 'window',      on: 'y', at: 0, from: 62, to: 66, sill: 1.5 },    // primary bedroom
-      { kind: 'window',      on: 'y', at: 0, from: 71, to: 75, sill: 5 },
       // front wall (y = 40 main block, y = 30 wing)
       { kind: 'entry',  on: 'y', at: 40, from: 23, to: 29 },
       { kind: 'window', on: 'y', at: 40, from: 3,  to: 9 },                     // office desk → porch
       { kind: 'window', on: 'y', at: 40, from: 41, to: 49 },                    // den → porch
-      { kind: 'window', on: 'y', at: 30, from: 55, to: 61 },                    // laundry
-      { kind: 'window', on: 'y', at: 30, from: 69, to: 73, sill: 6 },           // closet, high
       // side walls (x = 0: the garage is attached along this wall)
       { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → garage
-      { kind: 'window', on: 'x', at: 78, from: 3,  to: 7,  sill: 5 },
-      { kind: 'window', on: 'x', at: 78, from: 10, to: 14, sill: 5 },
       // interior — left
       { kind: 'door', on: 'x', at: 6,  from: 12.5, to: 15.5 },                  // mudroom → back hall
       { kind: 'door', on: 'y', at: 11, from: 7.5,  to: 10.5 },                  // pantry → back hall (groceries from the mudroom)
@@ -183,13 +180,20 @@ export const floors = {
       { kind: 'door', on: 'y', at: 20, from: 47.5, to: 50, swing: -1 },        // powder
       { kind: 'opening', on: 'y', at: 20, from: 41.4, to: 45.6 },              // wet bar nook, open to the hall
       { kind: 'door', on: 'y', at: 26, from: 38.25, to: 40.75, swing: -1 },    // den, from the gallery
-      // interior — primary wing
-      { kind: 'door', on: 'x', at: 52, from: 16.5, to: 19.5 },                  // house → primary entry (pocket door)
-      { kind: 'door', on: 'y', at: 16, from: 54, to: 57, swing: -1 },         // hall → bedroom
-      { kind: 'door', on: 'x', at: 68, from: 2,  to: 5 },                     // bed → bath
-      { kind: 'door', on: 'y', at: 16, from: 70.5, to: 73.5 },                // bath → closet
-      { kind: 'door', on: 'x', at: 64, from: 22, to: 25, swing: -1 },         // closet → laundry
-      { kind: 'door', on: 'y', at: 20, from: 55, to: 58 },                    // hall → laundry
+      // primary wing (final coordinates)
+      { kind: 'glassdoor', on: 'y', at: 0,  from: 54.5, to: 60.5, noSqueeze: true },          // bedroom → deck sitting area
+      { kind: 'window',    on: 'y', at: 0,  from: 63,   to: 67, sill: 1.5, noSqueeze: true },  // bedroom
+      { kind: 'window',    on: 'y', at: 0,  from: 70,   to: 74, sill: 1.5, noSqueeze: true },
+      { kind: 'window',    on: 'x', at: 78, from: 17.5, to: 22.5, sill: 4.5, noSqueeze: true }, // bath, over the tub
+      { kind: 'window',    on: 'y', at: 36, from: 70,   to: 74, sill: 6, noSqueeze: true },    // bath, high (shower)
+      { kind: 'window',    on: 'y', at: 36, from: 54,   to: 60, sill: 6, noSqueeze: true },    // closet, high
+      { kind: 'door', on: 'x', at: 52, from: 14.5, to: 17.5, noSqueeze: true },               // house → primary entry (pocket door)
+      { kind: 'door', on: 'y', at: 14, from: 54.5, to: 57.5, swing: -1, noSqueeze: true },    // hall → bedroom
+      { kind: 'door', on: 'y', at: 14, from: 71,   to: 74, noSqueeze: true },                 // bedroom → bath
+      { kind: 'door', on: 'y', at: 18, from: 55,   to: 58, noSqueeze: true },                 // hall → laundry
+      { kind: 'door', on: 'y', at: 18, from: 63.5, to: 66.5, noSqueeze: true },               // hall → closet
+      { kind: 'door', on: 'x', at: 62, from: 21.5, to: 24.5, noSqueeze: true },               // laundry ↔ closet
+      { kind: 'door', on: 'x', at: 68, from: 31,   to: 34, noSqueeze: true },                 // closet ↔ bath
     ],
     furniture: [
       // kitchen — rear wall: fridge | sink run under the pass-through | double wall ovens;
@@ -238,29 +242,31 @@ export const floors = {
       { type: 'toilet',  x: 50.1, y: 22.4, w: 1.7, d: 2.3, h: 1.4 },
       { type: 'counter', x: 41.3, y: 23.8, w: 4.4, d: 2,   h: 3, sink: true, uppers: true, label: 'Wet bar · bev fridge' },
       { type: 'tall',    x: 36.1, y: 31.3, w: 1.7, d: 8.4, h: 7 },
-      // primary suite
-      { type: 'bed',     x: 60.5, y: 4.5,  w: 7.2, d: 6.5, h: 2.2, label: 'King' },
-      { type: 'table',   x: 65.8, y: 2.3,  w: 1.9, d: 2,   h: 2 },
-      { type: 'table',   x: 65.8, y: 11.2, w: 1.9, d: 2,   h: 2 },
-      { type: 'dresser', x: 52.3, y: 5,    w: 1.8, d: 6,   h: 3 },
-      { type: 'chair',   x: 54.5, y: 11.5, w: 3,   d: 3,   h: 2.7 },
-      { type: 'counter', x: 70,   y: 0.3,  w: 7,   d: 2,   h: 3, sink: 2 },   // double vanity
-      { type: 'tub',     x: 74.8, y: 4.5,  w: 2.9, d: 5.5, h: 2 },
-      { type: 'shower',  x: 68.3, y: 10.8, w: 4.5, d: 4.9, h: 7.5 },
-      { type: 'toilet',  x: 75.4, y: 14,   w: 2.3, d: 1.7, h: 1.4 },
-      // primary closet (final 14 × 12) — hanging on every wall except the two doorways
-      // (bath door on the rear wall, laundry door on the left), rods raised for tall owners;
-      // single hang under the high front window; small island in the middle
-      { type: 'hanging', x: 75.7, y: 14.3, w: 2,   d: 11.4, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
-      { type: 'hanging', x: 64.3, y: 14.3, w: 2,   d: 5.4,  h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
-      { type: 'hanging', x: 64.3, y: 23.4, w: 2,   d: 2.3,  h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
-      { type: 'hanging', x: 66.4, y: 14.3, w: 3.9, d: 2,    h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
-      { type: 'hanging', x: 73.8, y: 14.3, w: 1.8, d: 2,    h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
-      { type: 'hanging', x: 66.4, y: 23.7, w: 9.2, d: 2,    h: 5.8, rods: [64 / 12], label: 'Long hang', noSqueeze: true },
-      { type: 'island',  x: 69,   y: 18.6, w: 4,   d: 2.6,  h: 3, noSqueeze: true },
-      { type: 'appliance', x: 53,   y: 27.2, w: 5.4, d: 2.5, h: 3.3 },         // washer / dryer
-      { type: 'counter',   x: 58.8, y: 27.7, w: 4.8, d: 2,   h: 3, sink: true },
-      { type: 'tall',      x: 52.3, y: 21,   w: 1.7, d: 5,   h: 7 },
+      // primary suite (final coordinates) — king against the north wall, sitting nook by the deck door
+      { type: 'bed',     x: 70.6, y: 3.75, w: 7.2, d: 6.5, h: 2.2, label: 'King', noSqueeze: true },
+      { type: 'table',   x: 75.8, y: 1.5,  w: 1.9, d: 2,   h: 2, noSqueeze: true },
+      { type: 'table',   x: 75.8, y: 10.5, w: 1.9, d: 2,   h: 2, noSqueeze: true },
+      { type: 'dresser', x: 52.3, y: 3.5,  w: 1.8, d: 6,   h: 3, noSqueeze: true },
+      { type: 'chair',   x: 62.5, y: 2.8,  w: 3,   d: 3,   h: 2.7, faces: '+x', noSqueeze: true },
+      { type: 'chair',   x: 62.5, y: 8.2,  w: 3,   d: 3,   h: 2.7, faces: '+x', noSqueeze: true },
+      { type: 'table',   x: 63,   y: 6.1,  w: 2,   d: 1.8, h: 2, noSqueeze: true },
+      // bath — double vanity on the closet wall, tub under the side window, toilet, curbless shower at the front
+      { type: 'counter', x: 68.3, y: 18.5, w: 2,   d: 8,   h: 3, sink: 2, noSqueeze: true },
+      { type: 'tub',     x: 74.8, y: 17,   w: 2.9, d: 5.5, h: 2, noSqueeze: true },
+      { type: 'toilet',  x: 75.5, y: 25,   w: 2.3, d: 1.7, h: 1.4, noSqueeze: true },
+      { type: 'shower',  x: 72.6, y: 30.6, w: 5.1, d: 5.1, h: 7.5, noSqueeze: true },
+      // L-shaped closet: hanging on every wall except the doorways, rods raised for tall owners
+      { type: 'hanging', x: 65.9, y: 18.3, w: 2,   d: 12.4, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
+      { type: 'hanging', x: 65.9, y: 34.2, w: 2,   d: 1.5,  h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
+      { type: 'hanging', x: 62.3, y: 18.3, w: 1.5, d: 3,    h: 9, rods: [5], noSqueeze: true },
+      { type: 'hanging', x: 62.3, y: 24.7, w: 1.5, d: 2.3,  h: 9, rods: [5], noSqueeze: true },
+      { type: 'hanging', x: 52.3, y: 27.3, w: 2,   d: 8.4,  h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
+      { type: 'hanging', x: 54.5, y: 27.3, w: 7.5, d: 2,    h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
+      { type: 'hanging', x: 54.5, y: 33.7, w: 7.5, d: 2,    h: 5.8, rods: [64 / 12], label: 'Long hang', noSqueeze: true },
+      // laundry — washer/dryer and folding counter with a sink on the closet wall, cabinet by the door
+      { type: 'appliance', x: 52.5, y: 24.4, w: 5.2, d: 2.4, h: 3.3, noSqueeze: true },
+      { type: 'counter',   x: 57.9, y: 24.8, w: 3.8, d: 2,   h: 3, sink: true, noSqueeze: true },
+      { type: 'tall',      x: 52.3, y: 18.4, w: 1.7, d: 4.5, h: 7, noSqueeze: true },
     ],
   },
 
@@ -366,7 +372,7 @@ export const floors = {
     floor: BASEMENT_FLOOR,
     ceiling: 9,
     noSqueeze: true,              // drawn at the final (5,000 sq ft) size
-    footprint: [MAIN_BLOCK, WING],   // dug out under the primary wing for the gym
+    footprint: [MAIN_BLOCK, WING_BASE],   // dug out under the primary wing for the gym
     rooms: [
       // rear (y = 0) walks out to the covered patio; the other sides are below grade
       // — left: guest suite with its own patio door; its bath also opens to the
@@ -529,7 +535,7 @@ export const exterior = {
     { id: 'main',   type: 'gable', x: 0,   y: 0,  w: 52, d: 40, ridge: 'x', eave: 20.5, pitch: 8,  overhang: 1.5 },
     // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 26, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
-    { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 30, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
+    { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 40, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
   // landing inside the garage at the mudroom door, one step up from the garage floor
@@ -766,11 +772,7 @@ fitFurniture();
 // pieces that met after the rooms got shorter
 {
   const F = (lvl, pred) => floors[lvl].furniture.find(pred) || {};
-  Object.assign(F('main', (f) => f.label === 'King'), { y: 4.4 });
-  Object.assign(F('main', (f) => f.type === 'table' && f.x === 65.8 && f.y > 8), { y: 10.9 });
   Object.assign(F('main', (f) => f.label === 'Open shelves'), { y: 2.6, d: 6.1 });
-  Object.assign(F('main', (f) => f.type === 'appliance' && f.x === 53), { x: 54.2, w: 4.9 });
-  Object.assign(F('main', (f) => f.type === 'counter' && f.x === 58.8), { x: 59.2, w: 4.5 });
 }
 
 /** Keep every piece of furniture inside the room it stands in (rooms got shorter). */

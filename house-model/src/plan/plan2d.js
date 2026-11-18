@@ -202,9 +202,9 @@ function drawFurniture(list = [], rooms = []) {
 }
 
 function roomLabel(r) {
-  if (r.stair || r.hall) return '';
+  if (r.stair || r.hall || r.noLabel) return '';
   const lines = [r.name];
-  if (!r.void) lines.push(`${fmtFeet(r.w)} × ${fmtFeet(r.d)}`);
+  if (!r.void) lines.push(r.sizeText ?? `${fmtFeet(r.w)} × ${fmtFeet(r.d)}`);
   if (r.note) lines.push(r.note);
   const longest = Math.max(...lines.map((l, i) => l.length * (i ? 0.8 : 1)));
   const fit = (span) => (span - 0.8) / (0.56 * longest);

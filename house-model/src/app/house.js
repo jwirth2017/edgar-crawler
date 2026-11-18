@@ -523,10 +523,10 @@ export function buildLevelFurniture(B, M, key) {
 // ─── labels ──────────────────────────────────────────────────────────────────
 function buildLabels(key, root) {
   for (const r of FL(key).rooms) {
-    if (r.stair) continue;
+    if (r.stair || r.noLabel) continue;
     const div = document.createElement('div');
     div.className = r.void ? 'room-label no-size' : 'room-label';
-    div.innerHTML = `<b>${r.name}</b>${r.void ? '' : `<span>${fmtFeet(r.w)} × ${fmtFeet(r.d)}</span>`}`;
+    div.innerHTML = `<b>${r.name}</b>${r.void ? '' : `<span>${r.sizeText ?? `${fmtFeet(r.w)} × ${fmtFeet(r.d)}`}</span>`}`;
     const obj = new CSS2DObject(div);
     obj.position.set(r.x + r.w / 2, floorZ(key, r) + (r.void ? 1 : 3.2), r.y + r.d / 2);
     root.add(obj);
