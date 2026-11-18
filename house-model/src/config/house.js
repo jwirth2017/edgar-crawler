@@ -696,3 +696,73 @@ export const views = [
 ];
 
 export default { meta, build, stair, floors, exterior, site, phases, sun, views, finishLevels, doors };
+
+// ── Size study: take depth out of the house ─────────────────────────────────
+// Removes front-to-back strips across the whole site plan: everything past a
+// strip moves toward the rear by its width, rooms that cross it get that much
+// shorter. Placed to miss the stairs so all floors stay stacked. [start y, width]
+export const SQUEEZE = [[6, 2], [27, 2]];
+squeezeY(SQUEEZE);
+fitFurniture();
+// pieces that met after the rooms got shorter
+{
+  const F = (lvl, pred) => floors[lvl].furniture.find(pred) || {};
+  Object.assign(F('main', (f) => f.label === 'King'), { y: 4.4 });
+  Object.assign(F('main', (f) => f.type === 'table' && f.x === 65.8 && f.y > 8), { y: 10.9 });
+  Object.assign(F('basement', (f) => f.label === 'Recliner'), { y: 7.2 });
+  Object.assign(F('basement', (f) => f.type === 'table' && f.x === 22.5), { y: 7.3 });
+  Object.assign(F('basement', (f) => f.label === 'Wet bar'), { y: 0.4, d: 11.6 });
+  Object.assign(F('main', (f) => f.label === 'Open shelves'), { y: 2.6, d: 6.1 });
+  Object.assign(F('main', (f) => f.type === 'appliance' && f.x === 53), { x: 54.5 });
+}
+
+/** Keep every piece of furniture inside the room it stands in (rooms got shorter). */
+function fitFurniture() {
+  for (const lvl of Object.values(floors)) {
+    for (const f of lvl.furniture || []) {
+      const cx = f.x + f.w / 2;
+      const cy = f.y + f.d / 2;
+      const r = lvl.rooms.find((r) => cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.d);
+      if (!r || f.elev) continue;
+      const pad = 0.3;
+      if (f.d > r.d - 2 * pad) f.d = r.d - 2 * pad;
+      if (f.y < r.y + pad - 0.3) f.y = r.y + pad;
+      if (f.y + f.d > r.y + r.d - pad + 0.3) f.y = r.y + r.d - pad - f.d;
+    }
+  }
+}
+
+function squeezeY(cuts) {
+  const map = (y) => {
+    let s = 0;
+    for (const [a, w] of cuts) s += y >= a + w ? w : y > a ? y - a : 0;
+    return y - s;
+  };
+  const pt = (p) => { if (Array.isArray(p) && typeof p[1] === 'number') p[1] = map(p[1]); };
+  const isFurniture = (o) => typeof o.type === 'string' && !o.ridge;
+  const seen = new WeakSet();               // shared objects (e.g. the main block footprint) move once
+  const visit = (o, key) => {
+    if (!o || typeof o !== 'object' || seen.has(o)) return;
+    seen.add(o);
+    if (Array.isArray(o)) {
+      if (['path', 'poly', 'pts'].includes(key)) { o.forEach(pt); return; }
+      if (key === 'sideWall') { o[0] = map(o[0]); o[1] = map(o[1]); return; }
+      o.forEach((v) => visit(v, key));
+      return;
+    }
+    if (o.on && typeof o.at === 'number') {                                     // an opening
+      if (o.on === 'y') o.at = map(o.at);
+      else { o.from = map(o.from); o.to = map(o.to); }
+    } else if (typeof o.y === 'number' && typeof o.d === 'number') {
+      if (isFurniture(o)) { const c = map(o.y + o.d / 2); o.y = c - o.d / 2; }   // furniture keeps its size
+      else { const y1 = map(o.y + o.d); o.y = map(o.y); o.d = y1 - o.y; }       // rooms, footprints, roofs…
+    } else if (typeof o.y === 'number') o.y = map(o.y);                          // points
+    for (const k of ['y0', 'y1']) if (typeof o[k] === 'number') o[k] = map(o[k]);
+    for (const [k, v] of Object.entries(o)) {
+      if ((k === 'anchor' || k === 'at') && Array.isArray(v)) { pt(v); continue; }
+      if (k !== 'y' && typeof v === 'object') visit(v, k);
+    }
+  };
+  for (const root of [floors, exterior, site, phases, stair]) visit(root);
+  for (const v of views) for (const k of ['eye', 'target', 'look']) if (v[k]) v[k][1] = map(v[k][1]);
+}
