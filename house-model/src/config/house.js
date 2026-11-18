@@ -156,7 +156,8 @@ export const floors = {
       { kind: 'window',      on: 'y', at: 0, from: 8.5, to: 11.5, sill: 4.5 },  // butler's pantry, over the counter
       { kind: 'passthrough', on: 'y', at: 0, from: 19, to: 29, sill: 3.5, head: 8 },   // 10 ft: fridge on one side, ovens on the other
       { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // living → deck
-      { kind: 'window',      on: 'y', at: 0, from: 55, to: 65, sill: 1.5 },    // primary bedroom
+      { kind: 'glassdoor',   on: 'y', at: 0, from: 54.5, to: 60.5 },          // primary bedroom → deck
+      { kind: 'window',      on: 'y', at: 0, from: 62, to: 66, sill: 1.5 },    // primary bedroom
       { kind: 'window',      on: 'y', at: 0, from: 71, to: 75, sill: 5 },
       // front wall (y = 40 main block, y = 30 wing)
       { kind: 'entry',  on: 'y', at: 40, from: 23, to: 29 },
@@ -167,7 +168,6 @@ export const floors = {
       // side walls (x = 0: breezeway from y = 24 to 40, court drive below it)
       { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → stoop → motor court
       { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },       // stair landing
-      { kind: 'window', on: 'x', at: 0,  from: 29, to: 35 },                    // office desk → side
       { kind: 'window', on: 'x', at: 78, from: 3,  to: 7,  sill: 5 },
       { kind: 'window', on: 'x', at: 78, from: 10, to: 14, sill: 5 },
       // interior — left
@@ -251,77 +251,80 @@ export const floors = {
     floor: UPPER_FLOOR,
     ceiling: 9,
     footprint: [MAIN_BLOCK],
+    noSqueeze: true,              // drawn at the final (5,000 sq ft) size
     rooms: [
-      // — left: two kids' bedrooms and the shared bath, stairs between them —
-      { id: 'bed1',   name: 'Bedroom 1', use: 'bed',  x: 0,  y: 0,  w: 17.5, d: 12, note: 'incl. closet' },
-      { id: 'jjBath', name: 'Shared Bath', use: 'bath', x: 0, y: 12, w: 14, d: 5 },
-      { ...STAIR_BOX, finished: false },
-      { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 0,  y: 26, w: 17.5, d: 14 },
-      { id: 'closet2', name: 'Closet',   use: 'service', x: 17.5, y: 31, w: 2.5, d: 9 },  // 2'-6" deep
-      // — center: the loft runs front-to-back over the dining room —
-      { id: 'loft',      name: "Kids' Loft",    use: 'living', x: 17.5, y: 0,  w: 16.5, d: 31,
-        note: 'play + homework' },
-      { id: 'foyerVoid', name: 'Open to Foyer', use: 'void',   x: 20, y: 31, w: 12, d: 9, void: true },
-      // — right: bedroom 3, bath, laundry, attic, off a 4 ft hall —
-      { id: 'bed3',     name: 'Bedroom 3',     use: 'bed',     x: 38, y: 0,  w: 14, d: 13 },
-      { id: 'bath2',    name: 'Bath 2',        use: 'bath',    x: 38, y: 13, w: 10, d: 8 },
-      { id: 'linen2',   name: 'Linen',         use: 'service', x: 48, y: 13, w: 4,  d: 8 },
-      { id: 'laundry2', name: "Kids' Laundry", use: 'service', x: 38, y: 21, w: 8,  d: 6 },
-      { id: 'storage',  name: 'Storage',       use: 'service', x: 46, y: 21, w: 6,  d: 6, finished: false },
-      { id: 'attic',    name: 'Attic Storage', use: 'service', x: 38, y: 27, w: 14, d: 13, finished: false,
-        note: 'unfinished', finish: { roughIn: true } },
+      // — right: bedrooms 1 and 2 share a Jack-and-Jill bath between them —
+      { id: 'bed1',   name: 'Bedroom 1', use: 'bed',  x: 36, y: 0,  w: 16, d: 12 },
+      { id: 'jjBath', name: 'Jack & Jill Bath', use: 'bath', x: 40, y: 12, w: 12, d: 8 },
+      { id: 'linen2', name: 'Linen',     use: 'service', x: 36, y: 12, w: 4, d: 8 },
+      { id: 'bed2',   name: 'Bedroom 2', use: 'bed',  x: 36, y: 20, w: 16, d: 16, note: 'incl. closet' },
+      // — left: stairs, bedroom 3 with its own bath at the front —
+      { id: 'homework', name: 'Homework Nook', use: 'living', x: 0, y: 0, w: 14, d: 9 },
+      { id: 'laundry2', name: "Kids' Laundry", use: 'service', x: 0, y: 9, w: 8, d: 6 },
+      { id: 'storage',  name: 'Storage',       use: 'service', x: 8, y: 9, w: 6, d: 6, finished: false },
+      { ...STAIR_BOX, y: 15, finished: false },
+      { id: 'bed3',   name: 'Bedroom 3', use: 'bed',  x: 0,  y: 24, w: 14, d: 12, note: 'incl. closet' },
+      { id: 'bath3',  name: 'Bath 3',    use: 'bath', x: 14, y: 28, w: 6,  d: 8 },
+      // — center: kids' loft over the kitchen, open to the homework nook; foyer open below —
+      { id: 'loft',      name: "Kids' Loft",    use: 'living', x: 14, y: 0, w: 22, d: 15, note: 'play + TV' },
+      { id: 'foyerVoid', name: 'Open to Foyer', use: 'void',   x: 20, y: 27, w: 12, d: 9, void: true },
     ],
-    openPlan: [['loft', '_hall'], ['stair', '_hall']],
+    openPlan: [['loft', '_hall'], ['stair', '_hall'], ['loft', 'homework']],
     openings: [
-      { kind: 'railing', on: 'y', at: 31, from: 20, to: 32 },     // loft overlooks the foyer
-      { kind: 'railing', on: 'x', at: 32, from: 31, to: 40 },
-      // doors — left
-      { kind: 'door', on: 'x', at: 17.5, from: 7,  to: 10, swing: -1 },      // bed 1
-      { kind: 'door', on: 'y', at: 12, from: 3,  to: 5.5, swing: -1 },       // bed 1 → shared bath
-      { kind: 'door', on: 'x', at: 14, from: 12.3, to: 14.8 },               // hall → shared bath
-      { kind: 'door', on: 'x', at: 17.5, from: 27, to: 30, swing: -1 },      // bed 2
-      { kind: 'door', on: 'x', at: 17.5, from: 33, to: 36 },                 // bed 2 → closet
-      // doors — right
-      { kind: 'door', on: 'x', at: 38, from: 8,    to: 11 },                 // bed 3
-      { kind: 'door', on: 'x', at: 38, from: 15,   to: 17.7 },               // bath 2
-      { kind: 'door', on: 'x', at: 48, from: 15,   to: 17.5 },               // linen (from bath)
-      { kind: 'door', on: 'x', at: 38, from: 22,   to: 24.7 },               // laundry
-      { kind: 'door', on: 'x', at: 46, from: 22.5, to: 25 },                 // storage (from laundry)
-      { kind: 'door', on: 'x', at: 38, from: 32,   to: 35 },                 // attic
-      // windows — rear
-      { kind: 'window', on: 'y', at: 0, from: 4,  to: 10 },
-      { kind: 'window', on: 'y', at: 0, from: 20, to: 32, sill: 1.5 },        // rear gable glass
-      { kind: 'window', on: 'y', at: 0, from: 42, to: 48 },
+      { kind: 'railing', on: 'y', at: 27, from: 20, to: 32 },     // hall overlooks the foyer
+      { kind: 'railing', on: 'x', at: 32, from: 27, to: 36 },
+      // doors
+      { kind: 'door', on: 'x', at: 36, from: 8.5, to: 11.5 },              // bed 1
+      { kind: 'door', on: 'y', at: 12, from: 41, to: 43.5, swing: -1 },     // bed 1 → J&J
+      { kind: 'door', on: 'y', at: 20, from: 41, to: 43.5 },                // bed 2 → J&J
+      { kind: 'door', on: 'x', at: 36, from: 14.5, to: 17 },                // linen
+      { kind: 'door', on: 'x', at: 36, from: 21, to: 24 },                  // bed 2
+      { kind: 'door', on: 'x', at: 14, from: 24.5, to: 27.5, swing: -1 },   // bed 3
+      { kind: 'door', on: 'x', at: 14, from: 30, to: 32.5 },                // bed 3 → bath 3
+      { kind: 'door', on: 'y', at: 9, from: 1.5, to: 4 },                   // kids' laundry
+      { kind: 'door', on: 'y', at: 9, from: 9.5, to: 12 },                  // storage
+      // windows — rear (sunset)
+      { kind: 'window', on: 'y', at: 0, from: 3,  to: 10 },                 // homework nook
+      { kind: 'window', on: 'y', at: 0, from: 20, to: 32, sill: 1.5 },      // rear gable glass (loft)
+      { kind: 'window', on: 'y', at: 0, from: 40, to: 47 },                 // bed 1
       // windows — front
-      { kind: 'window', on: 'y', at: 40, from: 4,  to: 10 },                  // bedroom 2
-      { kind: 'window', on: 'y', at: 40, from: 22, to: 30, sill: 1.5 },       // front gable glass
-      { kind: 'window', on: 'y', at: 40, from: 43, to: 47, sill: 4 },
+      { kind: 'window', on: 'y', at: 36, from: 4,  to: 10 },                // bed 3
+      { kind: 'window', on: 'y', at: 36, from: 22, to: 30, sill: 1.5 },     // front gable glass
+      { kind: 'window', on: 'y', at: 36, from: 41, to: 47 },                // bed 2
       // windows — sides
-      { kind: 'window', on: 'x', at: 0,  from: 3,  to: 8 },
-      { kind: 'window', on: 'x', at: 0,  from: 14, to: 16, sill: 4.5 },
-      { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },   // stair
-      { kind: 'window', on: 'x', at: 0,  from: 30, to: 35 },
-      { kind: 'window', on: 'x', at: 52, from: 4,  to: 9 },
+      { kind: 'window', on: 'x', at: 0,  from: 2,  to: 7 },                 // homework nook
+      { kind: 'window', on: 'x', at: 0,  from: 17.5, to: 21.5, sill: 5 },   // stair
+      { kind: 'window', on: 'x', at: 0,  from: 27, to: 33 },                // bed 3
+      { kind: 'window', on: 'x', at: 52, from: 14, to: 17, sill: 5 },       // J&J, high
+      { kind: 'window', on: 'x', at: 52, from: 25, to: 31 },                // bed 2
     ],
     furniture: [
-      { type: 'bed',  x: 0.3,  y: 3.5,  w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
-      { type: 'desk', x: 9,    y: 0.3,  w: 5,   d: 2,   h: 2.5 },
-      { type: 'tall', x: 15.4, y: 0.3,  w: 1.9, d: 6,   h: 7 },
-      { type: 'bed',  x: 0.3,  y: 30,   w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
-      { type: 'desk', x: 11,   y: 37.7, w: 5,   d: 2,   h: 2.5 },
-      { type: 'bed',  x: 42,   y: 6,    w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
-      { type: 'desk', x: 43,   y: 0.3,  w: 5,   d: 2,   h: 2.5 },
-      { type: 'chimney', x: 50.2, y: 5, w: 1.8, d: 6, h: 9, label: 'Chimney' },  // from the living-room fireplace
-      { type: 'sofa',  x: 22, y: 9.5, w: 8, d: 3.2, h: 2.8, faces: '-y', label: 'Sofa' },
-      { type: 'table', x: 24, y: 5,   w: 4, d: 2.5, h: 1.4 },
-      { type: 'table', x: 23, y: 18,  w: 6, d: 4,   h: 2.5, chairs: 6, label: 'Game table' },
-      { type: 'desk',  x: 31.7, y: 18, w: 2, d: 10, h: 2.5, label: 'Homework desks' },
-      { type: 'tub',     x: 0.3,  y: 12.2, w: 2.6, d: 4.6, h: 1.8 },
-      { type: 'counter', x: 8.5,  y: 14.8, w: 4.5, d: 1.9, h: 3, sink: 2 },
-      { type: 'toilet',  x: 6,    y: 12.3, w: 1.7, d: 2.3, h: 1.4 },
-      { type: 'tub',     x: 42.5, y: 18,   w: 5.2, d: 2.7, h: 1.8 },
-      { type: 'counter', x: 41.5, y: 13.3, w: 5,   d: 1.9, h: 3, sink: true },
-      { type: 'appliance', x: 40.5, y: 24.3, w: 5, d: 2.5, h: 3.3 },
+      // bedroom 1
+      { type: 'bed',  x: 42,   y: 4,    w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
+      { type: 'desk', x: 36.5, y: 0.3,  w: 4,   d: 2,   h: 2.5 },
+      { type: 'tall', x: 48,   y: 10.1, w: 2,   d: 1.7, h: 7 },
+      { type: 'chimney', x: 50.2, y: 3, w: 1.8, d: 6, h: 9, label: 'Chimney' },  // from the living-room fireplace
+      // Jack & Jill: double vanity, tub/shower, toilet
+      { type: 'counter', x: 44.5, y: 12.3, w: 7.2, d: 1.9, h: 3, sink: 2 },
+      { type: 'tub',     x: 49,   y: 14.6, w: 2.7, d: 5.1, h: 1.8 },
+      { type: 'toilet',  x: 45.5, y: 17.4, w: 1.7, d: 2.3, h: 1.4 },
+      // bedroom 2 (closet along the hall wall)
+      { type: 'bed',  x: 42,   y: 26,   w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
+      { type: 'desk', x: 46,   y: 33.7, w: 5,   d: 2,   h: 2.5 },
+      { type: 'tall', x: 36.3, y: 27,   w: 2,   d: 6,   h: 7 },
+      // bedroom 3 + bath 3
+      { type: 'bed',  x: 0.3,  y: 28,   w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
+      { type: 'desk', x: 8,    y: 33.7, w: 5,   d: 2,   h: 2.5 },
+      { type: 'tall', x: 6.5,  y: 24.3, w: 5,   d: 2,   h: 7 },
+      { type: 'shower',  x: 14.3, y: 33,   w: 3.4, d: 2.7, h: 7.5 },
+      { type: 'counter', x: 17.9, y: 28.3, w: 1.8, d: 3.2, h: 3, sink: true },
+      { type: 'toilet',  x: 18,   y: 31.8, w: 1.7, d: 2.3, h: 1.4 },
+      // loft + homework nook + laundry
+      { type: 'sofa',  x: 19,  y: 10.5, w: 8,  d: 3.2, h: 2.8, faces: '-y', label: 'Sofa' },
+      { type: 'table', x: 21,  y: 6,    w: 4,  d: 2.5, h: 1.4 },
+      { type: 'table', x: 28.5, y: 3.5, w: 5.5, d: 4, h: 2.5, chairs: 6, label: 'Game table' },
+      { type: 'desk',  x: 0.5, y: 0.3,  w: 9,  d: 2,   h: 2.5, label: 'Homework desks' },
+      { type: 'appliance', x: 0.5, y: 12.2, w: 5, d: 2.5, h: 3.3 },
     ],
   },
 
@@ -332,81 +335,88 @@ export const floors = {
     floor: BASEMENT_FLOOR,
     ceiling: 9,
     footprint: [MAIN_BLOCK],
+    noSqueeze: true,              // drawn at the final (5,000 sq ft) size
     rooms: [
-      // rear (y = 0) walks out to the covered patio; front (y = 40) is below grade
-      { id: 'guest',      name: 'Guest Suite',  use: 'bed',     x: 0,  y: 0,  w: 14, d: 12 },
-      { id: 'guestCloset',name: 'Closet',       use: 'service', x: 0,  y: 12, w: 7,  d: 5 },
-      { id: 'guestBath',  name: 'Guest / Pool Bath', use: 'bath', x: 7, y: 12, w: 7,  d: 5 },
-      { ...STAIR_BOX, finished: false },
-      { id: 'mechanical', name: 'Mechanical',   use: 'service', x: 0,  y: 26, w: 14, d: 7, finished: false,
+      // rear (y = 0) walks out to the covered patio; the other three sides are below grade
+      // — left: guest suite with its own patio door; its bath also opens to the
+      //   hall, which has an outside door for pool guests —
+      { id: 'guest',      name: 'Guest Suite',  use: 'bed',     x: 0, y: 0,   w: 14, d: 9.5 },
+      { id: 'guestCloset',name: 'Closet',       use: 'service', x: 0, y: 9.5, w: 5,  d: 5.5 },
+      { id: 'guestBath',  name: 'Guest / Pool Bath', use: 'bath', x: 5, y: 9.5, w: 9, d: 5.5 },
+      { ...STAIR_BOX, y: 15, finished: false },
+      { id: 'mechanical', name: 'Mechanical',   use: 'service', x: 0,  y: 24, w: 14, d: 12, finished: false,
         finish: { walls: 'paintedBlock' } },
-      { id: 'safe',       name: 'Storm Safe Room', use: 'service', x: 0, y: 33, w: 14, d: 7, finished: false,
+      { id: 'safe',       name: 'Storm Safe Room', use: 'service', x: 14, y: 28, w: 4, d: 8, finished: false,
         finish: { walls: 'paintedBlock' } },
-      { id: 'lounge',  name: 'Sports Lounge & Bar', use: 'rec', x: 18, y: 0,  w: 22, d: 18, labelDy: 4.8 },
-      { id: 'gym',     name: 'Gym',            use: 'rec',  x: 40, y: 0,  w: 12, d: 20, finished: false,
-        note: 'unfinished', finish: { floor: 'stallMats', walls: 'paintedBlock' } },
-      { id: 'sim',     name: 'Golf Sim Bay',   use: 'rec',  x: 18, y: 18, w: 14, d: 22,
+      // — center/right: lounge and bar on the walkout side, theater and sim behind —
+      { id: 'lounge',  name: 'Sports Lounge', use: 'rec', x: 18, y: 0,  w: 17, d: 18, labelDy: 4.8 },
+      { id: 'bar',     name: 'Bar',           use: 'rec', x: 35, y: 0,  w: 5,  d: 12 },
+      { id: 'gym',     name: 'Gym',           use: 'rec', x: 40, y: 0,  w: 12, d: 12, finished: false,
+        note: 'unfinished · stall mats', finish: { floor: 'stallMats', walls: 'paintedBlock' } },
+      { id: 'sim',     name: 'Golf Sim Bay',  use: 'rec', x: 36, y: 12, w: 16, d: 24,
         floorOffset: -2, ceiling: 11, note: "11' ceiling, slab dropped 2'", finish: { floor: 'turf' } },
       // Phase 1 leaves the theater an unfinished shell with rough-in; Phase 2 finishes it
-      { id: 'theater', name: 'Theater',        use: 'rec',  x: 32, y: 20, w: 20, d: 20, finished: false,
+      { id: 'theater', name: 'Theater',       use: 'rec', x: 18, y: 18, w: 18, d: 18, finished: false,
         note: 'finished in Phase 2', finish: { roughIn: true },
         phase2: { finished: true, note: 'Phase 2', finish: { floor: 'theaterCarpet', walls: 'acoustic', ceiling: 'acousticCeiling' } } },
     ],
-    openPlan: [['lounge', '_hall'], ['stair', '_hall']],
+    openPlan: [['lounge', '_hall'], ['stair', '_hall'], ['lounge', 'bar']],
     openings: [
-      // walkout wall (y = 0) — glass onto the covered patio
-      { kind: 'glassdoor', on: 'y', at: 0, from: 2,  to: 12 },               // guest suite (also its egress)
-      { kind: 'window',    on: 'y', at: 0, from: 14.75, to: 17.25 },         // end of the hall
-      { kind: 'window',    on: 'y', at: 0, from: 18.75, to: 21.25 },         // lounge, beside its doors
-      { kind: 'glassdoor', on: 'y', at: 0, from: 22, to: 36 },               // lounge
-      { kind: 'window',    on: 'y', at: 0, from: 37, to: 39.5, sill: 4 },    // lounge, above the back bar
-      { kind: 'glassdoor', on: 'y', at: 0, from: 42, to: 50 },               // gym
-      // (south side is buried: the motor court runs up to the house there)
-      // hall doors
-      { kind: 'door',    on: 'x', at: 14, from: 7,    to: 10, swing: -1 },    // guest suite
-      { kind: 'door',    on: 'x', at: 14, from: 14.2, to: 16.8 },             // guest / pool bath
-      { kind: 'door',    on: 'x', at: 14, from: 28,   to: 31, swing: -1 },    // mechanical
-      { kind: 'door',    on: 'x', at: 14, from: 35,   to: 38, swing: -1 },    // safe room (steel)
-      { kind: 'opening', on: 'x', at: 18, from: 20,   to: 24 },               // sim bay (steps down)
-      // suite and lounge doors
-      { kind: 'door',    on: 'y', at: 12, from: 2,    to: 4.5 },              // guest closet
-      { kind: 'door',    on: 'y', at: 12, from: 8.5,  to: 11 },               // guest → bath
-      { kind: 'door',    on: 'x', at: 40, from: 14.5, to: 17.5, swing: -1 },  // gym, toward the interior (frees the TV wall)
-      { kind: 'door',    on: 'y', at: 20, from: 33.5, to: 36.5 },             // theater (from lounge alcove)
+      // walkout wall (y = 0)
+      { kind: 'glassdoor', on: 'y', at: 0, from: 2,    to: 10 },            // guest suite (also its egress)
+      { kind: 'door',      on: 'y', at: 0, from: 14.5, to: 17.5 },          // pool entry → hall → pool bath
+      { kind: 'glassdoor', on: 'y', at: 0, from: 20,   to: 33 },            // lounge
+      { kind: 'window',    on: 'y', at: 0, from: 36,   to: 39.5, sill: 4 }, // bar, above the back counter
+      { kind: 'glassdoor', on: 'y', at: 0, from: 42,   to: 50 },            // gym
+      // guest suite + bath
+      { kind: 'door', on: 'x', at: 14,  from: 5.5,  to: 8.5, swing: -1 },   // hall → guest suite
+      { kind: 'door', on: 'y', at: 9.5, from: 1,    to: 3.5 },              // guest closet
+      { kind: 'door', on: 'y', at: 9.5, from: 10.5, to: 13 },               // guest suite → bath
+      { kind: 'door', on: 'x', at: 14,  from: 10.5, to: 13 },               // hall → bath (pool guests)
+      // utility
+      { kind: 'door', on: 'x', at: 14,  from: 24.5, to: 27.5, swing: -1 },  // mechanical
+      { kind: 'door', on: 'y', at: 28,  from: 14.5, to: 17.5 },             // safe room (steel)
+      // rec
+      { kind: 'door',    on: 'x', at: 18, from: 20, to: 23, swing: -1 },    // theater
+      { kind: 'opening', on: 'y', at: 12, from: 36.5, to: 39.5 },           // sim (steps down from the bar)
+      { kind: 'door',    on: 'x', at: 40, from: 9,  to: 11.5, swing: -1 },  // gym
     ],
     furniture: [
-      // theater (Phase 2) — screen on the buried front wall, two rows of four recliners
-      { type: 'screen',   x: 35.5, y: 39.4, w: 13, d: 0.3, h: 7.3, elev: 1.5, label: 'Screen', phase: 2 },
-      { type: 'recliner', x: 36,   y: 29,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', phase: 2 },
-      { type: 'platform', x: 34,   y: 20.3, w: 15.7, d: 6, h: 1, phase: 2 },
-      { type: 'recliner', x: 36,   y: 22,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', elev: 1, phase: 2 },
-      // golf sim — hitting toward the front wall
-      { type: 'screen', x: 19.5, y: 39.4, w: 11, d: 0.3, h: 9.5, elev: 0.5, label: 'Impact screen' },
-      { type: 'mat',    x: 22.5, y: 27,   w: 5,  d: 5,   h: 0.15, label: 'Hitting mat' },
-      { type: 'steps',  x: 18.3, y: 19.5, w: 3,  d: 5,   h: 2 },
-      { type: 'sofa',   x: 24,   y: 18.5, w: 7,  d: 3,   h: 2.6, faces: '+y' },
-      // sports lounge — TV area on the back (golf sim) wall, bar along the gym wall
-      { type: 'tv',       x: 21,   y: 16.3, w: 8,   d: 1.5, h: 2, screenH: 4.2, label: '98" TV' },
-      { type: 'sofa',     x: 19.5, y: 3.5,  w: 11,  d: 3.5, h: 2.8, faces: '+y', label: 'Sectional' },
-      { type: 'sofa',     x: 18.3, y: 3.5,  w: 3.5, d: 9,   h: 2.8, faces: '+x' },
-      { type: 'recliner', x: 28.5, y: 7.8,  w: 3.3, d: 3.6, h: 3.4, faces: '+y', label: 'Recliner' },
-      { type: 'table',    x: 22.5, y: 8.5,  w: 5,   d: 2.5, h: 1.4 },
-      { type: 'counter',  x: 38.2, y: 0.8,  w: 1.8, d: 12,  h: 3, label: 'Wet bar', sink: true, uppers: true },
-      { type: 'island',   x: 33,   y: 2,    w: 2,   d: 9,   h: 3.5, label: 'Bar top' },
-      // gym (unfinished: sealed concrete with rubber stall mats)
-      { type: 'equipment', x: 44.5, y: 16.5, w: 6.5, d: 3,   h: 4.5 },
-      { type: 'equipment', x: 46.5, y: 8,   w: 5,   d: 4.5, h: 7.5 },
-      { type: 'bench',     x: 43,   y: 3,   w: 1.8, d: 5,   h: 1.5 },
-      // guest suite
-      { type: 'bed',     x: 0.3, y: 3.5,  w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
-      { type: 'dresser', x: 8,   y: 10.1, w: 5,   d: 1.7, h: 3 },
-      { type: 'shower',  x: 7.3, y: 12.3, w: 3,   d: 4.4, h: 7.5 },
-      { type: 'counter', x: 10.6, y: 12.3, w: 3,  d: 1.8, h: 3, sink: true },
-      // mechanical / safe room
-      { type: 'appliance', x: 0.5, y: 26.5, w: 3,   d: 3,   h: 6 },
-      { type: 'appliance', x: 4.5, y: 26.5, w: 2.2, d: 2.2, h: 5.5 },
-      { type: 'appliance', x: 8,   y: 26.5, w: 4,   d: 2.5, h: 5 },
-      { type: 'bench',     x: 0.5, y: 37.8, w: 12,  d: 1.7, h: 1.5 },          // safe-room bench
+      // theater (Phase 2) — screen on the front wall, two rows of four recliners
+      { type: 'screen',   x: 21,   y: 35.4, w: 12, d: 0.3, h: 7, elev: 1.5, label: 'Screen', phase: 2 },
+      { type: 'recliner', x: 21.5, y: 27,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', phase: 2 },
+      { type: 'platform', x: 20,   y: 18.3, w: 14, d: 6, h: 1, phase: 2 },
+      { type: 'recliner', x: 21.5, y: 20,   w: 12, d: 3.3, h: 3.3, seats: 4, faces: '+y', elev: 1, phase: 2 },
+      // golf sim — 16 x 24, hitting toward the front wall, seating behind
+      { type: 'screen', x: 37.5, y: 35.4, w: 13, d: 0.3, h: 9.5, elev: 0.5, label: 'Impact screen' },
+      { type: 'mat',    x: 41.5, y: 21.5, w: 5,  d: 5,   h: 0.15, label: 'Hitting mat' },
+      { type: 'steps',  x: 36.5, y: 12.3, w: 3,  d: 4,   h: 2 },
+      { type: 'sofa',   x: 42,   y: 12.5, w: 7,  d: 3,   h: 2.6, faces: '+y' },
+      // sports lounge — TV on the theater wall, sectional + recliner facing it
+      { type: 'tv',       x: 22.5, y: 16.3, w: 8,   d: 1.5, h: 2, screenH: 4.2, label: '98" TV' },
+      { type: 'sofa',     x: 19.5, y: 4,    w: 11,  d: 3.5, h: 2.8, faces: '+y', label: 'Sectional' },
+      { type: 'sofa',     x: 18.3, y: 4,    w: 3.5, d: 8.5, h: 2.8, faces: '+x' },
+      { type: 'recliner', x: 28.7, y: 9,    w: 3.3, d: 3.6, h: 3.4, faces: '+y', label: 'Recliner' },
+      { type: 'table',    x: 23,   y: 8.5,  w: 5,   d: 2.5, h: 1.4 },
+      // bar — back counter on the gym wall, bar top facing the lounge
+      { type: 'counter',  x: 38.2, y: 0.5,  w: 1.8, d: 8,   h: 3, label: 'Wet bar', sink: true, uppers: true },
+      { type: 'island',   x: 33,   y: 2,    w: 2,   d: 7,   h: 3.5, label: 'Bar top' },
+      // gym (unfinished: sealed concrete, stall mats after move-in)
+      { type: 'equipment', x: 46,   y: 5,  w: 5,   d: 4.5, h: 7.5 },
+      { type: 'bench',     x: 42.5, y: 5,  w: 1.8, d: 5,   h: 1.5 },
+      // guest suite + bath
+      { type: 'bed',     x: 0.3, y: 3,    w: 6.7, d: 5,   h: 2.2, label: 'Queen' },
+      { type: 'dresser', x: 7.5, y: 7.6,  w: 4.5, d: 1.7, h: 3 },
+      { type: 'shower',  x: 5.3, y: 9.8,  w: 3.5, d: 5,   h: 7.5 },
+      { type: 'counter', x: 9,   y: 13.1, w: 3,   d: 1.8, h: 3, sink: true },
+      { type: 'toilet',  x: 12.2, y: 12.6, w: 1.7, d: 2.3, h: 1.4 },
+      // mechanical (14 x 12: two HVAC systems, water heaters, well tank + softener, panels, generator transfer)
+      { type: 'appliance', x: 0.5, y: 24.5, w: 3,   d: 3,   h: 6 },
+      { type: 'appliance', x: 4.5, y: 24.5, w: 3,   d: 3,   h: 6 },
+      { type: 'appliance', x: 8.5, y: 24.5, w: 2.2, d: 2.2, h: 5.5 },
+      { type: 'appliance', x: 0.5, y: 33,   w: 2.5, d: 2.5, h: 5.5 },
+      { type: 'appliance', x: 8,   y: 34,   w: 5.5, d: 1.5, h: 6 },          // electrical panels
+      { type: 'bench',     x: 14.3, y: 34,  w: 3.4, d: 1.7, h: 1.5 },        // safe-room bench
     ],
   },
 };
@@ -420,7 +430,7 @@ export const exterior = {
     roofLow: 10, roofHigh: 11.5,            // shed roof under the upper windows
   },
   deck: {
-    x: 0, y: -14, w: 52, d: 14, floor: -0.15,
+    x: 0, y: -14, w: 78, d: 14, floor: -0.15,      // runs across the primary wing too
     pierSpacing: 13, pierSize: 2,           // stone piers down to the patio
     railing: 'cable', railHeight: 3.5,
     // L-shaped stair down to the pool deck at the wing end: down toward the pool
@@ -537,8 +547,14 @@ function hull(pts) {
  * patio and pool; the wall tapers out away from them (see retainingWalls()).
  */
 function motorCourt() {
+  // drawn at the final size: an apron across the garage doors and the arch
+  // (22 ft to back out), and a hammerhead arm to back into, so a truck can
+  // come through the breezeway, turn and pull nose-first into any bay. The
+  // apron's corner by the house is clipped so the retaining wall is one short
+  // run from the house corner, tapering out.
   return [
-    { poly: hull([[0, 12], [0, -14], [-20, -38], [-45, -46], [-66, -32], [-66, 4], [-54, 12], [-18, 12]]), wall: true },
+    { poly: hull([[0, 10], [0, 0], [-16, -12], [-58, -12], [-58, 10]]), wall: true, noSqueeze: true },
+    { poly: hull([[-52, -12], [-38, -12], [-38, -32], [-52, -32]]), wall: true, noSqueeze: true, name: 'hammerhead' },
   ];
 }
 
@@ -574,6 +590,11 @@ export const site = {
   furniture: [
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
     { type: 'sofa',    x: 21, y: -12.3, w: 8, d: 3,   h: 2.6, elev: 'deck', faces: '+y' },  // under the covered section
+    // private sitting area off the primary suite, facing the sunset
+    { type: 'sofa',    x: 63, y: -4.4, w: 6,   d: 3,   h: 2.6, elev: 'deck', faces: '-y', label: 'Sitting area' },
+    { type: 'table',   x: 64.5, y: -8, w: 3,   d: 2,   h: 1.4, elev: 'deck' },
+    { type: 'chair',   x: 62, y: -12.3, w: 2.6, d: 2.6, h: 2.7, elev: 'deck', faces: '+y' },
+    { type: 'chair',   x: 67.5, y: -12.3, w: 2.6, d: 2.6, h: 2.7, elev: 'deck', faces: '+y' },
   ],
   // Utility stub-outs installed in Phase 1 for the Phase 2 pool and pool house.
   stubOuts: [
@@ -709,11 +730,9 @@ fitFurniture();
   const F = (lvl, pred) => floors[lvl].furniture.find(pred) || {};
   Object.assign(F('main', (f) => f.label === 'King'), { y: 4.4 });
   Object.assign(F('main', (f) => f.type === 'table' && f.x === 65.8 && f.y > 8), { y: 10.9 });
-  Object.assign(F('basement', (f) => f.label === 'Recliner'), { y: 7.2 });
-  Object.assign(F('basement', (f) => f.type === 'table' && f.x === 22.5), { y: 7.3 });
-  Object.assign(F('basement', (f) => f.label === 'Wet bar'), { y: 0.4, d: 11.6 });
   Object.assign(F('main', (f) => f.label === 'Open shelves'), { y: 2.6, d: 6.1 });
-  Object.assign(F('main', (f) => f.type === 'appliance' && f.x === 53), { x: 54.5 });
+  Object.assign(F('main', (f) => f.type === 'appliance' && f.x === 53), { x: 54.2, w: 4.9 });
+  Object.assign(F('main', (f) => f.type === 'counter' && f.x === 58.8), { x: 59.2, w: 4.5 });
 }
 
 /** Keep every piece of furniture inside the room it stands in (rooms got shorter). */
@@ -742,7 +761,7 @@ function squeezeY(cuts) {
   const isFurniture = (o) => typeof o.type === 'string' && !o.ridge;
   const seen = new WeakSet();               // shared objects (e.g. the main block footprint) move once
   const visit = (o, key) => {
-    if (!o || typeof o !== 'object' || seen.has(o)) return;
+    if (!o || typeof o !== 'object' || seen.has(o) || o.noSqueeze) return;
     seen.add(o);
     if (Array.isArray(o)) {
       if (['path', 'poly', 'pts'].includes(key)) { o.forEach(pt); return; }

@@ -620,7 +620,7 @@ export function sitePlanSVG() {
   const w = (x, y, str, size = 2.2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += w(14, 10, 'Main block') + w(14, 13, '(2-story)', 1.9);
   s += w(WCX, WCY - 1.5, 'Primary') + w(WCX, WCY + 1.5, 'wing', 2.2);
-  { const [gx, gy] = garageFrame().toWorld([-34, 36]); s += w(gx, gy, '3-car garage'); }
+  { const f = exterior.garage.footprint[0]; const [gx, gy] = garageFrame().toWorld([f.x + f.w / 2, f.y + f.d / 2]); s += w(gx, gy, '3-car garage'); }
   s += lab(MID, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
   s += lab(-8, 95, 'Driveway', 2.2);
   s += lab(bw.x + bw.w / 2, bw.y + bw.d / 2, 'breezeway', 1.8);
