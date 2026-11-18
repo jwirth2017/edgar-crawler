@@ -116,20 +116,20 @@ export const floors = {
     ceiling: 10,
     footprint: [MAIN_BLOCK, WING],
     rooms: [
-      // — left side: back entry along the breezeway wall, stairs, office —
+      // — left side: back entry from the garage, stairs, office —
       { id: 'mudroom',  name: 'Mudroom',        use: 'service', x: 0,  y: 0,  w: 6,  d: 17,
         finish: { floor: 'slateTile' } },
       // butler's pantry: counter run with coffee bar + prep sink, open shelves, cased opening to the kitchen
       { id: 'pantry',   name: "Butler's Pantry", use: 'service', x: 6, y: 0,  w: 8,  d: 11 },
       { ...STAIR_BOX },
       { id: 'office',   name: 'Shared Office',  use: 'work',    x: 0,  y: 26, w: 14, d: 14 },
-      // — rear wall: kitchen and living side by side, both facing the deck —
+      // — rear wall: kitchen and dining side by side, both facing the deck —
       { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 14, y: 0,  w: 18, d: 16, labelDy: -3 },
-      { id: 'living',  name: 'Living Room', use: 'living', x: 32, y: 0,  w: 20, d: 16,
-        note: "10' smooth ceiling" },
-      // — center: dining, foyer (open to above), coat —
-      { id: 'dining', name: 'Dining',       use: 'living', x: 18, y: 16, w: 20, d: 15,
-        note: 'two-story · open to above' },
+      { id: 'dining',  name: 'Dining',      use: 'living', x: 32, y: 0,  w: 20, d: 16, labelDy: 3.5,
+        note: "glass to the deck · sunset" },
+      // — center: the front door opens into the two-story living room —
+      { id: 'living', name: 'Living Room',  use: 'living', x: 18, y: 16, w: 20, d: 15, labelDx: 5, labelDy: -2.5,
+        note: 'two-story · fireplace' },
       { id: 'foyer',  name: 'Foyer',        use: 'circ',   x: 20, y: 31, w: 12, d: 9,
         vaulted: true, note: 'open to above' },
       { id: 'coat',   name: 'Coat',         use: 'service', x: 32, y: 31, w: 6, d: 9 },
@@ -151,14 +151,14 @@ export const floors = {
     openPlan: [
       ['kitchen', 'living'], ['kitchen', 'dining'], ['living', 'dining'],
       ['kitchen', '_hall'], ['living', '_hall'], ['dining', '_hall'],
-      ['dining', 'foyer'], ['foyer', '_hall'], ['stair', '_hall'],
+      ['foyer', '_hall'], ['stair', '_hall'],
     ],
     openings: [
       // rear wall (y = 0) — glass onto the deck
       { kind: 'window',      on: 'y', at: 0, from: 1.5, to: 4.5, sill: 4 },     // mudroom
       { kind: 'window',      on: 'y', at: 0, from: 8.5, to: 11.5, sill: 4.5 },  // butler's pantry, over the counter
       { kind: 'passthrough', on: 'y', at: 0, from: 19, to: 29, sill: 3.5, head: 8 },   // 10 ft: fridge on one side, ovens on the other
-      { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // living → deck
+      { kind: 'glassdoor',   on: 'y', at: 0, from: 35, to: 49, head: 9 },      // dining → deck
       { kind: 'glassdoor',   on: 'y', at: 0, from: 54.5, to: 60.5 },          // primary bedroom → deck
       { kind: 'window',      on: 'y', at: 0, from: 62, to: 66, sill: 1.5 },    // primary bedroom
       { kind: 'window',      on: 'y', at: 0, from: 71, to: 75, sill: 5 },
@@ -168,15 +168,15 @@ export const floors = {
       { kind: 'window', on: 'y', at: 40, from: 41, to: 49 },                    // den → porch
       { kind: 'window', on: 'y', at: 30, from: 55, to: 61 },                    // laundry
       { kind: 'window', on: 'y', at: 30, from: 69, to: 73, sill: 6 },           // closet, high
-      // side walls (x = 0: breezeway from y = 24 to 40, court drive below it)
-      { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → stoop → motor court
-      { kind: 'window', on: 'x', at: 0,  from: 19.5, to: 23.5, sill: 5 },       // stair landing
+      // side walls (x = 0: the garage is attached along this wall)
+      { kind: 'door',   on: 'x', at: 0,  from: 13.5, to: 16.5 },               // mudroom → garage
       { kind: 'window', on: 'x', at: 78, from: 3,  to: 7,  sill: 5 },
       { kind: 'window', on: 'x', at: 78, from: 10, to: 14, sill: 5 },
       // interior — left
       { kind: 'door', on: 'x', at: 6,  from: 12.5, to: 15.5 },                  // mudroom → back hall
       { kind: 'door', on: 'y', at: 11, from: 7.5,  to: 10.5 },                  // pantry → back hall (groceries from the mudroom)
       { kind: 'opening', on: 'x', at: 14, from: 3.5, to: 7.5 },                 // pantry ↔ kitchen, cased opening
+      { kind: 'opening', on: 'y', at: 31, from: 20.5, to: 31.5 },               // foyer → living: 11 ft cased opening
       { kind: 'glassdoor', on: 'x', at: 14, from: 31.5, to: 36.5 },            // office → front hall, glass French doors
       // interior — right
       { kind: 'door', on: 'x', at: 32, from: 33,   to: 36 },                    // coat closet (off the foyer)
@@ -205,14 +205,16 @@ export const floors = {
       { type: 'counter', x: 6.3,  y: 0.3,  w: 7.4,  d: 2,   h: 3, sink: true, uppers: true, label: 'Coffee bar · prep sink' },
       { type: 'tall',    x: 6.3,  y: 3,    w: 1.3,  d: 7.7, h: 7.5, label: 'Open shelves' },
       { type: 'tall',    x: 12.2, y: 8.2,  w: 1.5,  d: 2.5, h: 7.5 },            // pantry cabinet beside the opening
-      // living — stone fireplace on the right-hand wall, sofa facing it
-      { type: 'fireplace', x: 50.2, y: 5,    w: 1.8, d: 6, h: 10 },
-      { type: 'sofa',      x: 40,   y: 3.5,  w: 3.3, d: 9, h: 2.8, faces: '+x', label: 'Sofa' },
-      { type: 'table',     x: 44.5, y: 6,    w: 2.5, d: 4, h: 1.4 },
-      { type: 'chair',     x: 42.5, y: 12.4, w: 3,   d: 3, h: 2.7 },
-      { type: 'chair',     x: 46.5, y: 12.4, w: 3,   d: 3, h: 2.7 },
-      // dining
-      { type: 'table', x: 23.5, y: 21.75, w: 9, d: 3.5, h: 2.5, chairs: 8, label: 'Table' },
+      // dining — by the deck glass, next to the kitchen; buffet on the end wall
+      { type: 'table',   x: 37.5, y: 5,    w: 9,   d: 3.5, h: 2.5, chairs: 8, label: 'Table', noSqueeze: true },
+      { type: 'dresser', x: 50.2, y: 3.5,  w: 1.8, d: 7,   h: 3,   label: 'Buffet', noSqueeze: true },
+      // living — under the two-story space: stone fireplace on the wall toward the den,
+      // sofa facing it, chairs either end; walks left (to the kitchen) and right (to the wing)
+      { type: 'fireplace', x: 36.2, y: 17.5, w: 1.8, d: 6,   h: 10, noTv: true, noSqueeze: true },
+      { type: 'sofa',      x: 22.5, y: 16.2, w: 3.3, d: 8.6, h: 2.8, faces: '+x', label: 'Sofa', noSqueeze: true },
+      { type: 'table',     x: 27.2, y: 18.3, w: 2.5, d: 4.5, h: 1.4, noSqueeze: true },
+      { type: 'chair',     x: 27,   y: 14.5, w: 3,   d: 3,   h: 2.7, faces: '+y', noSqueeze: true },
+      { type: 'chair',     x: 27,   y: 23.6, w: 3,   d: 3,   h: 2.7, faces: '-y', noSqueeze: true },
       // foyer
       { type: 'table', x: 20.4, y: 33, w: 1.4, d: 5, h: 2.8 },
       // office — each desk faces its own window (front wall and left side wall)
@@ -281,7 +283,7 @@ export const floors = {
       // — center: open to below — the kitchen and the dining room get double-height
       //   space and the gable glass; a 4 ft bridge crosses between them —
       { id: 'kitchenVoid', name: 'Open to Kitchen', use: 'void', x: 18, y: 0,  w: 14, d: 14, void: true },
-      { id: 'diningVoid',  name: 'Open to Dining',  use: 'void', x: 20, y: 18, w: 12, d: 9,  void: true },
+      { id: 'diningVoid',  name: 'Open to Living',  use: 'void', x: 20, y: 18, w: 12, d: 9,  void: true },
       { id: 'foyerVoid',   name: 'Open to Foyer',   use: 'void', x: 20, y: 27, w: 12, d: 9,  void: true },
     ],
     openPlan: [['stair', '_hall'], ['diningVoid', 'foyerVoid']],
@@ -482,19 +484,10 @@ export const exterior = {
       grillAt: 4.5, grillW: 3, ledgeDepth: 1.3, ledgeH: 3.5, stools: 3, minWalk: 3 },
     barCounter: { x: 19, y: -1.8, w: 10, d: 1.5, h: 3.5 }, // outside the pass-through
   },
-  // Arched drive-through beside the house, long enough to cover the mudroom
-  // door: get out of the car (or walk in from the garage) and step straight
-  // into the mudroom under cover. Cars pass front → back through the 12 ft arch
-  // (set toward the garage side, leaving a walk along the house) into the motor
-  // court, turn around and pull nose-first into the garage.
-  breezeway: {
-    x: -18, y: 12, w: 18, d: 28,
-    floorOffset: -1, wallHeight: 12,
-    archWidth: 12, archX: 1, archSpring: 7.5, archTop: 10.5,   // arch from x + archX
-    sideWall: [38, 39],                     // far-side wall past the garage; the garage closes the rest
-  },
-  // 3-car garage, attached to the breezeway's far side and lined up with it, doors facing the motor
-  // court. Built as its own building (rotatable via `place`; currently square).
+  // (no breezeway: the garage attaches straight to the house at the mudroom)
+  breezeway: null,
+  // 3-car garage attached to the house's south wall, doors facing the motor court at the
+  // rear (side-load: nothing faces the street). Door from the garage into the mudroom.
   garage: {
     name: '3-Car Garage',
     noSqueeze: true,                        // drawn at the final size: 24 ft deep
@@ -502,27 +495,27 @@ export const exterior = {
     floor: -1,
     ceiling: 10,
     wallTop: 11,                            // eave 10 ft above the main floor
-    place: { anchor: [-18, 31.5], at: [-18, 31.5], angle: 0 },
-    footprint: [{ x: -54, y: 10, w: 36, d: 24 }],
-    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -54, y: 10, w: 36, d: 24, finished: false,
+    place: { anchor: [0, 22], at: [0, 22], angle: 0 },
+    footprint: [{ x: -36, y: 10, w: 36, d: 24 }],
+    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -36, y: 10, w: 36, d: 24, finished: false,
       note: 'attic storage above · pull-down stairs' }],
     openings: [
-      { kind: 'garage', on: 'y', at: 10, from: -52, to: -43 },    // doors face the motor court
-      { kind: 'garage', on: 'y', at: 10, from: -41, to: -32 },
-      { kind: 'garage', on: 'y', at: 10, from: -30, to: -21 },
-      { kind: 'door',   on: 'x', at: -18, from: 11.5, to: 14.5 }, // into the breezeway, across from the mudroom
-      { kind: 'window', on: 'y', at: 34, from: -48, to: -44 },
-      { kind: 'window', on: 'y', at: 34, from: -38, to: -34 },
-      { kind: 'window', on: 'y', at: 34, from: -28, to: -24 },
-      { kind: 'window', on: 'x', at: -54, from: 19, to: 25 },
+      { kind: 'garage', on: 'y', at: 10, from: -34, to: -25 },    // doors face the motor court
+      { kind: 'garage', on: 'y', at: 10, from: -23, to: -14 },
+      { kind: 'garage', on: 'y', at: 10, from: -12, to: -3 },
+      { kind: 'door',   on: 'x', at: 0,   from: 11.5, to: 14.5 }, // into the mudroom (fire-rated, self-closing)
+      { kind: 'window', on: 'y', at: 34, from: -31, to: -27 },
+      { kind: 'window', on: 'y', at: 34, from: -20, to: -16 },
+      { kind: 'window', on: 'y', at: 34, from: -9, to: -5 },
+      { kind: 'window', on: 'x', at: -36, from: 19, to: 25 },
     ],
     furniture: [
-      { type: 'tall', x: -53.7, y: 30.2, w: 20, d: 2.5, h: 7, label: 'Storage + workbench wall' },
-      { type: 'car', x: -50.5, y: 13, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
-      { type: 'car', x: -39.5, y: 13, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -28.5, y: 13, w: 6, d: 16, h: 5 },
+      { type: 'tall', x: -35.7, y: 30.2, w: 20, d: 2.5, h: 7, label: 'Storage + workbench wall' },
+      { type: 'car', x: -32.5, y: 13, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
+      { type: 'car', x: -21.5, y: 13, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -10.5, y: 13, w: 6, d: 16, h: 5 },
     ],
-    roof: { id: 'garage', type: 'gable', x: -54, y: 10, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    roof: { id: 'garage', type: 'gable', x: -36, y: 10, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -530,11 +523,10 @@ export const exterior = {
     // center gable, front and rear, over the foyer / dining / loft
     { id: 'center', type: 'crossGable', centerX: 26, width: 22, eave: 20.5, pitch: 12, overhang: 1.5, brackets: 'cedar' },
     { id: 'wing',   type: 'gable', x: 52,  y: 0,  w: 26, d: 30, ridge: 'y', eave: 11, pitch: 8, overhang: 1.5 },
-    { id: 'breezeway', type: 'gable', x: -18, y: 12, w: 18, d: 28, ridge: 'y', eave: 12, pitch: 8, overhang: 1 },
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
-  // small stone landing outside the mudroom door, one step up from the court
-  stoop: { x: -4, y: 13, w: 4, d: 5, top: -0.05, ramp: 12 },   // flush landing at the mudroom door, 1:12 ramp up from the breezeway
+  // landing inside the garage at the mudroom door, one step up from the garage floor
+  stoop: { x: -4, y: 13, w: 4, d: 5, top: -0.05 },
 };
 
 /** The garage's local plan → site plan (rotated and moved into place), and back. */
@@ -588,11 +580,12 @@ function hull(pts) {
 function motorCourt() {
   // drawn at the final size: an apron across the garage doors and the arch
   // (22 ft to back out), and a hammerhead arm to back into, so a truck can
-  // come through the breezeway, turn and pull nose-first into any bay. The
+  // come up the drive past the garage, turn and pull nose-first into any bay. The
   // apron's corner by the house is clipped so the retaining wall is one short
   // run from the house corner, tapering out.
   return [
     { poly: hull([[0, 10], [0, 0], [-16, -12], [-58, -12], [-58, 10]]), wall: true, noSqueeze: true },
+    { x: -49, y: 10, w: 12, d: 30, noSqueeze: true, name: 'drive' },   // drive along the garage's end wall
     { poly: hull([[-52, -12], [-38, -12], [-38, -32], [-52, -32]]), wall: true, noSqueeze: true, name: 'hammerhead' },
   ];
 }
@@ -616,8 +609,8 @@ export const site = {
     rollAmplitude: 1.8,     // gentle rolling away from the house
   },
   road:      { y: 156, width: 22 },
-  driveway:  { width: 12, path: [[-11, 145], [-11, 40]] },        // to the breezeway arch
-  // motor court at main-floor level: come through the breezeway, turn around
+  driveway:  { width: 12, path: [[-43, 145], [-43, 10]] },        // past the garage's end wall to the court
+  // motor court at main-floor level: come up the drive past the garage, turn around
   // and pull nose-first into the garage.
   // Entries are rectangles, or { poly } (convex) for curved / angled paving.
   courtyard: motorCourt(),
@@ -752,7 +745,9 @@ export const views = [
   { id: 'front',   name: 'Front approach',  type: 'orbit', eye: [26, 118, 4],    target: [26, 18, 12] },
   { id: 'pool',    name: 'Rear from pool',  type: 'orbit', eye: [26, -78, -3], target: [26, 0, 0] },
   { id: 'kitchen', name: 'Kitchen → pass-through', type: 'walk', level: 'main', at: [22, 19], look: [22, -20], pitch: -0.17 },
-  { id: 'living',  name: 'Living room',     type: 'walk', level: 'main', at: [34.5, 14.5], look: [52, 2] },
+  { id: 'entry',   name: 'Front door → living', type: 'walk', level: 'main', at: [26, 33], look: [26, 0], pitch: 0.05 },
+  { id: 'living',  name: 'Living room',     type: 'walk', level: 'main', at: [20, 25], look: [38, 19] },
+  { id: 'dining',  name: 'Dining',          type: 'walk', level: 'main', at: [36, 12.5], look: [46, -10], pitch: -0.1 },
   { id: 'sim',     name: 'Golf sim',        type: 'walk', level: 'basement', at: [25, 22.5], look: [25, 40], pitch: -0.22 },
   { id: 'theater', name: 'Theater',         type: 'walk', level: 'basement', at: [42, 23.5], look: [42, 40], pitch: -0.2 },
 ];

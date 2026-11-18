@@ -22,7 +22,7 @@ function stoop(B, M, lanterns) {
   B.surface(s.x, s.x + s.w, s.y, s.y + s.d, s.top, 'stoop');
   if (s.ramp) {
     // zero-step entry: the walk along the house ramps (1:12) from the breezeway floor up to the landing
-    const zLow = exterior.breezeway.floorOffset;
+    const zLow = exterior.breezeway?.floorOffset ?? exterior.garage.floor;
     const y0 = s.y + s.d;
     const n = 24;
     for (let i = 0; i < n; i++) {
@@ -197,6 +197,7 @@ function cableRail(B, M, g, [[x0, y0], [x1, y1]], z, h, zAt) {
 
 function breezeway(B, M, lanterns) {
   const bw = exterior.breezeway;
+  if (!bw) return;
   const roof = exterior.roofs.find((r) => r.id === 'breezeway');
   const z0 = bw.floorOffset;
   const zr = roof.eave + (bw.w / 2) * (roof.pitch / 12);

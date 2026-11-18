@@ -72,7 +72,7 @@ const FOOTPRINTS = () => {
   return {
     main: floors.upper.footprint[0],
     wing: floors.main.footprint[1],
-    breezeway: { x: bw.x, y: bw.y, w: bw.w, d: bw.d },
+    ...(bw ? { breezeway: { x: bw.x, y: bw.y, w: bw.w, d: bw.d } } : {}),
     ...(g && !g.place.angle ? { garage: g.footprint[0] } : {}),
   };
 };

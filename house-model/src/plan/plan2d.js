@@ -426,25 +426,18 @@ export function floorPlanSVG(key) {
     }
     s += note(MID, -9.5, `Deck · ${fmtFeet(deck.w)} × ${fmtFeet(deck.d)} · cable rail, stone piers`, 0.9);
     s += text(exterior.deck.barCounter.x + exterior.deck.barCounter.w / 2, -3.2, 'Pass-through bar', 0.8, `text-anchor="middle" fill="${GLASS}"`);
-    // breezeway
-    s += rect(bw.x, bw.y, bw.w, bw.d, `fill="#dedcd4" stroke="none"`);
-    for (const yy of [bw.y, bw.y + bw.d]) {
-      const a0 = bw.x + (bw.archX ?? (bw.w - bw.archWidth) / 2);
-      const a1 = a0 + bw.archWidth;
-      s += line(bw.x, yy, a0, yy, `stroke="${INK}" stroke-width="0.75"`);
-      s += line(a1, yy, bw.x + bw.w, yy, `stroke="${INK}" stroke-width="0.75"`);
-      s += line(a0, yy, a1, yy, `stroke="${INK}" stroke-width="0.1" stroke-dasharray="0.5 0.4"`);
+    if (bw) {
+      s += rect(bw.x, bw.y, bw.w, bw.d, `fill="#dedcd4" stroke="none"`);
+      s += note(bw.x + bw.w / 2, bw.y + bw.d / 2, 'Breezeway', 0.95, `fill="${INK}" font-weight="650"`);
     }
-    if (bw.sideWall) s += line(bw.x, bw.sideWall[0], bw.x, bw.sideWall[1], `stroke="${INK}" stroke-width="0.6"`);
-    s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 - 0.7, 'Breezeway', 0.95, `fill="${INK}" font-weight="650"`);
-    s += note(bw.x + bw.w / 2, bw.y + bw.d / 2 + 0.7, `${fmtFeet(bw.w)} × ${fmtFeet(bw.d)} drive-through`, 0.7);
     const courts = [].concat(site.courtyard);
     for (const c of courts) s += area(c, `fill="#ebe8e1" stroke="none"`);
     const ct = bbox(courts[0]);
     const stp = exterior.stoop;
     if (stp) s += rect(stp.x, stp.y, stp.w, stp.d, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.1"`);
-    s += `<path d="M-8,${bw.y + bw.d + 14} L-8,${bw.y - 2} Q-8,${bw.y - 6} -14,${bw.y - 6} L-24,${bw.y - 6} m0,0 l1.6,-0.9 m-1.6,0.9 l1.6,0.9" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
-    s += note(-8, bw.y + bw.d + 15.5, 'driveway from street', 0.8);
+    { const dx = site.driveway.path[0][0];
+      s += `<path d="M${dx},50 L${dx},2 Q${dx},-4 ${dx + 6},-4 L-14,-4 Q-9,-4 -9,1 L-9,6 m0,0 l-0.9,-1.6 m0.9,1.6 l0.9,-1.6" stroke="#9a968b" stroke-width="0.15" fill="none" stroke-dasharray="1 0.7"/>`;
+      s += note(dx, 52, 'driveway from street', 0.8); }
     s += note(ct.x + ct.w / 2, ct.y + ct.d / 2 - 2, 'Motor court', 0.95);
     s += note(ct.x + ct.w / 2, ct.y + ct.d / 2 - 0.3, `about ${Math.round(ct.w)}' × ${Math.round(ct.d)}' · main-floor level`, 0.75);
     s += garageSVG();
@@ -529,7 +522,7 @@ export function sitePlanSVG() {
   s += rect(dx - site.driveway.width / 2, dy1, site.driveway.width, dy0 - dy1, `fill="#cfccc4"`);
   const courts = [].concat(site.courtyard);
   for (const cc of courts) s += area(cc, `fill="#cfccc4"`);
-  { const b = exterior.breezeway; s += rect(b.x + (b.archX ?? (b.w - b.archWidth) / 2), b.y, b.archWidth, b.d, `fill="#cfccc4"`); }
+  { const b = exterior.breezeway; if (b) s += rect(b.x + (b.archX ?? (b.w - b.archWidth) / 2), b.y, b.archWidth, b.d, `fill="#cfccc4"`); }
   const c = bbox(courts[0]);
   s += lab(c.x + c.w / 2, c.y + c.d / 2 - 4, 'Motor court');
   s += lab(c.x + c.w / 2, c.y + c.d / 2, `main-floor level · ${fmtFeet(t.courtGrade)}`, 2);
@@ -611,7 +604,7 @@ export function sitePlanSVG() {
   s += lab(deck.x + deck.w / 2, deck.y + deck.d / 2, 'Deck (main level), covered patio below', 2);
   s += rect(porch.x, porch.y, porch.w, porch.d, `fill="#e9e3d5" stroke="${INK}" stroke-width="0.2"`);
   // roofs as dark footprints with ridge lines
-  s += rect(bw.x, bw.y, bw.w, bw.d, `fill="#3b3b3b"`);
+  if (bw) s += rect(bw.x, bw.y, bw.w, bw.d, `fill="#3b3b3b"`);
   for (const f of floors.main.footprint) s += rect(f.x, f.y, f.w, f.d, `fill="#2e2e2e" stroke="#2e2e2e" stroke-width="0.5"`);
   const go = garageOutline();
   s += `<path d="M${go.map(([x, y]) => `${n(x)},${n(y)}`).join(' L')} Z" fill="#2e2e2e"/>`;
@@ -625,14 +618,14 @@ export function sitePlanSVG() {
     const [a, b] = [G.toWorld([f.x, f.y + f.d / 2]), G.toWorld([f.x + f.w, f.y + f.d / 2])];
     s += line(a[0], a[1], b[0], b[1], ridge);
   }
-  s += line(bw.x + bw.w / 2, bw.y, bw.x + bw.w / 2, bw.y + bw.d, ridge);
+  if (bw) s += line(bw.x + bw.w / 2, bw.y, bw.x + bw.w / 2, bw.y + bw.d, ridge);
   const w = (x, y, str, size = 2.2) => text(x, y, str, size, `text-anchor="middle" dominant-baseline="central" fill="#fff"`);
   s += w(14, 10, 'Main block') + w(14, 13, '(2-story)', 1.9);
   s += w(WCX, WCY - 1.5, 'Primary') + w(WCX, WCY + 1.5, 'wing', 2.2);
   { const f = exterior.garage.footprint[0]; const [gx, gy] = garageFrame().toWorld([f.x + f.w / 2, f.y + f.d / 2]); s += w(gx, gy, '3-car garage'); }
   s += lab(MID, 52, `Front porch · grade ${fmtFeet(t.frontGrade)}`, 2.2);
-  s += lab(-8, 95, 'Driveway', 2.2);
-  s += lab(bw.x + bw.w / 2, bw.y + bw.d / 2, 'breezeway', 1.8);
+  s += lab(site.driveway.path[0][0], 95, 'Driveway', 2.2);
+  if (bw) s += lab(bw.x + bw.w / 2, bw.y + bw.d / 2, 'breezeway', 1.8);
   for (const x of [-92, 112]) {
     s += `<path d="M${x},80 L${x},-10 m0,0 l-2,4 m2,-4 l2,4" stroke="#6f8558" stroke-width="0.5" fill="none"/>`;
     s += text(x, 86, 'slopes down', 2, `text-anchor="middle" fill="#55683f"`);

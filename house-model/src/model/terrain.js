@@ -25,7 +25,7 @@ const BW = exterior.breezeway;
 /** Areas held at main-floor level on the garage side. */
 const SOUTH_HIGH = [
   ...[].concat(site.courtyard),
-  { x: BW.x, y: BW.y, w: BW.w, d: BW.d },
+  ...(BW ? [{ x: BW.x, y: BW.y, w: BW.w, d: BW.d }] : []),
   GARAGE,
   ...(garageLink() ? [{ poly: garageLink().poly }] : []),
 ];

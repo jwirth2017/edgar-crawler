@@ -239,7 +239,7 @@ export function furniture(B, M, g, f, base, room, P) {
       box(M.black, mid, 1.4, 4.0);
       const mantel = f.d > f.w ? [fb[0] - (face === '-x' ? 0.6 : 0), fb[1] + (face === '+x' ? 0.6 : 0), f.y + 0.2, f.y + f.d - 0.2] : [f.x + 0.2, f.x + f.w - 0.2, fb[2], fb[3]];
       box(M.cedar, mantel, 4.6, 5.0);
-      box(M.tv, f.d > f.w ? [mid[0] - 0.1, mid[1], mid[2] - 0.7, mid[3] + 0.7] : mid, 5.6, 8.2);
+      if (!f.noTv) box(M.tv, f.d > f.w ? [mid[0] - 0.1, mid[1], mid[2] - 0.7, mid[3] + 0.7] : mid, 5.6, 8.2);
       break;
     }
     default:
