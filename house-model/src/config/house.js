@@ -126,15 +126,16 @@ export const floors = {
       // — rear wall: kitchen and living side by side, both facing the deck —
       { id: 'kitchen', name: 'Kitchen',     use: 'living', x: 14, y: 0,  w: 18, d: 16, labelDy: -3 },
       { id: 'living',  name: 'Living Room', use: 'living', x: 32, y: 0,  w: 20, d: 16,
-        note: "10' flat ceiling" },
+        note: "10' smooth ceiling" },
       // — center: dining, foyer (open to above), coat —
       { id: 'dining', name: 'Dining',       use: 'living', x: 18, y: 16, w: 20, d: 15,
-        note: "10' flat ceiling" },
+        note: 'two-story · open to above' },
       { id: 'foyer',  name: 'Foyer',        use: 'circ',   x: 20, y: 31, w: 12, d: 9,
         vaulted: true, note: 'open to above' },
       { id: 'coat',   name: 'Coat',         use: 'service', x: 32, y: 31, w: 6, d: 9 },
       // — right side: powder, den; hall in front of the living room leads to the wing —
-      { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 41, y: 20, w: 11, d: 6 },
+      { id: 'powder', name: 'Powder Room',  use: 'bath',   x: 46, y: 20, w: 6,  d: 6 },
+      { id: 'dropZone', name: 'Drop Zone',  use: 'service', x: 41, y: 20, w: 5,  d: 6, note: 'closet' },
       { id: 'den',    name: 'TV Den',       use: 'living', x: 38, y: 26, w: 14, d: 14 },
       // — primary wing (flush with the rear wall) —
       { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 52, y: 0,  w: 16, d: 16 },
@@ -142,7 +143,8 @@ export const floors = {
       { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 64, y: 16, w: 14, d: 14,
         note: 'double hang, raised rods' },
       { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
-      // the 4 ft wing entry hall (x 52–64, y 16–20) is the auto-generated hallway
+      // private entry: the wing hall closes off from the house with a pocket door
+      { id: 'primaryEntry', name: 'Primary Entry', use: 'circ', x: 52, y: 16, w: 12, d: 4 },
       // (the 3-car garage is its own angled building: exterior.garage)
     ],
     openPlan: [
@@ -174,12 +176,14 @@ export const floors = {
       { kind: 'door', on: 'x', at: 6,  from: 12.5, to: 15.5 },                  // mudroom → back hall
       { kind: 'door', on: 'y', at: 11, from: 7.5,  to: 10.5 },                  // pantry → back hall (groceries from the mudroom)
       { kind: 'opening', on: 'x', at: 14, from: 3.5, to: 7.5 },                 // pantry ↔ kitchen, cased opening
-      { kind: 'door', on: 'x', at: 14, from: 33,   to: 36, swing: -1 },         // office → front hall
+      { kind: 'glassdoor', on: 'x', at: 14, from: 31.5, to: 36.5 },            // office → front hall, glass French doors
       // interior — right
       { kind: 'door', on: 'x', at: 32, from: 33,   to: 36 },                    // coat closet (off the foyer)
-      { kind: 'door', on: 'y', at: 20, from: 44,   to: 46.7, swing: -1 },       // powder
+      { kind: 'door', on: 'y', at: 20, from: 47.5, to: 50, swing: -1 },        // powder
+      { kind: 'door', on: 'y', at: 20, from: 42,   to: 44.5, swing: -1 },       // drop-zone closet
       { kind: 'door', on: 'y', at: 26, from: 38.25, to: 40.75, swing: -1 },    // den, from the gallery
       // interior — primary wing
+      { kind: 'door', on: 'x', at: 52, from: 16.5, to: 19.5 },                  // house → primary entry (pocket door)
       { kind: 'door', on: 'y', at: 16, from: 54, to: 57, swing: -1 },         // hall → bedroom
       { kind: 'door', on: 'x', at: 68, from: 2,  to: 5 },                     // bed → bath
       { kind: 'door', on: 'y', at: 16, from: 70.5, to: 73.5 },                // bath → closet
@@ -214,15 +218,18 @@ export const floors = {
       { type: 'chair', x: 3.4, y: 31,   w: 2,   d: 2,   h: 3 },
       { type: 'tall',  x: 6,   y: 26.3, w: 7,   d: 1.2, h: 7 },
       // mudroom / pantry
-      { type: 'tall',  x: 4.4, y: 0.5,  w: 1.5, d: 9,    h: 7 },              // lockers
-      { type: 'bench', x: 0.3, y: 8,    w: 1.5, d: 4,    h: 1.5 },
+      // mudroom built-ins: dog wash under the window, lockers with a bench, charging + hooks
+      { type: 'tub',     x: 0.3, y: 0.3, w: 3.6, d: 2.8, h: 2,   label: 'Dog wash', noSqueeze: true },
+      { type: 'tall',    x: 0.3, y: 3.4, w: 1.8, d: 7.4, h: 7,   label: 'Lockers + bench', noSqueeze: true },
+      { type: 'counter', x: 5,   y: 3.6, w: 0.9, d: 6,   h: 3.5, label: 'Charging + hooks', noSqueeze: true },
       // den — TV on the back wall, sofa facing it, window to the porch behind
       { type: 'tv',    x: 43,   y: 26.3, w: 6, d: 1.5, h: 2 },
       { type: 'sofa',  x: 42.5, y: 34,   w: 8, d: 3.5, h: 2.8, faces: '-y' },
       { type: 'table', x: 44.5, y: 30,   w: 4, d: 2.5, h: 1.3 },
       // powder / coat
-      { type: 'counter', x: 47,   y: 23.9, w: 4,   d: 1.8, h: 3, sink: true },
-      { type: 'toilet',  x: 49.6, y: 20.3, w: 2.3, d: 1.7, h: 1.4 },
+      { type: 'counter', x: 46.3, y: 23.9, w: 3.2, d: 1.8, h: 3, sink: true },
+      { type: 'toilet',  x: 50.1, y: 22.4, w: 1.7, d: 2.3, h: 1.4 },
+      { type: 'tall',    x: 41.3, y: 23.8, w: 4.4, d: 2,   h: 7, label: 'Coats + bags' },
       { type: 'tall',    x: 36.1, y: 31.3, w: 1.7, d: 8.4, h: 7 },
       // primary suite
       { type: 'bed',     x: 60.5, y: 4.5,  w: 7.2, d: 6.5, h: 2.2, label: 'King' },
@@ -497,7 +504,7 @@ export const exterior = {
       { kind: 'garage', on: 'y', at: 12, from: -52, to: -43 },    // doors face the motor court
       { kind: 'garage', on: 'y', at: 12, from: -41, to: -32 },
       { kind: 'garage', on: 'y', at: 12, from: -30, to: -21 },
-      { kind: 'door',   on: 'x', at: -18, from: 22, to: 25 },     // into the breezeway, across from the mudroom
+      { kind: 'door',   on: 'x', at: -18, from: 13.5, to: 16.5 }, // into the breezeway, across from the mudroom
       { kind: 'window', on: 'y', at: 36, from: -48, to: -44 },
       { kind: 'window', on: 'y', at: 36, from: -38, to: -34 },
       { kind: 'window', on: 'y', at: 36, from: -28, to: -24 },
