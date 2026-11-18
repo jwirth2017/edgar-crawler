@@ -20,6 +20,19 @@ function stoop(B, M, lanterns) {
   const court = site.terrain.courtGrade;
   B.box('main', M.stone, s.x, s.x + s.w, s.y, s.y + s.d, court - 0.5, s.top);
   B.surface(s.x, s.x + s.w, s.y, s.y + s.d, s.top, 'stoop');
+  if (s.ramp) {
+    // zero-step entry: the walk along the house ramps (1:12) from the breezeway floor up to the landing
+    const zLow = exterior.breezeway.floorOffset;
+    const y0 = s.y + s.d;
+    const n = 24;
+    for (let i = 0; i < n; i++) {
+      const ya = y0 + (s.ramp * i) / n;
+      const yb = y0 + (s.ramp * (i + 1)) / n;
+      const z = s.top + (zLow - s.top) * ((i + 0.5) / n);
+      B.box('main', M.concrete, s.x, s.x + s.w, ya, yb, zLow - 0.3, z);
+    }
+    B.surface(s.x, s.x + s.w, y0, y0 + s.ramp, (x, y) => s.top + (zLow - s.top) * Math.min(1, Math.max(0, (y - y0) / s.ramp)), 'ramp');
+  }
   lantern(B, M, lanterns, s.x + s.w - 0.4, s.y + 0.6, 7);
 }
 

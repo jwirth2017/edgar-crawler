@@ -139,7 +139,8 @@ export const floors = {
       { id: 'den',    name: 'TV Den',       use: 'living', x: 38, y: 26, w: 14, d: 14 },
       // — primary wing (flush with the rear wall) —
       { id: 'primaryBed',    name: 'Primary Bedroom', use: 'bed',     x: 52, y: 0,  w: 16, d: 16 },
-      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 68, y: 0,  w: 10, d: 16 },
+      { id: 'primaryBath',   name: 'Primary Bath',    use: 'bath',    x: 68, y: 0,  w: 10, d: 16,
+        note: 'curbless shower · grab-bar blocking' },
       { id: 'primaryCloset', name: 'Primary Closet',  use: 'service', x: 64, y: 16, w: 14, d: 14,
         note: 'double hang, raised rods' },
       { id: 'laundry',       name: 'Laundry',         use: 'service', x: 52, y: 20, w: 12, d: 10 },
@@ -196,7 +197,10 @@ export const floors = {
       { type: 'tall',    x: 14.3, y: 0.3,  w: 3,    d: 2.6, h: 7.5, label: 'Fridge' },
       { type: 'counter', x: 17.3, y: 0.3,  w: 11.9, d: 2,   h: 3, sink: true }, // under the pass-through
       { type: 'oven',    x: 29.2, y: 0.3,  w: 2.6,  d: 2.2, h: 7.5, label: 'Double ovens' },
-      { type: 'island',  x: 18,   y: 8,    w: 12,   d: 4,   h: 3, cooktop: { w: 3, d: 1.75 }, downdraft: true },   // pop-up downdraft vent, no hood
+      // 13 ft island: gas cooktop + pop-up downdraft on the work side, raised bar ledge
+      // (42" high) on the east / dining side so stools sit away from the burners
+      { type: 'island',  x: 17.5, y: 6,    w: 13,   d: 5.6, h: 3, cooktop: { w: 3, d: 1.75 }, downdraft: true,
+        ledge: { side: '+y', d: 1.5, h: 3.5, stools: 4 }, label: 'Island · bar ledge', noSqueeze: true },
       // butler's pantry — counter on the rear wall under the window, open shelves opposite the kitchen
       { type: 'counter', x: 6.3,  y: 0.3,  w: 7.4,  d: 2,   h: 3, sink: true, uppers: true, label: 'Coffee bar · prep sink' },
       { type: 'tall',    x: 6.3,  y: 3,    w: 1.3,  d: 7.7, h: 7.5, label: 'Open shelves' },
@@ -456,7 +460,7 @@ export const floors = {
 // Exterior structures ----------------------------------------------------------
 export const exterior = {
   porch: {
-    x: 0, y: 40, w: 52, d: 8, floor: -0.5,
+    x: 0, y: 40, w: 52, d: 10, floor: -0.5,     // 10 ft: room for rockers and the walk
     postSpacing: 10.4, postSize: 0.8,       // cedar posts on stone bases
     steps: { x: 22, w: 8 },                 // centered on the front door
     roofLow: 10, roofHigh: 11.5,            // shed roof under the upper windows
@@ -487,35 +491,38 @@ export const exterior = {
     x: -18, y: 12, w: 18, d: 28,
     floorOffset: -1, wallHeight: 12,
     archWidth: 12, archX: 1, archSpring: 7.5, archTop: 10.5,   // arch from x + archX
-    sideWall: [36, 39],                     // far-side wall past the garage; the garage closes the rest
+    sideWall: [38, 39],                     // far-side wall past the garage; the garage closes the rest
   },
   // 3-car garage, attached to the breezeway's far side and lined up with it, doors facing the motor
   // court. Built as its own building (rotatable via `place`; currently square).
   garage: {
     name: '3-Car Garage',
+    noSqueeze: true,                        // drawn at the final size: 24 ft deep
     finish: 'better',
     floor: -1,
     ceiling: 10,
     wallTop: 11,                            // eave 10 ft above the main floor
     place: { anchor: [-18, 31.5], at: [-18, 31.5], angle: 0 },
-    footprint: [{ x: -54, y: 12, w: 36, d: 24 }],
-    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -54, y: 12, w: 36, d: 24, finished: false }],
+    footprint: [{ x: -54, y: 10, w: 36, d: 24 }],
+    rooms: [{ id: 'garage', name: '3-Car Garage', use: 'garage', x: -54, y: 10, w: 36, d: 24, finished: false,
+      note: 'attic storage above · pull-down stairs' }],
     openings: [
-      { kind: 'garage', on: 'y', at: 12, from: -52, to: -43 },    // doors face the motor court
-      { kind: 'garage', on: 'y', at: 12, from: -41, to: -32 },
-      { kind: 'garage', on: 'y', at: 12, from: -30, to: -21 },
-      { kind: 'door',   on: 'x', at: -18, from: 13.5, to: 16.5 }, // into the breezeway, across from the mudroom
-      { kind: 'window', on: 'y', at: 36, from: -48, to: -44 },
-      { kind: 'window', on: 'y', at: 36, from: -38, to: -34 },
-      { kind: 'window', on: 'y', at: 36, from: -28, to: -24 },
-      { kind: 'window', on: 'x', at: -54, from: 21, to: 27 },
+      { kind: 'garage', on: 'y', at: 10, from: -52, to: -43 },    // doors face the motor court
+      { kind: 'garage', on: 'y', at: 10, from: -41, to: -32 },
+      { kind: 'garage', on: 'y', at: 10, from: -30, to: -21 },
+      { kind: 'door',   on: 'x', at: -18, from: 11.5, to: 14.5 }, // into the breezeway, across from the mudroom
+      { kind: 'window', on: 'y', at: 34, from: -48, to: -44 },
+      { kind: 'window', on: 'y', at: 34, from: -38, to: -34 },
+      { kind: 'window', on: 'y', at: 34, from: -28, to: -24 },
+      { kind: 'window', on: 'x', at: -54, from: 19, to: 25 },
     ],
     furniture: [
-      { type: 'car', x: -50.5, y: 18, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
-      { type: 'car', x: -39.5, y: 18, w: 6, d: 16, h: 5 },
-      { type: 'car', x: -28.5, y: 18, w: 6, d: 16, h: 5 },
+      { type: 'tall', x: -53.7, y: 30.2, w: 20, d: 2.5, h: 7, label: 'Storage + workbench wall' },
+      { type: 'car', x: -50.5, y: 13, w: 6, d: 16, h: 5 },        // three cars, pulled in nose-first
+      { type: 'car', x: -39.5, y: 13, w: 6, d: 16, h: 5 },
+      { type: 'car', x: -28.5, y: 13, w: 6, d: 16, h: 5 },
     ],
-    roof: { id: 'garage', type: 'gable', x: -54, y: 12, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
+    roof: { id: 'garage', type: 'gable', x: -54, y: 10, w: 36, d: 24, ridge: 'x', eave: 10, pitch: 8, overhang: 1.5 },
   },
   roofs: [
     // eave = height of the eave line above main floor. pitch = rise per 12.
@@ -527,7 +534,7 @@ export const exterior = {
   ],
   wainscotHeight: 3.5,   // stone veneer band on the main-level walls
   // small stone landing outside the mudroom door, one step up from the court
-  stoop: { x: -4, y: 13, w: 4, d: 5, top: -0.4 },
+  stoop: { x: -4, y: 13, w: 4, d: 5, top: -0.05, ramp: 12 },   // flush landing at the mudroom door, 1:12 ramp up from the breezeway
 };
 
 /** The garage's local plan → site plan (rotated and moved into place), and back. */
@@ -622,6 +629,8 @@ export const site = {
   furniture: [
     { type: 'table',   x: 40, y: -9,  w: 7,   d: 3.5, h: 2.5, elev: 'deck', chairs: 6 },
     { type: 'sofa',    x: 21, y: -12.3, w: 8, d: 3,   h: 2.6, elev: 'deck', faces: '+y' },  // under the covered section
+    // outdoor rinse shower by the basement pool door
+    { type: 'shower',  x: 11.2, y: -3.2, w: 3, d: 3, h: 7.5, label: 'Rinse shower', noSqueeze: true },
     // private sitting area off the primary suite, facing the sunset
     { type: 'sofa',    x: 63, y: -4.4, w: 6,   d: 3,   h: 2.6, elev: 'deck', faces: '-y', label: 'Sitting area' },
     { type: 'table',   x: 64.5, y: -8, w: 3,   d: 2,   h: 1.4, elev: 'deck' },

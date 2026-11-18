@@ -158,11 +158,18 @@ function drawFurniture(list = [], rooms = []) {
         s += line(f.x, yy, f.x + f.w, yy, st);
       }
     }
+    if (f.ledge && f.ledge.side === '+y') {
+      const ly = f.y + f.d - f.ledge.d;
+      s += line(f.x, ly, f.x + f.w, ly, `stroke="${FURN}" stroke-width="0.08" stroke-dasharray="0.3 0.2"`);
+      for (let i = 0; i < (f.ledge.stools || 0); i++) {
+        s += `<circle cx="${n(f.x + (f.w * (i + 0.5)) / f.ledge.stools)}" cy="${n(f.y + f.d + 1.1)}" r="0.7" fill="#fff" stroke="${FURN}" stroke-width="0.08"/>`;
+      }
+    }
     if (f.cooktop) {
       const c = typeof f.cooktop === 'object' ? f.cooktop : { w: 3, d: 1.75 };
       const [cw, cd] = f.w >= f.d ? [c.w, c.d] : [c.d, c.w];
       const cx = f.x + f.w / 2;
-      const cy = f.y + f.d / 2;
+      const cy = f.y + (f.ledge && f.ledge.side === '+y' ? f.d - f.ledge.d : f.d) / 2;
       s += rect(cx - cw / 2, cy - cd / 2, cw, cd, `fill="#3a3b3e" stroke="${INK}" stroke-width="0.06"`);
       for (const [u, v] of [[-0.3, -0.25], [0.3, -0.25], [0, 0], [-0.3, 0.25], [0.3, 0.25]]) {
         s += `<circle cx="${n(cx + u * cw)}" cy="${n(cy + v * cd)}" r="0.22" fill="none" stroke="#d9d6cd" stroke-width="0.05"/>`;

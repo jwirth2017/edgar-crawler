@@ -44,11 +44,29 @@ export function furniture(B, M, g, f, base, room, P) {
     case 'tall':
       box(P.cabinet, R(f), 0, h);
       break;
-    case 'island':
+    case 'island': {
       box(P.island, inset(R(f), 0.1), 0, h - 0.15);
       box(P.counter, R(f), h - 0.15, h);
-      if (f.cooktop) cooktop(B, M, g, f, base, room);
+      const L = f.ledge;
+      if (L) {
+        // raised bar ledge along one side, on short posts, with stools in front
+        const lr = strip(f, L.side, L.d);
+        box(P.counter, lr, L.h - 0.12, L.h);
+        box(P.island, inset(lr, 0.15), h, L.h - 0.12);
+        const n = L.stools || 0;
+        const alongX = L.side[1] === 'y';
+        const out = L.side[0] === '+' ? 1 : -1;
+        for (let i = 0; i < n; i++) {
+          const t = (i + 0.5) / n;
+          const sx = alongX ? f.x + f.w * t : (out > 0 ? f.x + f.w + 1.1 : f.x - 1.1);
+          const sy = alongX ? (out > 0 ? f.y + f.d + 1.1 : f.y - 1.1) : f.y + f.d * t;
+          B.box(g, M.matteBlack, sx - 0.08, sx + 0.08, sy - 0.08, sy + 0.08, base, base + 2.4);
+          B.box(g, M.leather || P.fabric, sx - 0.7, sx + 0.7, sy - 0.7, sy + 0.7, base + 2.4, base + 2.6);
+        }
+      }
+      if (f.cooktop) cooktop(B, M, g, L ? workPart(f, L) : f, base, room);
       break;
+    }
     case 'oven': {
       // tall cabinet with a stacked double wall oven on its open face
       box(P.cabinet, R(f), 0, h);
@@ -227,6 +245,16 @@ export function furniture(B, M, g, f, base, room, P) {
     default:
       box(M.fabric, R(f), 0, h);
   }
+}
+
+/** The island's work surface (without the bar ledge). */
+function workPart(f, L) {
+  const r = { ...f };
+  if (L.side === '+y') r.d = f.d - L.d;
+  else if (L.side === '-y') { r.y = f.y + L.d; r.d = f.d - L.d; }
+  else if (L.side === '+x') r.w = f.w - L.d;
+  else { r.x = f.x + L.d; r.w = f.w - L.d; }
+  return r;
 }
 
 /** Gas cooktop centered in an island (black glass, cast-iron grates, knobs), plus an optional hood above. */
