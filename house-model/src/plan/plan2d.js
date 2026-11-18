@@ -467,8 +467,10 @@ export function floorPlanSVG(key) {
     s += patioWallSVG(0.6) + slopeArrows(0.85);
     if (patioWallSVG()) s += text(-2, -10, `retaining wall · up to ${Math.round(wallMax())}', tapers out`, 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
     s += note(36, 41.5, 'front wall fully below grade', 0.8);
-    s += note(WCX, WCY - 0.6, 'crawlspace under', 0.8);
-    s += note(WCX, WCY + 0.7, 'primary wing', 0.8);
+    if (floors.basement.footprint.length < 2) {
+      s += note(WCX, WCY - 0.6, 'crawlspace under', 0.8);
+      s += note(WCX, WCY + 0.7, 'primary wing', 0.8);
+    }
   }
 
   // room fills
