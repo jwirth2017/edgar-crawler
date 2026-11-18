@@ -491,7 +491,7 @@ function buildStairs(B, M) {
 // ─── fireplace chimney (living room → above the roof) ───────────────────────
 function buildChimney(B, M) {
   const fp = floors.main.furniture.find((f) => f.type === 'fireplace');
-  if (!fp) return;
+  if (!fp || fp.electric) return;   // electric: no flue, no chimney
   const roof = roofById('main');
   const cy = fp.y + fp.d / 2;
   const roofAt = roof.eave + Math.min(cy - roof.y, roof.y + roof.d - cy) * (roof.pitch / 12);

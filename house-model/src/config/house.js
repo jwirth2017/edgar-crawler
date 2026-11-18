@@ -208,9 +208,10 @@ export const floors = {
       // dining — by the deck glass, next to the kitchen; buffet on the end wall
       { type: 'table',   x: 37.5, y: 5,    w: 9,   d: 3.5, h: 2.5, chairs: 8, label: 'Table', noSqueeze: true },
       { type: 'dresser', x: 50.2, y: 3.5,  w: 1.8, d: 7,   h: 3,   label: 'Buffet', noSqueeze: true },
-      // living — under the two-story space: stone fireplace on the wall toward the den,
+      // living — under the two-story space: electric fireplace in a stone surround on the wall
+      // toward the den (no flue or chimney — purely the room's focal point),
       // sofa facing it, chairs either end; walks left (to the kitchen) and right (to the wing)
-      { type: 'fireplace', x: 36.2, y: 17.5, w: 1.8, d: 6,   h: 10, noTv: true, noSqueeze: true },
+      { type: 'fireplace', x: 36.2, y: 17.5, w: 1.8, d: 6,   h: 10, noTv: true, electric: true, label: 'Electric fireplace', noSqueeze: true },
       { type: 'sofa',      x: 22.5, y: 16.2, w: 3.3, d: 8.6, h: 2.8, faces: '+x', label: 'Sofa', noSqueeze: true },
       { type: 'table',     x: 27.2, y: 18.3, w: 2.5, d: 4.5, h: 1.4, noSqueeze: true },
       { type: 'chair',     x: 27,   y: 14.5, w: 3,   d: 3,   h: 2.7, faces: '+y', noSqueeze: true },
@@ -247,10 +248,16 @@ export const floors = {
       { type: 'tub',     x: 74.8, y: 4.5,  w: 2.9, d: 5.5, h: 2 },
       { type: 'shower',  x: 68.3, y: 10.8, w: 4.5, d: 4.9, h: 7.5 },
       { type: 'toilet',  x: 75.4, y: 14,   w: 2.3, d: 1.7, h: 1.4 },
-      // primary closet — double hanging on both long walls, rods raised for tall owners
-      { type: 'hanging', x: 64.3, y: 18,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
-      { type: 'hanging', x: 75.7, y: 18,   w: 2, d: 11.7, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang' },
-      { type: 'island',  x: 69.5, y: 21,   w: 3, d: 5,    h: 3 },
+      // primary closet (final 14 × 12) — hanging on every wall except the two doorways
+      // (bath door on the rear wall, laundry door on the left), rods raised for tall owners;
+      // single hang under the high front window; small island in the middle
+      { type: 'hanging', x: 75.7, y: 14.3, w: 2,   d: 11.4, h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
+      { type: 'hanging', x: 64.3, y: 14.3, w: 2,   d: 5.4,  h: 9, rods: [46 / 12, 92 / 12], label: 'Double hang', noSqueeze: true },
+      { type: 'hanging', x: 64.3, y: 23.4, w: 2,   d: 2.3,  h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
+      { type: 'hanging', x: 66.4, y: 14.3, w: 3.9, d: 2,    h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
+      { type: 'hanging', x: 73.8, y: 14.3, w: 1.8, d: 2,    h: 9, rods: [46 / 12, 92 / 12], noSqueeze: true },
+      { type: 'hanging', x: 66.4, y: 23.7, w: 9.2, d: 2,    h: 5.8, rods: [64 / 12], label: 'Long hang', noSqueeze: true },
+      { type: 'island',  x: 69,   y: 18.6, w: 4,   d: 2.6,  h: 3, noSqueeze: true },
       { type: 'appliance', x: 53,   y: 27.2, w: 5.4, d: 2.5, h: 3.3 },         // washer / dryer
       { type: 'counter',   x: 58.8, y: 27.7, w: 4.8, d: 2,   h: 3, sink: true },
       { type: 'tall',      x: 52.3, y: 21,   w: 1.7, d: 5,   h: 7 },
@@ -326,7 +333,6 @@ export const floors = {
       { type: 'bed',  x: 42,   y: 4,    w: 5,   d: 6.7, h: 2.2, label: 'Queen' },
       { type: 'desk', x: 36.5, y: 0.3,  w: 4,   d: 2,   h: 2.5 },
       { type: 'tall', x: 48,   y: 10.1, w: 2,   d: 1.7, h: 7 },
-      { type: 'chimney', x: 50.2, y: 3, w: 1.8, d: 6, h: 9, label: 'Chimney' },  // from the living-room fireplace
       // Jack & Jill: double vanity, tub/shower, toilet
       { type: 'counter', x: 44.5, y: 12.3, w: 7.2, d: 1.9, h: 3, sink: 2 },
       { type: 'tub',     x: 49,   y: 14.6, w: 2.7, d: 5.1, h: 1.8 },
@@ -471,6 +477,7 @@ export const exterior = {
     x: 0, y: -14, w: 78, d: 14, floor: -0.15,      // runs across the primary wing too
     pierSpacing: 13, pierSize: 2,           // stone piers down to the patio
     railing: 'cable', railHeight: 3.5,
+    gate: { y0: -4.5, y1: -1 },             // gate on the garage-side rail → steps down to the walk behind the garage
     // L-shaped stair down to the pool deck at the wing end: down toward the pool
     // (west), a 4 x 4 landing, then back south to the patio
     stairs: { x: 48, w: 4, firstRun: 8, riser: 7.25 / 12, tread: 10 / 12 },
@@ -581,7 +588,7 @@ function motorCourt() {
   // drawn at the final size: a 32 ft apron in front of the garage doors (room to back out
   // and turn around), wrapping behind the garage with a short retaining wall at the patio corner.
   return [
-    { poly: hull([[0, 0], [-8, -6], [-56, -6], [-56, 38], [-24, 38]]), wall: true, noSqueeze: true, labelAt: [-40, 6] },
+    { poly: hull([[0, 0], [0, -6], [-56, -6], [-56, 38], [-24, 38]]), wall: true, noSqueeze: true, labelAt: [-40, 6] },
   ];
 }
 

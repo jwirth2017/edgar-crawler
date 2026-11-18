@@ -92,7 +92,21 @@ function deck(B, M, lanterns) {
   if (st.x > d.x + 0.5) cableRail(B, M, g, [[d.x, d.y], [st.x, d.y]], zTop, d.railHeight);
   if (st.x + st.w < d.x + d.w - 0.5) cableRail(B, M, g, [[st.x + st.w, d.y], [d.x + d.w, d.y]], zTop, d.railHeight);
   cableRail(B, M, g, [[d.x + d.w, d.y], [d.x + d.w, d.y + d.d]], zTop, d.railHeight);
-  cableRail(B, M, g, [[d.x, d.y], [d.x, d.y + d.d]], zTop, d.railHeight);
+  if (d.gate) {
+    // garage-side rail with a gate to the walk behind the garage, two stone steps down to it
+    const { y0, y1 } = d.gate;
+    cableRail(B, M, g, [[d.x, d.y], [d.x, y0]], zTop, d.railHeight);
+    cableRail(B, M, g, [[d.x, y1], [d.x, d.y + d.d]], zTop, d.railHeight);
+    // the gate, shown closed: black frame with vertical pickets
+    const gx = d.x;
+    B.box(g, M.rail, gx - 0.06, gx + 0.06, y0 + 0.1, y1 - 0.1, zTop + 0.3, zTop + 0.42);
+    B.box(g, M.rail, gx - 0.06, gx + 0.06, y0 + 0.1, y1 - 0.1, zTop + d.railHeight - 0.12, zTop + d.railHeight);
+    for (let yy = y0 + 0.1; yy <= y1 - 0.1 + 1e-6; yy += (y1 - y0 - 0.2) / 8) B.box(g, M.rail, gx - 0.04, gx + 0.04, yy - 0.04, yy + 0.04, zTop + 0.3, zTop + d.railHeight);
+    const court = site.terrain.courtGrade;
+    const mid = (zTop + court) / 2;
+    B.box(g, M.stone, gx - 1.2, gx, y0, y1, court - 0.3, mid);
+    B.surface(gx - 1.2, gx, y0, y1, mid, 'gate step');
+  } else cableRail(B, M, g, [[d.x, d.y], [d.x, d.y + d.d]], zTop, d.railHeight);
   outdoorKitchen(B, M, zTop);
   // bar counter outside the kitchen pass-through
   const bc = d.barCounter;

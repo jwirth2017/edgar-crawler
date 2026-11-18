@@ -432,6 +432,12 @@ export function floorPlanSVG(key) {
     }
     const courts = [].concat(site.courtyard);
     for (const c of courts) s += area(c, `fill="#ebe8e1" stroke="none"`);
+    if (exterior.deck.gate) {
+      const { y0, y1 } = exterior.deck.gate; const deck = exterior.deck;
+      s += rect(exterior.deck.x - 1.2, y0, 1.2, y1 - y0, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.08"`);
+      s += line(exterior.deck.x, y0, exterior.deck.x - 0.3, y1 - 0.2, `stroke="${INK}" stroke-width="0.12"`);
+      s += text(exterior.deck.x - 1.6, (y0 + y1) / 2, 'gate', 0.75, `text-anchor="end" dominant-baseline="central" fill="#77746b"`);
+    }
     const ct = bbox(courts[0]);
     const stp = exterior.stoop;
     if (stp) s += rect(stp.x, stp.y, stp.w, stp.d, `fill="#d9d4c8" stroke="#9a968b" stroke-width="0.1"`);
