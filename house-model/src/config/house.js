@@ -130,7 +130,7 @@ export const floors = {
       { id: 'dining',  name: 'Dining',      use: 'living', x: 32, y: 0,  w: 20, d: 16, labelDy: 3.5,
         note: "glass to the deck · sunset" },
       // — center: the front door opens into the two-story living room —
-      { id: 'living', name: 'Living Room',  use: 'living', x: 18, y: 16, w: 20, d: 15, labelDx: -4.5, labelDy: 1,
+      { id: 'living', name: 'Living Room',  use: 'living', x: 18, y: 16, w: 20, d: 15, labelDx: -6.6, labelDy: 1,
         note: 'two-story · fireplace' },
       { id: 'foyer',  name: 'Foyer',        use: 'circ',   x: 20, y: 31, w: 12, d: 9,
         vaulted: true, note: 'open to above' },
@@ -216,12 +216,16 @@ export const floors = {
       // dining — by the deck glass, next to the kitchen; buffet on the end wall
       { type: 'table',   x: 37.5, y: 5,    w: 9,   d: 3.5, h: 2.5, chairs: 8, label: 'Table', noSqueeze: true },
       { type: 'dresser', x: 50.2, y: 3.5,  w: 1.8, d: 7,   h: 3,   label: 'Buffet', noSqueeze: true },
-      // living — under the two-story space: L-shaped sofa facing an electric corner fireplace
-      // (stone surround, no flue) where the wet bar was; walk to the wing stays clear behind it
-      { type: 'fireplace', x: 43.2, y: 21.2, w: 2.8, d: 2.8, h: 10, corner: true, electric: true, noTv: true, label: 'Electric fireplace', noSqueeze: true },
-      { type: 'sofa',      x: 31.5, y: 18.2, w: 3.3, d: 7.8, h: 2.8, faces: '+x', label: 'Sofa', noSqueeze: true },
-      { type: 'sofa',      x: 34.8, y: 18.2, w: 5.5, d: 3.3, h: 2.8, faces: '+y', noSqueeze: true },
-      { type: 'table',     x: 35.8, y: 22,   w: 3,   d: 2,   h: 1.4, noSqueeze: true },
+      // living — under the two-story space: electric corner fireplace in the front corner
+      // (den wall / coat-closet wall), angled toward an L sofa; walks to the kitchen (left)
+      // and to the wing (right, past the fireplace) stay clear
+      { type: 'fireplace', x: 35.2, y: 24.2, w: 2.8, d: 2.8, h: 10, corner: true, electric: true, noTv: true, label: 'Electric fireplace', noSqueeze: true },
+      { type: 'sofa',      x: 28,   y: 18.1, w: 7,   d: 3.3, h: 2.8, faces: '+y', label: 'Sofa', noSqueeze: true },
+      { type: 'sofa',      x: 24.7, y: 18.1, w: 3.3, d: 7,   h: 2.8, faces: '+x', noSqueeze: true },
+      { type: 'table',     x: 29.5, y: 22,   w: 3,   d: 2,   h: 1.4, noSqueeze: true },
+      // the old wet bar corner: bookcase + reading chair
+      { type: 'tall',      x: 44.8, y: 18.4, w: 1,   d: 5.3, h: 7, label: 'Bookcase', noSqueeze: true },
+      { type: 'chair',     x: 41.4, y: 20.6, w: 3,   d: 3,   h: 2.7, faces: '-x', noSqueeze: true },
       // foyer
       { type: 'table', x: 20.4, y: 33, w: 1.4, d: 5, h: 2.8 },
       // office — each desk faces its own window (front wall and left side wall)
