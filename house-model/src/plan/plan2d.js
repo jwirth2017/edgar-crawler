@@ -454,7 +454,7 @@ export function floorPlanSVG(key) {
     s += patioWallSVG(0.6) + slopeArrows(0.85);
     if (patioWallSVG()) s += text(-2, -10, `retaining wall · up to ${Math.round(wallMax())}', tapers out`, 0.75, `text-anchor="end" fill="#77746b" class="halo"`);
   } else {
-    bounds = key === 'upper' ? [-8, -8, 90, 50] : [-8, -40, 90, 52];
+    bounds = key === 'upper' ? [-8, -8, 100, 50] : [-8, -40, 100, 52];
     s += mainFootprintGhost();
   }
 

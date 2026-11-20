@@ -303,7 +303,7 @@ export const floors = {
       // — center: open to below — the kitchen and the dining room get double-height
       //   space and the gable glass; a 4 ft bridge crosses between them —
       { id: 'kitchenVoid', name: 'Open to Kitchen', use: 'void', x: 18, y: 0,  w: 14, d: 14, void: true },
-      { id: 'diningVoid',  name: 'Open to Living',  use: 'void', x: 20, y: 18, w: 12, d: 9,  void: true },
+      { id: 'diningVoid',  name: 'Open to Family Room',  use: 'void', x: 20, y: 18, w: 12, d: 9,  void: true },
       { id: 'foyerVoid',   name: 'Open to Foyer',   use: 'void', x: 20, y: 27, w: 12, d: 9,  void: true },
     ],
     openPlan: [['stair', '_hall'], ['diningVoid', 'foyerVoid']],
@@ -780,6 +780,191 @@ fitFurniture();
 {
   const F = (lvl, pred) => floors[lvl].furniture.find(pred) || {};
   Object.assign(F('main', (f) => f.label === 'Open shelves'), { y: 2.6, d: 6.1 });
+}
+
+// ── 6,500 sq ft version: the main house gets 10 ft wider ─────────────────────
+// Everything from x = 52 (the primary wing, its deck end, garage-side items
+// excepted) moves 10 ft north; the main block, its roof, porch and the patio
+// under the deck grow to 62 ft. The strip between the old dining/den and the
+// wing is then laid out again on every floor (final coordinates).
+widenX(52, 10);
+relayoutWideMain();
+
+function widenX(X0, dx) {
+  const seen = new WeakSet();
+  // pieces that end exactly at the old side wall grow with the house
+  const grow = (o) => { if (o && !seen.has(o)) { seen.add(o); o.w += dx; } };
+  grow(MAIN_BLOCK);
+  grow(exterior.roofs.find((r) => r.id === 'main'));
+  grow(exterior.porch);
+  grow(site.coveredPatio);
+  const rect = (o) => {
+    if (!o || seen.has(o)) return;
+    seen.add(o);
+    if (o.x >= X0) o.x += dx;
+    else if (o.x + o.w > X0) o.w += dx;
+  };
+  const opening = (o) => {
+    if (seen.has(o)) return;
+    seen.add(o);
+    if (o.on === 'x') { if (o.at >= X0) o.at += dx; }
+    else if (o.from >= X0) { o.from += dx; o.to += dx; }
+    else if (o.to > X0) o.to += dx;
+  };
+  for (const lvl of Object.values(floors)) {
+    (lvl.footprint || []).forEach(rect);
+    (lvl.rooms || []).forEach(rect);
+    (lvl.furniture || []).forEach(rect);
+    (lvl.openings || []).forEach(opening);
+  }
+  exterior.roofs.filter((r) => r.id !== 'main').forEach(rect);
+  rect(exterior.deck);
+  (site.furniture || []).forEach(rect);
+  exterior.porch.postSpacing = exterior.porch.w / 6;
+  for (const v of views) for (const k of ['at', 'look']) if (v[k] && v[k][0] >= X0) v[k][0] += dx;
+}
+
+function relayoutWideMain() {
+  const H = (lvl, ids) => { floors[lvl].rooms = floors[lvl].rooms.filter((r) => !ids.includes(r.id)); };
+  const inZone = (f, x0, x1, y0, y1) => f.x + f.w / 2 > x0 && f.x + f.w / 2 < x1 && f.y + f.d / 2 > y0 && f.y + f.d / 2 < y1;
+  const NS = { noSqueeze: true };
+
+  // ---------------- main floor ----------------
+  const m = floors.main;
+  H('main', ['dining', 'living', 'fireNook', 'powder', 'den', 'coat']);
+  m.rooms.push(
+    // rear: kitchen · breakfast nook · dining, all on the deck glass
+    { id: 'breakfast', name: 'Breakfast Nook', use: 'living', x: 32, y: 0, w: 10, d: 14, ...NS },
+    { id: 'dining',    name: 'Dining',         use: 'living', x: 42, y: 0, w: 20, d: 14, labelDy: 3.5, ...NS, note: 'glass to the deck' },
+    // center: two-story family room open to the kitchen (TV on the powder wall)
+    { id: 'living',    name: 'Family Room',    use: 'living', x: 18, y: 14, w: 20, d: 10, labelDx: -5, ...NS, note: 'two-story' },
+    { id: 'livingB',   name: 'Family Room',    use: 'living', x: 18, y: 24, w: 14, d: 3, ...NS, noLabel: true },
+    { id: 'powder',    name: 'Powder',         use: 'bath',   x: 38, y: 18, w: 6,  d: 6, ...NS },
+    // front: TV den next to the foyer, a real living room in the front-right corner
+    { id: 'den',       name: 'TV Den',         use: 'living', x: 32, y: 24, w: 12, d: 12, ...NS },
+    { id: 'livingRoom', name: 'Living Room',   use: 'living', x: 44, y: 18, w: 18, d: 18, ...NS, note: 'fireplace · TV-free' },
+    { id: 'coat',      name: 'Coat',           use: 'service', x: 14, y: 30, w: 6, d: 6, ...NS },
+    { id: 'wingHall',  name: 'Hall',           use: 'circ',   x: 38, y: 14, w: 24, d: 4, ...NS, noLabel: true },
+  );
+  m.openPlan = m.openPlan
+    .filter(([a, b]) => ![a, b].some((id) => ['fireNook', 'dining', 'living'].includes(id)))
+    .concat([['kitchen', 'living'], ['kitchen', 'breakfast'], ['breakfast', 'dining'], ['living', 'livingB'],
+      ['living', '_hall'], ['livingB', '_hall'], ['breakfast', '_hall'], ['dining', '_hall'],
+      ['wingHall', 'living'], ['breakfast', 'living'], ['wingHall', 'dining'], ['wingHall', 'breakfast'], ['wingHall', '_hall']]);
+  m.openings = m.openings.filter((o) => !(
+    (o.on === 'y' && o.at === 0 && o.from === 35) ||                        // old dining glass
+    (o.on === 'y' && o.at === 36 && o.from === 41) ||                       // old den window
+    (o.on === 'x' && o.at === 32 && o.from === 29) ||                       // old coat door
+    (o.on === 'y' && o.at === 18 && o.from === 47.5) ||                     // old powder door
+    (o.on === 'y' && o.at === 24 && o.from === 39.5)));                     // old den door
+  m.openings.push(
+    { kind: 'window',    on: 'y', at: 0,  from: 33.5, to: 40.5, sill: 2, ...NS },   // breakfast nook
+    { kind: 'glassdoor', on: 'y', at: 0,  from: 45,   to: 59, head: 9, ...NS },     // dining → deck
+    { kind: 'door',      on: 'y', at: 18, from: 39.5, to: 42, swing: -1, ...NS },   // powder, off the hall
+    { kind: 'door',      on: 'y', at: 24, from: 34.3, to: 37.3, ...NS },            // den, from the family room
+    { kind: 'window',    on: 'y', at: 36, from: 35,   to: 41, ...NS },              // den
+    { kind: 'opening',   on: 'y', at: 18, from: 46,   to: 60, ...NS },              // hall → living room, 14 ft cased
+    { kind: 'window',    on: 'y', at: 36, from: 46.5, to: 51.5, ...NS },            // living room, front
+    { kind: 'window',    on: 'y', at: 36, from: 54.5, to: 59.5, ...NS },
+    { kind: 'door',      on: 'x', at: 20, from: 31.5, to: 34.5, swing: -1, ...NS }, // coat, off the foyer
+  );
+  const gone = new Set(['Buffet', 'Electric fireplace', 'Sofa', 'Bookcase']);
+  m.furniture = m.furniture.filter((f) => !(gone.has(f.label) ||
+    inZone(f, 24, 52, 14, 36) || inZone(f, 32, 52, 0, 14)));
+  m.furniture.push(
+    // breakfast nook
+    { type: 'table',   x: 35,   y: 4.5,  w: 4,   d: 4,   h: 2.5, chairs: 4, label: 'Breakfast', ...NS },
+    // dining
+    { type: 'table',   x: 47.5, y: 5,    w: 9,   d: 3.5, h: 2.5, chairs: 8, label: 'Table', ...NS },
+    { type: 'dresser', x: 60.2, y: 3.5,  w: 1.8, d: 7,   h: 3,   label: 'Buffet', ...NS },
+    // family room: sofa facing a TV on the powder-room wall
+    { type: 'sofa',    x: 27,   y: 18.3, w: 3.3, d: 7.4, h: 2.8, faces: '+x', label: 'Sofa', ...NS },
+    { type: 'table',   x: 31.5, y: 19.8, w: 2.5, d: 4.4, h: 1.4, ...NS },
+    { type: 'tv',      x: 37.4, y: 18.6, w: 0.5, d: 5.4, h: 2, ...NS },
+    // powder
+    { type: 'counter', x: 38.3, y: 21.9, w: 3.2, d: 1.8, h: 3, sink: true, ...NS },
+    { type: 'toilet',  x: 42.1, y: 20.4, w: 1.7, d: 2.3, h: 1.4, ...NS },
+    // TV den (Cameron's): built-in on the foyer wall, TV on the back wall, sofa facing it
+    { type: 'tall',    x: 32.3, y: 27.6, w: 1.7, d: 8,   h: 7, ...NS },
+    { type: 'tv',      x: 37.8, y: 24.25, w: 5.6, d: 1.5, h: 2, ...NS },
+    { type: 'table',   x: 38.4, y: 27,   w: 4,   d: 2.4, h: 1.4, ...NS },
+    { type: 'sofa',    x: 35.2, y: 30.4, w: 8.4, d: 3.4, h: 2.8, faces: '-y', label: 'Sofa', ...NS },
+    // living room: electric fireplace on the wing wall, sofa facing it, chairs either end
+    { type: 'fireplace', x: 60.2, y: 24,  w: 1.8, d: 6,   h: 10, electric: true, noTv: true, label: 'Electric fireplace', ...NS },
+    { type: 'sofa',    x: 47.5, y: 23,   w: 3.3, d: 8,   h: 2.8, faces: '+x', label: 'Sofa', ...NS },
+    { type: 'table',   x: 52.3, y: 24.5, w: 2.6, d: 5,   h: 1.4, ...NS },
+    { type: 'chair',   x: 52.1, y: 19.8, w: 3,   d: 3,   h: 2.7, faces: '+y', ...NS },
+    { type: 'chair',   x: 52.1, y: 31.2, w: 3,   d: 3,   h: 2.7, faces: '-y', ...NS },
+  );
+
+  // ---------------- upper floor: four bedrooms ----------------
+  const u = floors.upper;
+  H('upper', ['bed1', 'jjBath', 'linen2', 'bed2']);
+  u.rooms.push(
+    { id: 'bed1',     name: 'Bedroom 1',     use: 'bed',  x: 36, y: 0,  w: 13, d: 12, ...NS, note: 'incl. closet' },
+    { id: 'bed4',     name: 'Bedroom 4',     use: 'bed',  x: 49, y: 0,  w: 13, d: 12, ...NS, note: 'incl. closet' },
+    { id: 'upHall',   name: 'Hall',          use: 'circ', x: 36, y: 12, w: 26, d: 4,  ...NS, noLabel: true },
+    { id: 'study',    name: 'Homework Nook', use: 'living', x: 36, y: 16, w: 13, d: 8, ...NS },
+    { id: 'hallBath', name: 'Hall Bath',     use: 'bath', x: 49, y: 16, w: 13, d: 8,  ...NS, note: 'Bedrooms 1 + 4' },
+    { id: 'bed2',     name: 'Bedroom 2',     use: 'bed',  x: 36, y: 24, w: 18, d: 12, ...NS, note: 'incl. closet' },
+    { id: 'bath2',    name: 'Bath 2',        use: 'bath', x: 54, y: 24, w: 8,  d: 12, ...NS },
+  );
+  u.openPlan = (u.openPlan || []).concat([['upHall', '_hall'], ['study', 'upHall']]);
+  u.openings = u.openings.filter((o) => !(
+    (o.on === 'x' && o.at === 36) || (o.on === 'y' && [12, 20].includes(o.at) && o.from === 41) ||
+    (o.on === 'y' && o.at === 0 && o.from === 40) || (o.on === 'y' && o.at === 36 && o.from === 41) ||
+    (o.on === 'x' && o.at === 62)));
+  u.openings.push(
+    { kind: 'door',   on: 'y', at: 12, from: 44.5, to: 47, swing: -1, ...NS },  // bedroom 1
+    { kind: 'door',   on: 'y', at: 12, from: 51,   to: 53.5, swing: -1, ...NS },// bedroom 4
+    { kind: 'door',   on: 'y', at: 16, from: 50,   to: 52.5, ...NS },           // hall bath
+    { kind: 'door',   on: 'x', at: 36, from: 25,   to: 27.5, ...NS },           // bedroom 2, off the gallery
+    { kind: 'door',   on: 'x', at: 54, from: 25,   to: 27.5, ...NS },           // bath 2, from bedroom 2
+    { kind: 'window', on: 'y', at: 0,  from: 37.5, to: 42.5, ...NS },           // bedroom 1
+    { kind: 'window', on: 'y', at: 0,  from: 53,   to: 58, ...NS },             // bedroom 4
+    { kind: 'window', on: 'x', at: 62, from: 3,    to: 7, sill: 3, ...NS },     // bedroom 4, side (clears the wing roof)
+    { kind: 'window', on: 'y', at: 36, from: 39,   to: 46, ...NS },             // bedroom 2
+    { kind: 'window', on: 'y', at: 36, from: 57,   to: 60, sill: 5, ...NS },    // bath 2
+    { kind: 'window', on: 'x', at: 62, from: 18,   to: 21, sill: 6, ...NS },    // hall bath, high
+  );
+  u.furniture = u.furniture.filter((f) => !inZone(f, 34, 62, 0, 36));
+  u.furniture.push(
+    { type: 'bed',     x: 37,   y: 4,    w: 6.7, d: 5,   h: 2.2, label: 'Queen', ...NS },
+    { type: 'desk',    x: 44.6, y: 0.3,  w: 4,   d: 2,   h: 2.5, ...NS },
+    { type: 'bed',     x: 54.8, y: 4,    w: 6.7, d: 5,   h: 2.2, label: 'Queen', ...NS },
+    { type: 'desk',    x: 49.4, y: 0.3,  w: 3.4, d: 2,   h: 2.5, ...NS },
+    { type: 'desk',    x: 36.5, y: 21.7, w: 9,   d: 2,   h: 2.5, label: 'Homework desks', ...NS },
+    { type: 'counter', x: 54.5, y: 21.8, w: 7.2, d: 1.9, h: 3, sink: 2, ...NS },
+    { type: 'tub',     x: 59.1, y: 16.3, w: 2.7, d: 5.1, h: 2, ...NS },
+    { type: 'toilet',  x: 55.6, y: 16.3, w: 1.7, d: 2.3, h: 1.4, ...NS },
+    { type: 'bed',     x: 42.5, y: 29,   w: 5,   d: 6.7, h: 2.2, label: 'Queen', ...NS },
+    { type: 'desk',    x: 48.5, y: 33.7, w: 5,   d: 2,   h: 2.5, ...NS },
+    { type: 'tall',    x: 36.3, y: 30,   w: 2,   d: 5.7, h: 7, ...NS },
+    { type: 'counter', x: 54.3, y: 30.5, w: 1.9, d: 4.5, h: 3, sink: true, ...NS },
+    { type: 'tub',     x: 59.1, y: 24.4, w: 2.7, d: 5.1, h: 2, ...NS },
+    { type: 'toilet',  x: 55.8, y: 24.4, w: 1.7, d: 2.3, h: 1.4, ...NS },
+  );
+
+  // ---------------- basement: bigger bar + shuffleboard ----------------
+  const b = floors.basement;
+  const bar = b.rooms.find((r) => r.id === 'bar');
+  bar.w += 10;
+  b.rooms.push({ id: 'game', name: 'Shuffleboard', use: 'living', x: 52, y: 12, w: 10, d: 24, ...NS });
+  b.openPlan = (b.openPlan || []).concat([['bar', 'game']]);
+  b.openings.push({ kind: 'window', on: 'y', at: 0, from: 54, to: 60, sill: 3, ...NS });
+  b.furniture.push(
+    { type: 'table', x: 55,   y: 2.5,  w: 4, d: 4,  h: 2.5, chairs: 4, label: 'Cards', ...NS },
+    { type: 'table', x: 56,   y: 13.5, w: 2, d: 20, h: 2.6, label: 'Shuffleboard', ...NS },
+  );
+
+  // walkthrough views
+  const V = (id) => views.find((v) => v.id === id);
+  Object.assign(V('living') || {}, { name: 'Family room', at: [20, 25], look: [38, 20] });
+  Object.assign(V('dining') || {}, { at: [46, 12.5], look: [54, -10] });
+  views.push(
+    { id: 'livingRoom', name: 'Living room', type: 'walk', level: 'main', at: [46, 34], look: [62, 25] },
+    { id: 'nook', name: 'Breakfast nook', type: 'walk', level: 'main', at: [30, 12], look: [38, -10], pitch: -0.1 },
+  );
 }
 
 /** Keep every piece of furniture inside the room it stands in (rooms got shorter). */
